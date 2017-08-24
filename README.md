@@ -5,6 +5,15 @@ This library is a thin wrapper that uses the TIKZ library and LaTeX to build the
 
 ![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/images_for_readme/mdf.png)
 
+# Installation
+Clone this repo or download the zip and unzip it.
+
+    cd pyxdsm
+    pip install .
+
+
+
+
 ## What is XDSM?
 The eXtended Design Struture Matrix (XDSM) is a graphical language for describing the movement of data and the execution sequence for a  multidisciplinary optimization  problem.
 You can read the [paper by Lamb and Martins](http://mdolab.engin.umich.edu/content/extensions-design-structure-matrix) for all the details.
