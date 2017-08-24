@@ -65,4 +65,4 @@ x.add_output('F', r'$f^*$', side='left')
 x.add_output('G', r'$g^*$', side='left')
 x.write('mdf')
 ```
-
+![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/examples/mdf.pdf)
