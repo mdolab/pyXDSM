@@ -1,6 +1,6 @@
 from pyxdsm.XDSM import XDSM
 
-# styling names for the boxes
+#
 opt = 'Optimization'
 solver = 'MDA'
 comp = 'Analysis'
