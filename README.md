@@ -1,6 +1,7 @@
 # pyXDSM
-    A python library for generating PDF XDSM diagrams.
-    This library is a thin wrapper that uses the TIKZ library and LaTeX to build the PDFs.
+
+A python library for generating PDF XDSM diagrams.
+This library is a thin wrapper that uses the TIKZ library and LaTeX to build the PDFs.
 
 ## What is XDSM?
 The eXtended Design Struture Matrix (XDSM) is a graphical language for describing the movement of data and the execution sequence for a  multidisciplinary optimization  problem.
