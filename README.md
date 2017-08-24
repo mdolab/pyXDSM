@@ -3,16 +3,13 @@
 A python library for generating publication quality PDF XDSM diagrams.
 This library is a thin wrapper that uses the TIKZ library and LaTeX to build the PDFs.
 
-![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/images_for_readme/mdf.png)
-
 # Installation
 Clone this repo or download the zip and unzip it.
 
     cd pyxdsm
     pip install .
 
-
-
+![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/images_for_readme/mdf.png)
 
 ## What is XDSM?
 The eXtended Design Struture Matrix (XDSM) is a graphical language for describing the movement of data and the execution sequence for a  multidisciplinary optimization  problem.
