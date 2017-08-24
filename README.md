@@ -1,6 +1,6 @@
 # pyXDSM
 
-A python library for generating PDF XDSM diagrams.
+A python library for generating publication quality PDF XDSM diagrams.
 This library is a thin wrapper that uses the TIKZ library and LaTeX to build the PDFs.
 
 ![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/images_for_readme/mdf.png)
