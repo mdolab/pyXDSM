@@ -5,6 +5,18 @@ This library is a thin wrapper that uses the TIKZ library and LaTeX to build the
 
 ## What is XDSM?
 The eXtended Design Struture Matrix (XDSM) is a graphical language for describing the movement of data and the execution sequence for a  multidisciplinary optimization  problem.
+You can read the [paper by Lamb and Martins](http://mdolab.engin.umich.edu/content/extensions-design-structure-matrix) for all the details.
+If you  would like a citation for XDSM, here is the bibtex for that paper:
+    @article {Lambe2012,
+    title = {Extensions to the Design Structure Matrix for the Description of Multidisciplinary Design, Analysis, and Optimization Processes},
+    journal = {Structural and Multidisciplinary Optimization},
+    volume = {46},
+    year = {2012},
+    pages = {273-284},
+    doi = {10.1007/s00158-012-0763-y},
+    author = {Andrew B. Lambe and Joaquim R. R. A. Martins}
+    }
+
 
 ## TIKZ and LaTeX?
 You need to install these libraries for pyXDSM to work. See the [install guide](https://www.latex-project.org/get/) for your platform
