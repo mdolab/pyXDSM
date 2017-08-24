@@ -1,8 +1,8 @@
 from pyxdsm.XDSM import XDSM
 
+# styling names for the boxes
 opt = 'Optimization'
 solver = 'MDA'
-proc = 'ProcessTip'
 comp = 'Analysis'
 group = 'Metamodel'
 func = 'Function'
