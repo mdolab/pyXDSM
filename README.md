@@ -74,3 +74,30 @@ x.add_output('G', r'$g^*$', side='left')
 x.write('mdf')
 ```
 ![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/images_for_readme/mdf.png)
+
+
+This will output three useful files.  The files `mdf.tex` will be a standalone document that
+is also compiled to `mdf.pdf`.  In addition `mdf_tikzpicture.tex` can be embedded in another
+tex file.
+
+```
+\begin{figure}
+  \caption{Example of an MDF XDSM.}
+  \centering
+  \input{mdf_tikzpicture}
+  \label{fig:xdsm}
+\end{figure}
+```
+
+The following is required to be in the preamble of the document:
+
+```
+\usepackage{geometry}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+
+\input{ diagram_border_path }
+
+```
