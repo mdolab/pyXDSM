@@ -2,6 +2,32 @@ from __future__ import print_function
 import os
 import numpy as np
 
+tikzpicture_template = r"""
+%%% Preamble %%%
+% \usepackage{{geometry}}
+% \usepackage{{amsfonts}}
+% \usepackage{{amsmath}}
+% \usepackage{{amssymb}}
+% \usepackage{{tikz}}
+
+% \input{{ {diagram_border_path} }}
+
+%%% End Preamble %%%
+
+\input{{ {diagram_styles_path} }}
+\begin{{tikzpicture}}
+
+\matrix[MatrixSetup]{{
+{nodes}}};
+
+\begin{{pgfonlayer}}{{data}}
+\path
+{edges}
+\end{{pgfonlayer}}
+
+\end{{tikzpicture}}
+"""
+
 tex_template = r"""
 \documentclass{{article}}
 \usepackage{{geometry}}
@@ -11,6 +37,12 @@ tex_template = r"""
 \usepackage{{tikz}}
 
 \input{{ {diagram_border_path} }}
+
+% Set the border around all of the architecture diagrams to be tight to the diagrams themselves
+% (i.e. no longer need to tinker with page size parameters)
+\usepackage[active,tightpage]{{preview}}
+\PreviewEnvironment{{tikzpicture}}
+\setlength{{\PreviewBorder}}{{5pt}}
 
 \begin{{document}}
 
@@ -197,7 +229,7 @@ class XDSM(object):
         return paths_str
 
 
-    def write(self, file_name, build=True):
+    def write(self, file_name, tikzpicture=True, build=True):
 
         nodes = self._build_node_grid()
         edges = self._build_edges()
@@ -206,11 +238,20 @@ class XDSM(object):
         diagram_border_path = os.path.join(module_path, 'diagram_border')
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
 
-        tex_str = tex_template.format(nodes=nodes, edges=edges, diagram_border_path=diagram_border_path, diagram_styles_path=diagram_styles_path)
+        tikzpicture_str = tikzpicture_template.format(nodes=nodes, edges=edges,
+                                                      diagram_border_path=diagram_border_path,
+                                                      diagram_styles_path=diagram_styles_path)
 
-        f = open(file_name+'.tex','w')
-        f.write(tex_str)
-        f.close()
+        tex_str = tex_template.format(nodes=nodes, edges=edges,
+                                      diagram_border_path=diagram_border_path,
+                                      diagram_styles_path=diagram_styles_path)
+
+        if tikzpicture:
+            with open(file_name + '_tikzpicture.tex', 'w') as f:
+                f.write(tikzpicture_str)
+
+        with open(file_name + '.tex', 'w') as f:
+            f.write(tex_str)
 
         if build:
             os.system('pdflatex ' + file_name + '.tex')
