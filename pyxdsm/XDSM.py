@@ -47,19 +47,8 @@ tex_template = r"""
 
 \begin{{document}}
 
-\input{{ {diagram_styles_path} }}
+\input{{ {tikzpicture_path} }}
 
-\begin{{tikzpicture}}
-
-\matrix[MatrixSetup]{{
-{nodes}}};
-
-\begin{{pgfonlayer}}{{data}}
-\path
-{edges}
-\end{{pgfonlayer}}
-
-\end{{tikzpicture}}
 \end{{document}}
 """
 
@@ -231,6 +220,25 @@ class XDSM(object):
 
 
     def write(self, file_name, build=True):
+        """
+        Write output files for the XDSM diagram.  This produces the following:
+
+            - {file_name}.tikz
+                A file containing the TIKZ definition of the XDSM diagram.
+            - {file_name}.tex
+                A standalone document wrapped around an include of the TIKZ file which can
+                be compiled to a pdf.
+            - {file_name}.pdf
+                An optional compiled version of the standalone tex file.
+
+        Parameters
+        ----------
+        file_name : str
+            The prefix to be used for the output files
+        build : bool
+            Flag that determines whether the standalone PDF of the XDSM will be compiled.
+            Default is True.
+        """
         nodes = self._build_node_grid()
         edges = self._build_edges()
 
@@ -238,7 +246,15 @@ class XDSM(object):
         diagram_border_path = os.path.join(module_path, 'diagram_border')
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
 
+        tikzpicture_str = tikzpicture_template.format(nodes=nodes,
+                                                      edges=edges,
+                                                      diagram_styles_path=diagram_styles_path)
+
+        with open(file_name + '.tikz', 'w') as f:
+            f.write(tikzpicture_str)
+
         tex_str = tex_template.format(nodes=nodes, edges=edges,
+                                      tikzpicture_path=file_name + '.tikz',
                                       diagram_border_path=diagram_border_path,
                                       diagram_styles_path=diagram_styles_path)
 
@@ -247,21 +263,3 @@ class XDSM(object):
 
         if build:
             os.system('pdflatex ' + file_name + '.tex')
-
-
-    def write_embeddable(self, filename):
-
-        nodes = self._build_node_grid()
-        edges = self._build_edges()
-
-        module_path = os.path.dirname(__file__)
-        diagram_styles_path = os.path.join(module_path, 'diagram_styles')
-
-        tikzpicture_str = tikzpicture_template.format(nodes=nodes,
-                                                      edges=edges,
-                                                      diagram_styles_path=diagram_styles_path)
-
-        with open(filename + '_tikzpicture.tex', 'w') as f:
-            f.write(tikzpicture_str)
-
-
