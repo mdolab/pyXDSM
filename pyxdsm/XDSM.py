@@ -10,7 +10,8 @@ tikzpicture_template = r"""
 % \usepackage{{amssymb}}
 % \usepackage{{tikz}}
 
-% \input{{ {diagram_border_path} }}
+% \usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}} 
+
 
 %%% End Preamble %%%
 
@@ -229,8 +230,7 @@ class XDSM(object):
         return paths_str
 
 
-    def write(self, file_name, tikzpicture=True, build=True):
-
+    def write(self, file_name, build=True):
         nodes = self._build_node_grid()
         edges = self._build_edges()
 
@@ -238,17 +238,9 @@ class XDSM(object):
         diagram_border_path = os.path.join(module_path, 'diagram_border')
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
 
-        tikzpicture_str = tikzpicture_template.format(nodes=nodes, edges=edges,
-                                                      diagram_border_path=diagram_border_path,
-                                                      diagram_styles_path=diagram_styles_path)
-
         tex_str = tex_template.format(nodes=nodes, edges=edges,
                                       diagram_border_path=diagram_border_path,
                                       diagram_styles_path=diagram_styles_path)
-
-        if tikzpicture:
-            with open(file_name + '_tikzpicture.tex', 'w') as f:
-                f.write(tikzpicture_str)
 
         with open(file_name + '.tex', 'w') as f:
             f.write(tex_str)
@@ -256,5 +248,20 @@ class XDSM(object):
         if build:
             os.system('pdflatex ' + file_name + '.tex')
 
+
+    def write_embeddable(self, filename):
+
+        nodes = self._build_node_grid()
+        edges = self._build_edges()
+
+        module_path = os.path.dirname(__file__)
+        diagram_styles_path = os.path.join(module_path, 'diagram_styles')
+
+        tikzpicture_str = tikzpicture_template.format(nodes=nodes,
+                                                      edges=edges,
+                                                      diagram_styles_path=diagram_styles_path)
+
+        with open(filename + '_tikzpicture.tex', 'w') as f:
+            f.write(tikzpicture_str)
 
 
