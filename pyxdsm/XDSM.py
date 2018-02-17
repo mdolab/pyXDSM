@@ -2,20 +2,20 @@ from __future__ import print_function
 import os
 import numpy as np
 
-tex_template = r"""
-\documentclass{{article}}
-\usepackage{{geometry}}
-\usepackage{{amsfonts}}
-\usepackage{{amsmath}}
-\usepackage{{amssymb}}
-\usepackage{{tikz}}
+tikzpicture_template = r"""
+%%% Preamble %%%
+% \usepackage{{geometry}}
+% \usepackage{{amsfonts}}
+% \usepackage{{amsmath}}
+% \usepackage{{amssymb}}
+% \usepackage{{tikz}}
 
-\input{{ {diagram_border_path} }}
+% \usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}} 
 
-\begin{{document}}
+
+%%% End Preamble %%%
 
 \input{{ {diagram_styles_path} }}
-
 \begin{{tikzpicture}}
 
 \matrix[MatrixSetup]{{
@@ -27,6 +27,28 @@ tex_template = r"""
 \end{{pgfonlayer}}
 
 \end{{tikzpicture}}
+"""
+
+tex_template = r"""
+\documentclass{{article}}
+\usepackage{{geometry}}
+\usepackage{{amsfonts}}
+\usepackage{{amsmath}}
+\usepackage{{amssymb}}
+\usepackage{{tikz}}
+
+\input{{ {diagram_border_path} }}
+
+% Set the border around all of the architecture diagrams to be tight to the diagrams themselves
+% (i.e. no longer need to tinker with page size parameters)
+\usepackage[active,tightpage]{{preview}}
+\PreviewEnvironment{{tikzpicture}}
+\setlength{{\PreviewBorder}}{{5pt}}
+
+\begin{{document}}
+
+\input{{ {tikzpicture_path} }}
+
 \end{{document}}
 """
 
@@ -198,7 +220,25 @@ class XDSM(object):
 
 
     def write(self, file_name, build=True):
+        """
+        Write output files for the XDSM diagram.  This produces the following:
 
+            - {file_name}.tikz
+                A file containing the TIKZ definition of the XDSM diagram.
+            - {file_name}.tex
+                A standalone document wrapped around an include of the TIKZ file which can
+                be compiled to a pdf.
+            - {file_name}.pdf
+                An optional compiled version of the standalone tex file.
+
+        Parameters
+        ----------
+        file_name : str
+            The prefix to be used for the output files
+        build : bool
+            Flag that determines whether the standalone PDF of the XDSM will be compiled.
+            Default is True.
+        """
         nodes = self._build_node_grid()
         edges = self._build_edges()
 
@@ -206,14 +246,20 @@ class XDSM(object):
         diagram_border_path = os.path.join(module_path, 'diagram_border')
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
 
-        tex_str = tex_template.format(nodes=nodes, edges=edges, diagram_border_path=diagram_border_path, diagram_styles_path=diagram_styles_path)
+        tikzpicture_str = tikzpicture_template.format(nodes=nodes,
+                                                      edges=edges,
+                                                      diagram_styles_path=diagram_styles_path)
 
-        f = open(file_name+'.tex','w')
-        f.write(tex_str)
-        f.close()
+        with open(file_name + '.tikz', 'w') as f:
+            f.write(tikzpicture_str)
+
+        tex_str = tex_template.format(nodes=nodes, edges=edges,
+                                      tikzpicture_path=file_name + '.tikz',
+                                      diagram_border_path=diagram_border_path,
+                                      diagram_styles_path=diagram_styles_path)
+
+        with open(file_name + '.tex', 'w') as f:
+            f.write(tex_str)
 
         if build:
             os.system('pdflatex ' + file_name + '.tex')
-
-
-
