@@ -75,24 +75,18 @@ x.write('mdf')
 ```
 ![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/images_for_readme/mdf.png)
 
-This will output `mdf.tex`, a standalone tex document that is also compiled to `mdf.pdf`.
+This will output `mdf.tex`, a standalone tex document that (by default) is also compiled to `mdf.pdf`.
 
 ## Embedding the diagram directly in LaTeX
 
-In addition, the file, `mdf_tikzpicture.tex`, can be embedded in another
-tex file.  This file is generated with the `write_embeddable` method.
-
-```python
-x.write_embeddable('mdf')
-```
-
-Which can be input directly into a LaTeX file:
+In addition, the file, `mdf.tikz`, can be embedded in another tex file using
+the `\input` command:  
 
 ```
 \begin{figure}
   \caption{Example of an MDF XDSM.}
   \centering
-  \input{mdf_tikzpicture}
+  \input{mdf.tikz}
   \label{fig:xdsm}
 \end{figure}
 ```
@@ -107,5 +101,4 @@ The following is required to be in the preamble of the document:
 \usepackage{tikz}
 
 \usetikzlibrary{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}
-
 ```

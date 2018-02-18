@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 tikzpicture_template = r"""
-%%% Preamble %%%
+%%% Preamble Requirements %%%
 % \usepackage{{geometry}}
 % \usepackage{{amsfonts}}
 % \usepackage{{amsmath}}
@@ -12,8 +12,7 @@ tikzpicture_template = r"""
 
 % \usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}} 
 
-
-%%% End Preamble %%%
+%%% End Preamble Requirements %%%
 
 \input{{ {diagram_styles_path} }}
 \begin{{tikzpicture}}
@@ -37,7 +36,9 @@ tex_template = r"""
 \usepackage{{amssymb}}
 \usepackage{{tikz}}
 
-\input{{ {diagram_border_path} }}
+% Define the set of tikz packages to be included in the architecture diagram document
+\usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}}
+
 
 % Set the border around all of the architecture diagrams to be tight to the diagrams themselves
 % (i.e. no longer need to tinker with page size parameters)
@@ -243,7 +244,6 @@ class XDSM(object):
         edges = self._build_edges()
 
         module_path = os.path.dirname(__file__)
-        diagram_border_path = os.path.join(module_path, 'diagram_border')
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
 
         tikzpicture_str = tikzpicture_template.format(nodes=nodes,
@@ -255,7 +255,6 @@ class XDSM(object):
 
         tex_str = tex_template.format(nodes=nodes, edges=edges,
                                       tikzpicture_path=file_name + '.tikz',
-                                      diagram_border_path=diagram_border_path,
                                       diagram_styles_path=diagram_styles_path)
 
         with open(file_name + '.tex', 'w') as f:
