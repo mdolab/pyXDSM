@@ -220,7 +220,7 @@ class XDSM(object):
         return paths_str
 
 
-    def write(self, file_name, build=True):
+    def write(self, file_name=None, build=True, cleanup=True):
         """
         Write output files for the XDSM diagram.  This produces the following:
 
@@ -239,6 +239,8 @@ class XDSM(object):
         build : bool
             Flag that determines whether the standalone PDF of the XDSM will be compiled.
             Default is True.
+        cleanup: bool
+            Flag that determines if padlatex build files will be deleted after build is complete
         """
         nodes = self._build_node_grid()
         edges = self._build_edges()
@@ -257,8 +259,14 @@ class XDSM(object):
                                       tikzpicture_path=file_name + '.tikz',
                                       diagram_styles_path=diagram_styles_path)
 
-        with open(file_name + '.tex', 'w') as f:
-            f.write(tex_str)
+        if file_name:
+            with open(file_name + '.tex', 'w') as f:
+                f.write(tex_str)
 
         if build:
             os.system('pdflatex ' + file_name + '.tex')
+                for ext in ['aux', 'fdb_latexmk', 'fls', 'log']:
+                        f_name = '{}.{}'.format(out_file, ext)
+                        if os.path.exists(f_name): 
+                            os.remove(f_name)
+            if cleanup: 
