@@ -10,7 +10,7 @@ tikzpicture_template = r"""
 % \usepackage{{amssymb}}
 % \usepackage{{tikz}}
 
-% \usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}} 
+% \usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}}
 
 %%% End Preamble Requirements %%%
 
@@ -265,8 +265,8 @@ class XDSM(object):
 
         if build:
             os.system('pdflatex ' + file_name + '.tex')
+            if cleanup:
                 for ext in ['aux', 'fdb_latexmk', 'fls', 'log']:
-                        f_name = '{}.{}'.format(out_file, ext)
-                        if os.path.exists(f_name): 
-                            os.remove(f_name)
-            if cleanup: 
+                    f_name = '{}.{}'.format(file_name, ext)
+                    if os.path.exists(f_name):
+                        os.remove(f_name)
