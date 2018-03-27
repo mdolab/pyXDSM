@@ -17,6 +17,8 @@ x.add_system('F', func, r'$F$')
 # stacked can be used to represent multiple instances that can be run in parallel
 x.add_system('G', func, r'$G$', stack=True)
 
+x.add_process('opt', 'D1', 'D2', 'F', 'G', 'opt')
+
 
 x.connect('opt', 'D1', r'$x, z, y_2$')
 x.connect('opt', 'D2', r'$z, y_1$')
@@ -44,4 +46,4 @@ x.add_output('D2', r'$y_2^*$', side='left')
 x.add_output('F', r'$f^*$', side='right')
 x.add_output('G', r'$g^*$', side='right')
 
-x.write('idf')
+x.write('idf', cleanup=False)

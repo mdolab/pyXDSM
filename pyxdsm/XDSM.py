@@ -20,6 +20,9 @@ tikzpicture_template = r"""
 \matrix[MatrixSetup]{{
 {nodes}}};
 
+% XDSM process chains
+{process}
+
 \begin{{pgfonlayer}}{{data}}
 \path
 {edges}
@@ -61,6 +64,7 @@ class XDSM(object):
         self.left_outs = {}
         self.right_outs = {}
         self.ins = {}
+        self.processes = []
 
     def add_system(self, node_name, style, label, stack=False, faded=False):
         self.comps.append([node_name, style, label, stack, faded])
@@ -78,6 +82,9 @@ class XDSM(object):
         if src == target:
             raise ValueError('Can not connect component to itself')
         self.connections.append([src, target, style, label, stack, faded])
+
+    def add_process(self, *systems):
+        self.processes.append(systems)
 
     def _build_node_grid(self):
         size = len(self.comps)
@@ -219,6 +226,23 @@ class XDSM(object):
 
         return paths_str
 
+    def _build_process_chain(self):
+        sys_names = [s[0] for s in self.comps]
+
+        chain_str = ""
+
+        for proc in self.processes:
+            chain_str += "{ [start chain=process]\n \\begin{pgfonlayer}{process} \n"
+            for i, sys in enumerate(proc):
+                if sys not in sys_names:
+                    raise ValueError('process includes a system named "{}" but no system with that name exists.'.format(sys))
+                if i == 0:
+                    chain_str += "\\chainin ({});\n".format(sys)
+                else:
+                    chain_str += "\\chainin ({}) [join=by ProcessHV];\n".format(sys)
+            chain_str += "\\end{pgfonlayer}\n}"
+
+        return chain_str
 
     def write(self, file_name=None, build=True, cleanup=True):
         """
@@ -244,12 +268,14 @@ class XDSM(object):
         """
         nodes = self._build_node_grid()
         edges = self._build_edges()
+        process = self._build_process_chain()
 
         module_path = os.path.dirname(__file__)
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
 
         tikzpicture_str = tikzpicture_template.format(nodes=nodes,
                                                       edges=edges,
+                                                      process=process,
                                                       diagram_styles_path=diagram_styles_path)
 
         with open(file_name + '.tikz', 'w') as f:
