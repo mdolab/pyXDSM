@@ -23,9 +23,6 @@ tikzpicture_template = r"""
 % XDSM process chains
 {process}
 
-% XDSM process arrows
-{arrows}
-
 \begin{{pgfonlayer}}{{data}}
 \path
 {edges}
@@ -68,7 +65,7 @@ class XDSM(object):
         self.right_outs = {}
         self.ins = {}
         self.processes = []
-	self.process_arrows = []
+        self.process_arrows = []
 
     def add_system(self, node_name, style, label, stack=False, faded=False):
         self.comps.append([node_name, style, label, stack, faded])
@@ -87,11 +84,9 @@ class XDSM(object):
             raise ValueError('Can not connect component to itself')
         self.connections.append([src, target, style, label, stack, faded])
 
-    def add_process(self, *systems):
+    def add_process(self, *systems, arrow=True):
         self.processes.append(systems)
-
-    def add_process_arrow(self, *systems):
-        self.process_arrows.append(systems)
+        self.process_arrows.append(arrow)
 
     def _build_node_grid(self):
         size = len(self.comps)
@@ -238,7 +233,7 @@ class XDSM(object):
 
         chain_str = ""
 
-        for proc in self.processes:
+        for proc, arrow in zip(self.processes, self.process_arrows):
             chain_str += "{ [start chain=process]\n \\begin{pgfonlayer}{process} \n"
             for i, sys in enumerate(proc):
                 if sys not in sys_names:
@@ -246,30 +241,13 @@ class XDSM(object):
                 if i == 0:
                     chain_str += "\\chainin ({});\n".format(sys)
                 else:
-                    chain_str += "\\chainin ({}) [join=by ProcessHV];\n".format(sys)
+                    if arrow:
+                        chain_str += "\\chainin ({}) [join=by ProcessHVA];\n".format(sys)
+                    else:
+                        chain_str += "\\chainin ({}) [join=by ProcessHV];\n".format(sys)
             chain_str += "\\end{pgfonlayer}\n}"
 
         return chain_str
-
-    def _build_process_arrow(self):
-        sys_names = [s[0] for s in self.comps]
-
-        chain_str = ""
-
-        for proc in self.process_arrows:
-            chain_str += "{ [start chain=process]\n \\begin{pgfonlayer}{process} \n"
-            for i, sys in enumerate(proc):
-                if sys not in sys_names:
-                    raise ValueError('process includes a system named "{}" but no system with that name exists.'.format(sys))
-                if i == 0:
-                    chain_str += "\\chainin ({});\n".format(sys)
-                else:
-                    chain_str += "\\chainin ({}) [join=by ProcessHVA];\n".format(sys)
-            chain_str += "\\end{pgfonlayer}\n}"
-
-        return chain_str
-
-
 
     def write(self, file_name=None, build=True, cleanup=True):
         """
@@ -296,7 +274,6 @@ class XDSM(object):
         nodes = self._build_node_grid()
         edges = self._build_edges()
         process = self._build_process_chain()
-        arrows = self._build_process_arrow()
 
         module_path = os.path.dirname(__file__)
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
@@ -304,7 +281,6 @@ class XDSM(object):
         tikzpicture_str = tikzpicture_template.format(nodes=nodes,
                                                       edges=edges,
                                                       process=process,
-                                          	      arrows=arrows,
                                                       diagram_styles_path=diagram_styles_path)
 
         with open(file_name + '.tikz', 'w') as f:

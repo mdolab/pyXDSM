@@ -11,6 +11,6 @@ x.add_system('opt', opt, 'Optimizer')
 x.add_system('D1', comp, r'$D_1$')
 
 # create a process arrow to show directional data flow
-x.add_process_arrow('opt', 'D1')
+x.add_process('opt', 'D1', arrow=True)
 
 x.write('arrow', cleanup=False)
