@@ -84,7 +84,7 @@ class XDSM(object):
             raise ValueError('Can not connect component to itself')
         self.connections.append([src, target, style, label, stack, faded])
 
-    def add_process(self, *systems, arrow=True):
+    def add_process(self, systems, arrow=True):
         self.processes.append(systems)
         self.process_arrows.append(arrow)
 

@@ -9,7 +9,7 @@ func = 'Function'
 
 x = XDSM()
 
-x.add_system('opt', opt, 'Optimizer')
+x.add_system('opt', opt, 'Optimizer', stack=True)
 x.add_system('D1', comp, r'$D_1$')
 # can fade out blocks to allow for emphasis on sub-sections of XDSM
 x.add_system('D2', comp, r'$D_2$', faded=True)
@@ -17,7 +17,7 @@ x.add_system('F', func, r'$F$')
 # stacked can be used to represent multiple instances that can be run in parallel
 x.add_system('G', func, r'$G$', stack=True)
 
-x.add_process('opt', 'D1', 'D2', 'F', 'G', 'opt', arrow=True)
+x.add_process(['opt', 'D1', 'D2', 'F', 'G', 'opt'], arrow=True)
 
 
 x.connect('opt', 'D1', r'$x, z, y_2$')
