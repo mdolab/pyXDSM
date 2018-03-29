@@ -9,7 +9,7 @@ func = 'Function'
 
 x = XDSM()
 
-x.add_system('opt', opt, 'Optimizer', stack=True)
+x.add_system('opt', opt, 'Optimizer')
 x.add_system('D1', comp, r'$D_1$')
 # can fade out blocks to allow for emphasis on sub-sections of XDSM
 x.add_system('D2', comp, r'$D_2$', faded=True)
