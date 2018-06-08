@@ -77,10 +77,17 @@ x.write('mdf')
 
 This will output `mdf.tex`, a standalone tex document that (by default) is also compiled to `mdf.pdf`.
 
+## More complicated example
+
+Here is an example that uses a whole bunch of the more advanced features in pyXDSM. Its mostly just a reference for all the customizations you can do.
+The code for this is in the [examples folder](https://github.com/mdolab/pyXDSM/blob/master/examples/kitchen_sink.py)
+
+![XDSM of With all the bells and whistles](https://github.com/mdolab/pyXDSM/blob/master/images_for_readme/kitchen_sink.png)
+
 ## Embedding the diagram directly in LaTeX
 
 In addition, the file, `mdf.tikz`, can be embedded in another tex file using
-the `\input` command:  
+the `\input` command:
 
 ```
 \begin{figure}

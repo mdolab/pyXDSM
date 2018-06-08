@@ -67,8 +67,8 @@ class XDSM(object):
         self.processes = []
         self.process_arrows = []
 
-    def add_system(self, node_name, style, label, stack=False, faded=False):
-        self.comps.append([node_name, style, label, stack, faded])
+    def add_system(self, node_name, style, label, stack=False, faded=False, width=2):
+        self.comps.append([node_name, style, label, stack, faded, width])
 
     def add_input(self, name, label, style='DataIO', stack=False):
         self.ins[name] = ('output_'+name, style, label, stack)
@@ -87,6 +87,14 @@ class XDSM(object):
     def add_process(self, systems, arrow=True):
         self.processes.append(systems)
         self.process_arrows.append(arrow)
+
+    def _parse_multiline_label(self, label, width=2):
+
+        mod_label = '\MultilineComponent{%s cm}{' % width
+        mod_label += ' \linebreak '.join(label)
+        mod_label += '}'
+
+        return mod_label
 
     def _build_node_grid(self):
         size = len(self.comps)
@@ -125,7 +133,11 @@ class XDSM(object):
             if comp[4] == True: #stacking
                 style += ',faded'
 
-            node = node_str.format(style=style, node_name=comp[0], node_label=comp[2])
+            if isinstance(comp[2], (tuple, list)):
+                label = self._parse_multiline_label(comp[2], width=comp[5])
+            else:
+                label = comp[2]
+            node = node_str.format(style=style, node_name=comp[0], node_label=label)
             grid[i_row, j_col] = node
 
             row_idx_map[comp[0]] = i_row
@@ -145,6 +157,7 @@ class XDSM(object):
                 style += ',faded'
 
             node_name = '{}-{}'.format(src,target)
+
             node = node_str.format(style=style,
                                    node_name=node_name,
                                    node_label=label)

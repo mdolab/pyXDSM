@@ -11,9 +11,13 @@ x = XDSM()
 
 x.add_system('opt', opt, 'Optimizer')
 x.add_system('D1', comp, r'$D_1$')
+
 # can fade out blocks to allow for emphasis on sub-sections of XDSM
 x.add_system('D2', comp, r'$D_2$', faded=True)
-x.add_system('F', func, r'$F$')
+
+# if you give the label as a list or tuple, it splits it onto multiple lines
+x.add_system('F', func, (r'$F$', 'Functional'), width=1.8)
+
 # stacked can be used to represent multiple instances that can be run in parallel
 x.add_system('G', func, r'$G$', stack=True)
 
@@ -46,4 +50,4 @@ x.add_output('D2', r'$y_2^*$', side='left')
 x.add_output('F', r'$f^*$', side='right')
 x.add_output('G', r'$g^*$', side='right')
 
-x.write('idf', cleanup=False)
+x.write('kitchen_sink', cleanup=False)
