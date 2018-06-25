@@ -90,9 +90,13 @@ class XDSM(object):
 
     def _parse_multiline_label(self, label, width=2):
 
-        mod_label = '\MultilineComponent{%s cm}{' % width
-        mod_label += ' \linebreak '.join(label)
-        mod_label += '}'
+        # mod_label = '\MultilineComponent{%s cm}{' % width
+        # mod_label += ' \linebreak '.join(label)
+        # mod_label += '}'
+
+        mod_label = r'$\substack{'
+        mod_label += r' \\ '.join(label)
+        mod_label += r'}$'
 
         return mod_label
 
@@ -136,7 +140,7 @@ class XDSM(object):
             if isinstance(comp[2], (tuple, list)):
                 label = self._parse_multiline_label(comp[2], width=comp[5])
             else:
-                label = comp[2]
+                label = r'${}$'.format(comp[2])
             node = node_str.format(style=style, node_name=comp[0], node_label=label)
             grid[i_row, j_col] = node
 
@@ -160,7 +164,7 @@ class XDSM(object):
 
             node = node_str.format(style=style,
                                    node_name=node_name,
-                                   node_label=label)
+                                   node_label=r'${}$'.format(label))
 
             grid[loc] = node
 
@@ -174,7 +178,7 @@ class XDSM(object):
             loc = (i_row,0)
             node = node_str.format(style=style,
                                    node_name=node_name,
-                                   node_label=label)
+                                   node_label=r'${}$'.format(label))
 
             grid[loc] = node
 
@@ -188,7 +192,7 @@ class XDSM(object):
             loc = (i_row,-1)
             node = node_str.format(style=style,
                                    node_name=node_name,
-                                   node_label=label)
+                                   node_label=r'${}$'.format(label))
 
             grid[loc] = node
 
@@ -202,7 +206,7 @@ class XDSM(object):
             loc = (0,j_col)
             node = node_str.format(style=style,
                                    node_name=node_name,
-                                   node_label=label)
+                                   node_label=r'${}$'.format(label))
 
             grid[loc] = node
 
