@@ -8,6 +8,7 @@ tikzpicture_template = r"""
 % \usepackage{{amsfonts}}
 % \usepackage{{amsmath}}
 % \usepackage{{amssymb}}
+% \usepackage{{sfmath}}
 % \usepackage{{tikz}}
 
 % \usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}}
@@ -37,6 +38,7 @@ tex_template = r"""
 \usepackage{{amsfonts}}
 \usepackage{{amsmath}}
 \usepackage{{amssymb}}
+\usepackage{{sfmath}}
 \usepackage{{tikz}}
 
 % Define the set of tikz packages to be included in the architecture diagram document
