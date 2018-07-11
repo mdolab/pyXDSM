@@ -69,8 +69,8 @@ class XDSM(object):
         self.processes = []
         self.process_arrows = []
 
-    def add_system(self, node_name, style, label, stack=False, faded=False, width=2):
-        self.comps.append([node_name, style, label, stack, faded, width])
+    def add_system(self, node_name, style, label, stack=False, faded=False):
+        self.comps.append([node_name, style, label, stack, faded])
 
     def add_input(self, name, label, style='DataIO', stack=False):
         self.ins[name] = ('output_'+name, style, label, stack)
@@ -90,15 +90,13 @@ class XDSM(object):
         self.processes.append(systems)
         self.process_arrows.append(arrow)
 
-    def _parse_multiline_label(self, label, width=2):
-
-        # mod_label = '\MultilineComponent{%s cm}{' % width
-        # mod_label += ' \linebreak '.join(label)
-        # mod_label += '}'
-
-        mod_label = r'$\substack{'
-        mod_label += r' \\ '.join(label)
-        mod_label += r'}$'
+    def _parse_label(self, label):
+        if isinstance(label, (tuple, list)):
+            mod_label = r'$\substack{'
+            mod_label += r' \\ '.join(label)
+            mod_label += r'}$'
+        else:
+            mod_label = r'${}$'.format(label)
 
         return mod_label
 
@@ -139,10 +137,7 @@ class XDSM(object):
             if comp[4] == True: #stacking
                 style += ',faded'
 
-            if isinstance(comp[2], (tuple, list)):
-                label = self._parse_multiline_label(comp[2], width=comp[5])
-            else:
-                label = r'${}$'.format(comp[2])
+            label = self._parse_label(comp[2])
             node = node_str.format(style=style, node_name=comp[0], node_label=label)
             grid[i_row, j_col] = node
 
@@ -162,11 +157,13 @@ class XDSM(object):
             if faded == True:
                 style += ',faded'
 
+            label = self._parse_label(label)
+
             node_name = '{}-{}'.format(src,target)
 
             node = node_str.format(style=style,
                                    node_name=node_name,
-                                   node_label=r'${}$'.format(label))
+                                   node_label=label)
 
             grid[loc] = node
 
@@ -178,9 +175,11 @@ class XDSM(object):
 
             i_row = row_idx_map[comp_name]
             loc = (i_row,0)
+
+            label = self._parse_label(label)
             node = node_str.format(style=style,
                                    node_name=node_name,
-                                   node_label=r'${}$'.format(label))
+                                   node_label=label)
 
             grid[loc] = node
 
@@ -192,9 +191,10 @@ class XDSM(object):
 
             i_row = row_idx_map[comp_name]
             loc = (i_row,-1)
+            label = self._parse_label(label)
             node = node_str.format(style=style,
                                    node_name=node_name,
-                                   node_label=r'${}$'.format(label))
+                                   node_label=label)
 
             grid[loc] = node
 
@@ -206,9 +206,10 @@ class XDSM(object):
 
             j_col = col_idx_map[comp_name]
             loc = (0,j_col)
+            label = self._parse_label(label)
             node = node_str.format(style=style,
                                    node_name=node_name,
-                                   node_label=r'${}$'.format(label))
+                                   node_label=label)
 
             grid[loc] = node
 

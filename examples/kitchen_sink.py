@@ -20,7 +20,7 @@ x.add_system('D2', icomp, r'D_2', faded=True)
 x.add_system('D3', icomp, r'D_3')
 
 # if you give the label as a list or tuple, it splits it onto multiple lines
-x.add_system('F', func, (r'F', r'\text{Functional}'), width=1.8)
+x.add_system('F', func, (r'F', r'\text{Functional}'))
 
 # stacked can be used to represent multiple instances that can be run in parallel
 x.add_system('G', func, r'G', stack=True)
