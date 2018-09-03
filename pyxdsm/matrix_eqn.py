@@ -28,6 +28,17 @@ base_file_start = r"""\documentclass[border=0pt]{standalone}
 \usepackage{esdiff}
 \usepackage{varwidth}
 
+\definecolor{tableau0}{RGB}{77, 121, 168}
+\definecolor{tableau1}{RGB}{242, 142, 43}
+\definecolor{tableau2}{RGB}{255, 87, 88}
+\definecolor{tableau3}{RGB}{118, 183, 178}
+\definecolor{tableau4}{RGB}{89, 161, 78}
+\definecolor{tableau5}{RGB}{237, 201, 72}
+\definecolor{tableau6}{RGB}{176, 121, 162}
+\definecolor{tableau7}{RGB}{255, 157, 167}
+\definecolor{tableau8}{RGB}{156, 116, 94}
+\definecolor{tableau9}{RGB}{186, 176, 172}
+
 
 \newcommand{\thk}{0.01in}
 \newcommand{\thkln}{0.02in}
@@ -262,12 +273,12 @@ class TotalJacobian(object):
         self._i_outputs[self._n_outputs] = self._variables[name]
         self._n_outputs += 1
 
-    def connect(self, src, target, text=''):
+    def connect(self, src, target, text='', color='tableau0'):
         if isinstance(target, (list, tuple)):
             for t in target:
-                self._connections[src, t] = CellData(text=text, color='blue', highlight='diag')
+                self._connections[src, t] = CellData(text=text, color=color, highlight='diag')
         else:
-            self._connections[src, target] = CellData(text=text, color='blue', highlight='diag')
+            self._connections[src, target] = CellData(text=text, color=color, highlight='diag')
 
     def _process_vars(self):
 

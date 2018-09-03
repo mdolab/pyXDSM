@@ -92,9 +92,12 @@ class XDSM(object):
 
     def _parse_label(self, label):
         if isinstance(label, (tuple, list)):
-            mod_label = r'$\substack{'
+            # mod_label = r'$\substack{'
+            # mod_label += r' \\ '.join(label)
+            # mod_label += r'}$'
+            mod_label = r'$\begin{array}{c}'
             mod_label += r' \\ '.join(label)
-            mod_label += r'}$'
+            mod_label += r'\end{array}$'
         else:
             mod_label = r'${}$'.format(label)
 
