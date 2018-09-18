@@ -300,7 +300,9 @@ class XDSM(object):
 
         module_path = os.path.dirname(__file__)
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
-
+        # hack for windows. miketex needs linux style paths
+        diagram_styles_path = diagram_styles_path.replace('\\', '/')
+    
         tikzpicture_str = tikzpicture_template.format(nodes=nodes,
                                                       edges=edges,
                                                       process=process,
