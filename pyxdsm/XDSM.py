@@ -299,13 +299,17 @@ class XDSM(object):
         process = self._build_process_chain()
 
         module_path = os.path.dirname(__file__)
+        if "nt" in os.name:
+            module_path = module_path.replace("\\",r"/")
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
+        if "nt" in os.name: 
+            diagram_styles_path = diagram_styles_path.replace("\\",r"/")
 
         tikzpicture_str = tikzpicture_template.format(nodes=nodes,
                                                       edges=edges,
                                                       process=process,
                                                       diagram_styles_path=diagram_styles_path)
-
+        
         with open(file_name + '.tikz', 'w') as f:
             f.write(tikzpicture_str)
 
