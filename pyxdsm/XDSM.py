@@ -272,7 +272,7 @@ class XDSM(object):
 
         return chain_str
 
-    def write(self, file_name=None, build=True, cleanup=True):
+    def write(self, file_name=None, build=True, cleanup=True, quiet=False):
         """
         Write output files for the XDSM diagram.  This produces the following:
 
@@ -293,6 +293,8 @@ class XDSM(object):
             Default is True.
         cleanup: bool
             Flag that determines if padlatex build files will be deleted after build is complete
+        quiet: bool
+            Set to True to suppress output from pdflatex.
         """
         nodes = self._build_node_grid()
         edges = self._build_edges()
@@ -302,7 +304,7 @@ class XDSM(object):
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
         # hack for windows. miketex needs linux style paths
         diagram_styles_path = diagram_styles_path.replace('\\', '/')
-    
+
         tikzpicture_str = tikzpicture_template.format(nodes=nodes,
                                                       edges=edges,
                                                       process=process,
@@ -320,7 +322,10 @@ class XDSM(object):
                 f.write(tex_str)
 
         if build:
-            os.system('pdflatex ' + file_name + '.tex')
+            command = 'pdflatex '
+            if quiet:
+                command += " -interaction=batchmode -halt-on-error "
+            os.system(command + file_name + '.tex')
             if cleanup:
                 for ext in ['aux', 'fdb_latexmk', 'fls', 'log']:
                     f_name = '{}.{}'.format(file_name, ext)
