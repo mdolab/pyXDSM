@@ -58,6 +58,7 @@ tex_template = r"""
 \end{{document}}
 """
 
+
 class XDSM(object):
 
     def __init__(self):
@@ -69,8 +70,8 @@ class XDSM(object):
         self.processes = []
         self.process_arrows = []
 
-    def add_system(self, node_name, style, label, stack=False, faded=False):
-        self.comps.append([node_name, style, label, stack, faded])
+    def add_system(self, node_name, style, label, stack=False, faded=False, text_width=None):
+        self.comps.append([node_name, style, label, stack, faded, text_width])
 
     def add_input(self, name, label, style='DataIO', stack=False):
         self.ins[name] = ('output_'+name, style, label, stack)
@@ -134,11 +135,13 @@ class XDSM(object):
 
         # add all the components on the diagonal
         for i_row, j_col, comp in zip(comps_rows, comps_cols, self.comps):
-            style=comp[1]
-            if comp[3] == True: #stacking
+            style = comp[1]
+            if comp[3] is True:  # stacking
                 style += ',stack'
-            if comp[4] == True: #stacking
+            if comp[4] is True:  # fading
                 style += ',faded'
+            if comp[5] is not None:
+                style += ',text width={}cm'.format(comp[5])
 
             label = self._parse_label(comp[2])
             node = node_str.format(style=style, node_name=comp[0], node_label=label)
@@ -154,15 +157,14 @@ class XDSM(object):
 
             loc = (src_row, target_col)
 
-            style=style
-            if stack == True: #stacking
+            if stack is True:  # stacking
                 style += ',stack'
-            if faded == True:
+            if faded is True:  # fading
                 style += ',faded'
 
             label = self._parse_label(label)
 
-            node_name = '{}-{}'.format(src,target)
+            node_name = '{}-{}'.format(src, target)
 
             node = node_str.format(style=style,
                                    node_name=node_name,
@@ -177,7 +179,7 @@ class XDSM(object):
                 style += ',stack'
 
             i_row = row_idx_map[comp_name]
-            loc = (i_row,0)
+            loc = (i_row, 0)
 
             label = self._parse_label(label)
             node = node_str.format(style=style,
@@ -186,14 +188,14 @@ class XDSM(object):
 
             grid[loc] = node
 
-         # add the nodes for right outputs
+        # add the nodes for right outputs
         for comp_name, out_data in self.right_outs.items():
             node_name, style, label, stack = out_data
             if stack:
                 style += ',stack'
 
             i_row = row_idx_map[comp_name]
-            loc = (i_row,-1)
+            loc = (i_row, -1)
             label = self._parse_label(label)
             node = node_str.format(style=style,
                                    node_name=node_name,
@@ -208,7 +210,7 @@ class XDSM(object):
                 style = ',stack'
 
             j_col = col_idx_map[comp_name]
-            loc = (0,j_col)
+            loc = (0, j_col)
             label = self._parse_label(label)
             node = node_str.format(style=style,
                                    node_name=node_name,
@@ -219,7 +221,7 @@ class XDSM(object):
         # mash the grid data into a string
         rows_str = ''
         for i, row in enumerate(grid):
-            rows_str += "%Row {}\n".format(i) +'&\n'.join(row) + r'\\'+'\n'
+            rows_str += "%Row {}\n".format(i) + '&\n'.join(row) + r'\\'+'\n'
 
         return rows_str
 
@@ -229,7 +231,7 @@ class XDSM(object):
 
         edge_string = "({start}) edge [DataLine] ({end})"
         for src, target, style, label, stack, faded in self.connections:
-            od_node_name = '{}-{}'.format(src,target)
+            od_node_name = '{}-{}'.format(src, target)
             h_edges.append(edge_string.format(start=src, end=od_node_name))
             v_edges.append(edge_string.format(start=od_node_name, end=target))
 
@@ -300,7 +302,7 @@ class XDSM(object):
 
         module_path = os.path.dirname(__file__)
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
-        # hack for windows. miketex needs linux style paths
+        # hack for Windows. MiKTeX needs Linux style paths
         diagram_styles_path = diagram_styles_path.replace('\\', '/')
     
         tikzpicture_str = tikzpicture_template.format(nodes=nodes,
