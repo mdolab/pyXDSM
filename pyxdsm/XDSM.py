@@ -8,8 +8,10 @@ tikzpicture_template = r"""
 % \usepackage{{amsfonts}}
 % \usepackage{{amsmath}}
 % \usepackage{{amssymb}}
-% \usepackage{{sfmath}}
 % \usepackage{{tikz}}
+
+% Optional packages such as sfmath set through python interface
+% \usepackage{{ {optional_packages} }}
 
 % \usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}}
 
@@ -38,8 +40,10 @@ tex_template = r"""
 \usepackage{{amsfonts}}
 \usepackage{{amsmath}}
 \usepackage{{amssymb}}
-\usepackage{{sfmath}}
 \usepackage{{tikz}}
+
+% Optional packages such as sfmath set through python interface
+\usepackage{{ {optional_packages} }}
 
 % Define the set of tikz packages to be included in the architecture diagram document
 \usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}}
@@ -61,7 +65,7 @@ tex_template = r"""
 
 class XDSM(object):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.comps = []
         self.connections = []
         self.left_outs = {}
@@ -69,6 +73,17 @@ class XDSM(object):
         self.ins = {}
         self.processes = []
         self.process_arrows = []
+
+        # Check kwargs
+        self.kwargs = self._get_default_kwargs()
+        for key,val in kwargs.items():
+            # Check if exist in the default list
+            # If exist, then update else print error and exit
+            if key in self.kwargs:
+                self.kwargs[key] = val
+            else:
+                print('Keyword "{}" not found, quitting.')
+                exit(-1)
 
     def add_system(self, node_name, style, label, stack=False, faded=False, text_width=None):
         self.comps.append([node_name, style, label, stack, faded, text_width])
@@ -90,6 +105,10 @@ class XDSM(object):
     def add_process(self, systems, arrow=True):
         self.processes.append(systems)
         self.process_arrows.append(arrow)
+
+    def _get_default_kwargs(self):
+        kw = {'use_sfmath':True}
+        return kw
 
     def _parse_label(self, label):
         if isinstance(label, (tuple, list)):
@@ -274,6 +293,18 @@ class XDSM(object):
 
         return chain_str
 
+    def _compose_optional_package_list(self):
+        
+        # Check for optional LaTeX packages
+        optional_packages_list = []
+        if self.kwargs['use_sfmath']:
+            optional_packages_list.append('sfmath')
+
+        # Join all packages into one string separated by comma
+        optional_packages_str = ",".join(optional_packages_list)
+        
+        return optional_packages_str
+
     def write(self, file_name=None, build=True, cleanup=True, quiet=False):
         """
         Write output files for the XDSM diagram.  This produces the following:
@@ -307,17 +338,21 @@ class XDSM(object):
         # hack for Windows. MiKTeX needs Linux style paths
         diagram_styles_path = diagram_styles_path.replace('\\', '/')
 
+        optional_packages_str = self._compose_optional_package_list()
+
         tikzpicture_str = tikzpicture_template.format(nodes=nodes,
                                                       edges=edges,
                                                       process=process,
-                                                      diagram_styles_path=diagram_styles_path)
+                                                      diagram_styles_path=diagram_styles_path,
+                                                      optional_packages=optional_packages_str)
 
         with open(file_name + '.tikz', 'w') as f:
             f.write(tikzpicture_str)
 
         tex_str = tex_template.format(nodes=nodes, edges=edges,
                                       tikzpicture_path=file_name + '.tikz',
-                                      diagram_styles_path=diagram_styles_path)
+                                      diagram_styles_path=diagram_styles_path,
+                                      optional_packages=optional_packages_str)
 
         if file_name:
             with open(file_name + '.tex', 'w') as f:
