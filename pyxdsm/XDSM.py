@@ -93,16 +93,9 @@ class XDSM(object):
 
     def _parse_label(self, label):
         if isinstance(label, (tuple, list)):
-            # mod_label = r'$\substack{'
-            # mod_label += r' \\ '.join(label)
-            # mod_label += r'}$'
-            mod_label = r'$\begin{array}{c}'
-            mod_label += r' \\ '.join(label)
-            mod_label += r'\end{array}$'
+            return r'$\begin{array}{c}' + r' \\ '.join(label) + r'\end{array}$'
         else:
-            mod_label = r'${}$'.format(label)
-
-        return mod_label
+            return r'${}$'.format(label)
 
     def _build_node_grid(self):
         size = len(self.comps)
@@ -135,18 +128,18 @@ class XDSM(object):
 
         # add all the components on the diagonal
         for i_row, j_col, comp in zip(comps_rows, comps_cols, self.comps):
-            style = comp[1]
-            if comp[3] is True:  # stacking
+            node_name, style, label, stack, faded = comp
+            if stack is True:  # stacking
                 style += ',stack'
-            if comp[4] is True:  # fading
+            if faded is True:  # fading
                 style += ',faded'
 
-            label = self._parse_label(comp[2])
-            node = node_str.format(style=style, node_name=comp[0], node_label=label)
+            label = self._parse_label(label)
+            node = node_str.format(style=style, node_name=node_name, node_label=label)
             grid[i_row, j_col] = node
 
-            row_idx_map[comp[0]] = i_row
-            col_idx_map[comp[0]] = j_col
+            row_idx_map[node_name] = i_row
+            col_idx_map[node_name] = j_col
 
         # add all the off diagonal nodes from components
         for src, target, style, label, stack, faded in self.connections:
@@ -208,7 +201,7 @@ class XDSM(object):
                 style = ',stack'
 
             j_col = col_idx_map[comp_name]
-            loc = (0,j_col)
+            loc = (0, j_col)
             label = self._parse_label(label)
             node = node_str.format(style=style,
                                    node_name=node_name,
@@ -234,19 +227,18 @@ class XDSM(object):
             v_edges.append(edge_string.format(start=od_node_name, end=target))
 
         for comp_name, out_data in self.left_outs.items():
-            node_name, style, label, stack = out_data
+            node_name = out_data[0]
             h_edges.append(edge_string.format(start=comp_name, end=node_name))
 
         for comp_name, out_data in self.right_outs.items():
-            node_name, style, label, stack = out_data
+            node_name = out_data[0]
             h_edges.append(edge_string.format(start=comp_name, end=node_name))
 
         for comp_name, in_data in self.ins.items():
-            node_name, style, label, stack = in_data
+            node_name = in_data[0]
             v_edges.append(edge_string.format(start=comp_name, end=node_name))
 
         paths_str = '% Horizontal edges\n' + '\n'.join(h_edges) + '\n'
-
         paths_str += '% Vertical edges\n' + '\n'.join(v_edges) + ';'
 
         return paths_str
@@ -300,7 +292,7 @@ class XDSM(object):
 
         module_path = os.path.dirname(__file__)
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
-        # hack for windows. MiKTeX needs linux style paths
+        # Hack for Windows. MiKTeX needs Linux style paths.
         diagram_styles_path = diagram_styles_path.replace('\\', '/')
     
         tikzpicture_str = tikzpicture_template.format(nodes=nodes,
