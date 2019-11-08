@@ -58,6 +58,7 @@ tex_template = r"""
 \end{{document}}
 """
 
+
 class XDSM(object):
 
     def __init__(self):
@@ -134,10 +135,10 @@ class XDSM(object):
 
         # add all the components on the diagonal
         for i_row, j_col, comp in zip(comps_rows, comps_cols, self.comps):
-            style=comp[1]
-            if comp[3] == True: #stacking
+            style = comp[1]
+            if comp[3] is True:  # stacking
                 style += ',stack'
-            if comp[4] == True: #stacking
+            if comp[4] is True:  # fading
                 style += ',faded'
 
             label = self._parse_label(comp[2])
@@ -154,15 +155,14 @@ class XDSM(object):
 
             loc = (src_row, target_col)
 
-            style=style
-            if stack == True: #stacking
+            if stack is True:  # stacking
                 style += ',stack'
-            if faded == True:
+            if faded is True:  # fading
                 style += ',faded'
 
             label = self._parse_label(label)
 
-            node_name = '{}-{}'.format(src,target)
+            node_name = '{}-{}'.format(src, target)
 
             node = node_str.format(style=style,
                                    node_name=node_name,
@@ -177,7 +177,7 @@ class XDSM(object):
                 style += ',stack'
 
             i_row = row_idx_map[comp_name]
-            loc = (i_row,0)
+            loc = (i_row, 0)
 
             label = self._parse_label(label)
             node = node_str.format(style=style,
@@ -186,14 +186,14 @@ class XDSM(object):
 
             grid[loc] = node
 
-         # add the nodes for right outputs
+        # add the nodes for right outputs
         for comp_name, out_data in self.right_outs.items():
             node_name, style, label, stack = out_data
             if stack:
                 style += ',stack'
 
             i_row = row_idx_map[comp_name]
-            loc = (i_row,-1)
+            loc = (i_row, -1)
             label = self._parse_label(label)
             node = node_str.format(style=style,
                                    node_name=node_name,
@@ -219,7 +219,7 @@ class XDSM(object):
         # mash the grid data into a string
         rows_str = ''
         for i, row in enumerate(grid):
-            rows_str += "%Row {}\n".format(i) +'&\n'.join(row) + r'\\'+'\n'
+            rows_str += "%Row {}\n".format(i) + '&\n'.join(row) + r'\\'+'\n'
 
         return rows_str
 
@@ -229,7 +229,7 @@ class XDSM(object):
 
         edge_string = "({start}) edge [DataLine] ({end})"
         for src, target, style, label, stack, faded in self.connections:
-            od_node_name = '{}-{}'.format(src,target)
+            od_node_name = '{}-{}'.format(src, target)
             h_edges.append(edge_string.format(start=src, end=od_node_name))
             v_edges.append(edge_string.format(start=od_node_name, end=target))
 
@@ -277,9 +277,9 @@ class XDSM(object):
         Write output files for the XDSM diagram.  This produces the following:
 
             - {file_name}.tikz
-                A file containing the TIKZ definition of the XDSM diagram.
+                A file containing the TikZ definition of the XDSM diagram.
             - {file_name}.tex
-                A standalone document wrapped around an include of the TIKZ file which can
+                A standalone document wrapped around an include of the TikZ file which can
                 be compiled to a pdf.
             - {file_name}.pdf
                 An optional compiled version of the standalone tex file.
@@ -292,7 +292,7 @@ class XDSM(object):
             Flag that determines whether the standalone PDF of the XDSM will be compiled.
             Default is True.
         cleanup: bool
-            Flag that determines if padlatex build files will be deleted after build is complete
+            Flag that determines if pdflatex build files will be deleted after build is complete
         """
         nodes = self._build_node_grid()
         edges = self._build_edges()
@@ -300,7 +300,7 @@ class XDSM(object):
 
         module_path = os.path.dirname(__file__)
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
-        # hack for windows. miketex needs linux style paths
+        # hack for windows. MiKTeX needs linux style paths
         diagram_styles_path = diagram_styles_path.replace('\\', '/')
     
         tikzpicture_str = tikzpicture_template.format(nodes=nodes,
