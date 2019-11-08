@@ -7,7 +7,8 @@ comp = 'Analysis'
 group = 'Metamodel'
 func = 'Function'
 
-x = XDSM()
+# Change `use_sfmath` to False to use computer modern
+x = XDSM(use_sfmath=True)
 
 x.add_system('opt', opt, r'\text{Optimizer}')
 x.add_system('solver', solver, r'\text{Newton}')
