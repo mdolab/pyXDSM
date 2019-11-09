@@ -3,50 +3,45 @@ from pyxdsm.XDSM import XDSM
 # styling names for the boxes
 opt = 'Optimization'
 solver = 'MDA'
-ecomp = 'Analysis'
-icomp = 'ImplicitAnalysis'
-group = 'Metamodel'
+ifunc = 'ImplicitFunction'
 func = 'Function'
 
 x = XDSM()
 
 x.add_system('opt', opt, r'\text{Optimizer}')
-x.add_system('D1', ecomp, r'D_1')
+x.add_system('D1', func, 'D_1')
 
 # can fade out blocks to allow for emphasis on sub-sections of XDSM
-x.add_system('D2', icomp, r'D_2', faded=True)
+x.add_system('D2', ifunc, 'D_2', faded=True)
 
-# can fade out blocks to allow for emphasis on sub-sections of XDSM
-x.add_system('D3', icomp, r'D_3')
+x.add_system('D3', ifunc, 'D_3')
 
 # if you give the label as a list or tuple, it splits it onto multiple lines
-x.add_system('F', func, (r'F', r'\text{Functional}'))
+x.add_system('F', func, ('F', r'\text{Functional}'))
 
 # stacked can be used to represent multiple instances that can be run in parallel
-x.add_system('G', func, r'G', stack=True)
+x.add_system('G', func, 'G', stack=True)
 
 x.add_process(['opt', 'D1', 'D2', 'F', 'G', 'opt'], arrow=True)
 
-
-x.connect('opt', 'D1', r'x, z, y_2')
-x.connect('opt', 'D2', r'z, y_1')
-x.connect('opt', 'D3', r'z, y_1')
-x.connect('opt', 'F', r'x, z')
-x.connect('opt', 'F', r'y_1, y_2')
+x.connect('opt', 'D1', 'x, z, y_2')
+x.connect('opt', 'D2', 'z, y_1')
+x.connect('opt', 'D3', 'z, y_1')
+x.connect('opt', 'F', 'x, z')
+x.connect('opt', 'F', 'y_1, y_2')
 
 # you can also stack variables
-x.connect('opt', 'G', r'y_1, y_2', stack=True)
+x.connect('opt', 'G', 'y_1, y_2', stack=True)
 
 x.connect('D1', 'opt', r'\mathcal{R}(y_1)')
 x.connect('D2', 'opt', r'\mathcal{R}(y_2)')
 
-
-x.connect('F', 'opt', r'f')
-x.connect('G', 'opt', r'g', stack=True)
+x.connect('F', 'opt', 'f')
+x.connect('G', 'opt', 'g', stack=True)
 
 # can specify inputs to represent external information coming into the XDSM
-x.add_input('D1', r'P_1')
-x.add_input('D2', r'P_2')
+x.add_input('D1', 'P_1')
+x.add_input('D2', 'P_2')
 
 # can put outputs on the left or right sides
 x.add_output('opt', r'x^*, z^*', side='right')

@@ -45,7 +45,7 @@ tex_template = r"""
 % Optional packages such as sfmath set through python interface
 \usepackage{{ {optional_packages} }}
 
-% Define the set of tikz packages to be included in the architecture diagram document
+% Define the set of TikZ packages to be included in the architecture diagram document
 \usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}}
 
 
@@ -76,7 +76,7 @@ class XDSM(object):
 
         # Check kwargs
         self.kwargs = self._get_default_kwargs()
-        for key,val in kwargs.items():
+        for key, val in kwargs.items():
             # Check if exist in the default list
             # If exist, then update else print error and exit
             if key in self.kwargs:
@@ -106,11 +106,13 @@ class XDSM(object):
         self.processes.append(systems)
         self.process_arrows.append(arrow)
 
-    def _get_default_kwargs(self):
-        kw = {'use_sfmath':True}
+    @staticmethod
+    def _get_default_kwargs():
+        kw = {'use_sfmath': True}
         return kw
 
-    def _parse_label(self, label):
+    @staticmethod
+    def _parse_label(label):
         if isinstance(label, (tuple, list)):
             return r'$\begin{array}{c}' + r' \\ '.join(label) + r'\end{array}$'
         else:
@@ -153,7 +155,7 @@ class XDSM(object):
             if faded is True:  # fading
                 style += ',faded'
             if text_width is not None:
-                style += ',text width={}cm'.format(comp[5])
+                style += ',text width={}cm'.format(text_width)
 
             label = self._parse_label(label)
             node = node_str.format(style=style, node_name=node_name, node_label=label)
