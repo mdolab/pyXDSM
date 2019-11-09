@@ -1,6 +1,5 @@
 from pyxdsm.XDSM import XDSM
 
-#
 opt = 'Optimization'
 solver = 'MDA'
 func = 'Function'
