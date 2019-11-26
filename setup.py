@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='pyXDSM',
-      version='1.1.0',
+      version='2.0.0',
       description="Python script to generate PDF XDSM diagrams using TikZ and LaTeX",
       long_description="""\
       """,

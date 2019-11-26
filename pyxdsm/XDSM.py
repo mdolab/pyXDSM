@@ -35,6 +35,7 @@ tikzpicture_template = r"""
 """
 
 tex_template = r"""
+% XDSM diagram created with pyXDSM 2.0.
 \documentclass{{article}}
 \usepackage{{geometry}}
 \usepackage{{amsfonts}}
