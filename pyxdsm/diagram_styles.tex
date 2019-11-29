@@ -1,43 +1,26 @@
 % Define all the styles used to produce XDSMs for MDO
-% \definecolor{tableau0}{RGB}{31,119,180}
-% \definecolor{tableau1}{RGB}{255,158,74}
-% \definecolor{tableau2}{RGB}{103,191,92}
-% \definecolor{tableau3}{RGB}{237,102,93}
-% \definecolor{tableau4}{RGB}{148,103,189}
-% \definecolor{tableau5}{RGB}{168,120,110}
-% \definecolor{tableau6}{RGB}{237,151,202}
-% \definecolor{tableau7}{RGB}{162,162,162}
-% \definecolor{tableau8}{RGB}{205,204,93}
-% \definecolor{tableau9}{RGB}{109,204,218}
 
-% Color palette is defined according to Tableau 10.
-% (https://www.tableau.com/about/blog/2016/7/colors-upgrade-tableau-10-56782)
-
+% Tableau 20 color palette, taken from
+% https://jrnold.github.io/ggthemes/reference/tableau_color_pal.html
+% we use the lighter variants here with 80% opacity
 % Blue
-\definecolor{tableau0}{RGB}{77, 121, 168}
+\definecolor{red}{HTML}{A0CBE8}
 % Orange
-\definecolor{tableau1}{RGB}{242, 142, 43}
-% Red
-\definecolor{tableau2}{RGB}{255, 87, 88}
+\definecolor{orange}{HTML}{FFBE7D}
 % Cyan
-\definecolor{tableau3}{RGB}{118, 183, 178}
+\definecolor{cyan}{HTML}{86BCB6}
 % Green
-\definecolor{tableau4}{RGB}{89, 161, 78}
+\definecolor{green}{HTML}{8CD17D}
 % Yellow
-\definecolor{tableau5}{RGB}{237, 201, 72}
-% Purple
-\definecolor{tableau6}{RGB}{176, 121, 162}
+\definecolor{yellow}{HTML}{F1CE63}
 % Salmon
-\definecolor{tableau7}{RGB}{255, 157, 167}
-% Beown
-\definecolor{tableau8}{RGB}{156, 116, 94}
-% Gray
-\definecolor{tableau9}{RGB}{186, 176, 172}
-
+\definecolor{salmon}{HTML}{FF9D9A}
+% Brown
+\definecolor{brown}{HTML}{D7B5A6}
 
 \tikzstyle{every node}=[font=\sffamily,align=center]
 
-\newcommand{\fillOpacity}{25}
+\newcommand{\fillOpacity}{80}
 
 % Component shapes
 \newcommand{\compShape}{rectangle}
@@ -45,20 +28,20 @@
 \newcommand{\procShape}{rounded rectangle}
 
 % Colors
-\newcommand{\explicitColor}{tableau4}
-\newcommand{\implicitColor}{tableau3}
-\newcommand{\optimizationColor}{tableau0}
+\newcommand{\explicitColor}{green}
+\newcommand{\implicitColor}{salmon}
+\newcommand{\optimizationColor}{red} % also used by DOE
 
 % Component types
 \tikzstyle{Optimization} = [\procShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{MDA} = [\procShape,draw,fill=tableau1!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{DOE} = [\procShape,draw,fill=tableau8!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{MDA} = [\procShape,draw,fill=orange!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{DOE} = [\procShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 \tikzstyle{SubOptimization} = [\groupShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 \tikzstyle{Group} = [\groupShape,draw,fill=\explicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 \tikzstyle{ImplicitGroup} = [\groupShape,draw,fill=\implicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 \tikzstyle{Function} = [\compShape,draw,fill=\explicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 \tikzstyle{ImplicitFunction} = [\compShape,draw,fill=\implicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{Metamodel} = [\compShape,draw,fill=tableau5!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{Metamodel} = [\compShape,draw,fill=yellow!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 
 %% A simple command to give the repeated structure look for components and data
 \tikzstyle{stack} = [double copy shadow={shadow xshift=.75ex, shadow yshift=-.75ex}]

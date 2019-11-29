@@ -4,6 +4,7 @@ from pyxdsm.XDSM import XDSM
 opt = 'Optimization'
 subopt = 'SubOptimization'
 solver = 'MDA'
+doe = 'DOE'
 ifunc = 'ImplicitFunction'
 func = 'Function'
 group = 'Group'
@@ -13,6 +14,8 @@ metamodel = 'Metamodel'
 x = XDSM()
 
 x.add_system('opt', opt, r'\text{Optimizer}')
+x.add_system('DOE', doe, r'\text{DOE}')
+x.add_system('MDA', solver, r'\text{Newton}')
 x.add_system('D1', func, 'D_1')
 
 # can fade out blocks to allow for emphasis on sub-sections of XDSM
@@ -30,7 +33,7 @@ x.add_system('F', func, ('F', r'\text{Functional}'))
 # stacked can be used to represent multiple instances that can be run in parallel
 x.add_system('H', func, 'H', stack=True)
 
-x.add_process(['opt', 'D1', 'D2', 'subopt', 'G1', 'G2', 'MM', 'F', 'H', 'opt'], arrow=True)
+x.add_process(['opt', 'DOE', 'MDA', 'D1', 'D2', 'subopt', 'G1', 'G2', 'MM', 'F', 'H', 'opt'], arrow=True)
 
 x.connect('opt', 'D1', 'x, z, y_2')
 x.connect('opt', 'D2', 'z, y_1')
