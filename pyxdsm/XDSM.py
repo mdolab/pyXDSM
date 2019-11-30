@@ -35,6 +35,7 @@ tikzpicture_template = r"""
 """
 
 tex_template = r"""
+% XDSM diagram created with pyXDSM 2.0.
 \documentclass{{article}}
 \usepackage{{geometry}}
 \usepackage{{amsfonts}}
@@ -45,7 +46,7 @@ tex_template = r"""
 % Optional packages such as sfmath set through python interface
 \usepackage{{ {optional_packages} }}
 
-% Define the set of tikz packages to be included in the architecture diagram document
+% Define the set of TikZ packages to be included in the architecture diagram document
 \usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}}
 
 
@@ -76,7 +77,7 @@ class XDSM(object):
 
         # Check kwargs
         self.kwargs = self._get_default_kwargs()
-        for key,val in kwargs.items():
+        for key, val in kwargs.items():
             # Check if exist in the default list
             # If exist, then update else print error and exit
             if key in self.kwargs:
@@ -106,22 +107,17 @@ class XDSM(object):
         self.processes.append(systems)
         self.process_arrows.append(arrow)
 
-    def _get_default_kwargs(self):
-        kw = {'use_sfmath':True}
+    @staticmethod
+    def _get_default_kwargs():
+        kw = {'use_sfmath': True}
         return kw
 
-    def _parse_label(self, label):
+    @staticmethod
+    def _parse_label(label):
         if isinstance(label, (tuple, list)):
-            # mod_label = r'$\substack{'
-            # mod_label += r' \\ '.join(label)
-            # mod_label += r'}$'
-            mod_label = r'$\begin{array}{c}'
-            mod_label += r' \\ '.join(label)
-            mod_label += r'\end{array}$'
+            return r'$\begin{array}{c}' + r' \\ '.join(label) + r'\end{array}$'
         else:
-            mod_label = r'${}$'.format(label)
-
-        return mod_label
+            return r'${}$'.format(label)
 
     def _build_node_grid(self):
         size = len(self.comps)
@@ -154,20 +150,20 @@ class XDSM(object):
 
         # add all the components on the diagonal
         for i_row, j_col, comp in zip(comps_rows, comps_cols, self.comps):
-            style = comp[1]
-            if comp[3] is True:  # stacking
+            node_name, style, label, stack, faded, text_width = comp
+            if stack is True:  # stacking
                 style += ',stack'
-            if comp[4] is True:  # fading
+            if faded is True:  # fading
                 style += ',faded'
-            if comp[5] is not None:
-                style += ',text width={}cm'.format(comp[5])
+            if text_width is not None:
+                style += ',text width={}cm'.format(text_width)
 
-            label = self._parse_label(comp[2])
-            node = node_str.format(style=style, node_name=comp[0], node_label=label)
+            label = self._parse_label(label)
+            node = node_str.format(style=style, node_name=node_name, node_label=label)
             grid[i_row, j_col] = node
 
-            row_idx_map[comp[0]] = i_row
-            col_idx_map[comp[0]] = j_col
+            row_idx_map[node_name] = i_row
+            col_idx_map[node_name] = j_col
 
         # add all the off diagonal nodes from components
         for src, target, style, label, stack, faded in self.connections:
@@ -255,19 +251,18 @@ class XDSM(object):
             v_edges.append(edge_string.format(start=od_node_name, end=target))
 
         for comp_name, out_data in self.left_outs.items():
-            node_name, style, label, stack = out_data
+            node_name = out_data[0]
             h_edges.append(edge_string.format(start=comp_name, end=node_name))
 
         for comp_name, out_data in self.right_outs.items():
-            node_name, style, label, stack = out_data
+            node_name = out_data[0]
             h_edges.append(edge_string.format(start=comp_name, end=node_name))
 
         for comp_name, in_data in self.ins.items():
-            node_name, style, label, stack = in_data
+            node_name = in_data[0]
             v_edges.append(edge_string.format(start=comp_name, end=node_name))
 
         paths_str = '% Horizontal edges\n' + '\n'.join(h_edges) + '\n'
-
         paths_str += '% Vertical edges\n' + '\n'.join(v_edges) + ';'
 
         return paths_str
@@ -294,7 +289,7 @@ class XDSM(object):
         return chain_str
 
     def _compose_optional_package_list(self):
-        
+
         # Check for optional LaTeX packages
         optional_packages_list = []
         if self.kwargs['use_sfmath']:
@@ -302,7 +297,7 @@ class XDSM(object):
 
         # Join all packages into one string separated by comma
         optional_packages_str = ",".join(optional_packages_list)
-        
+
         return optional_packages_str
 
     def write(self, file_name=None, build=True, cleanup=True, quiet=False):
@@ -310,9 +305,9 @@ class XDSM(object):
         Write output files for the XDSM diagram.  This produces the following:
 
             - {file_name}.tikz
-                A file containing the TIKZ definition of the XDSM diagram.
+                A file containing the TikZ definition of the XDSM diagram.
             - {file_name}.tex
-                A standalone document wrapped around an include of the TIKZ file which can
+                A standalone document wrapped around an include of the TikZ file which can
                 be compiled to a pdf.
             - {file_name}.pdf
                 An optional compiled version of the standalone tex file.
@@ -325,7 +320,7 @@ class XDSM(object):
             Flag that determines whether the standalone PDF of the XDSM will be compiled.
             Default is True.
         cleanup: bool
-            Flag that determines if padlatex build files will be deleted after build is complete
+            Flag that determines if pdflatex build files will be deleted after build is complete
         quiet: bool
             Set to True to suppress output from pdflatex.
         """
@@ -335,7 +330,7 @@ class XDSM(object):
 
         module_path = os.path.dirname(__file__)
         diagram_styles_path = os.path.join(module_path, 'diagram_styles')
-        # hack for Windows. MiKTeX needs Linux style paths
+        # Hack for Windows. MiKTeX needs Linux style paths.
         diagram_styles_path = diagram_styles_path.replace('\\', '/')
 
         optional_packages_str = self._compose_optional_package_list()

@@ -1,44 +1,47 @@
 % Define all the styles used to produce XDSMs for MDO
-% \definecolor{tableau0}{RGB}{31,119,180}
-% \definecolor{tableau1}{RGB}{255,158,74}
-% \definecolor{tableau2}{RGB}{103,191,92}
-% \definecolor{tableau3}{RGB}{237,102,93}
-% \definecolor{tableau4}{RGB}{148,103,189}
-% \definecolor{tableau5}{RGB}{168,120,110}
-% \definecolor{tableau6}{RGB}{237,151,202}
-% \definecolor{tableau7}{RGB}{162,162,162}
-% \definecolor{tableau8}{RGB}{205,204,93}
-% \definecolor{tableau9}{RGB}{109,204,218}
 
-\definecolor{tableau0}{RGB}{77, 121, 168}
-\definecolor{tableau1}{RGB}{242, 142, 43}
-\definecolor{tableau2}{RGB}{255, 87, 88}
-\definecolor{tableau3}{RGB}{118, 183, 178}
-\definecolor{tableau4}{RGB}{89, 161, 78}
-\definecolor{tableau5}{RGB}{237, 201, 72}
-\definecolor{tableau6}{RGB}{176, 121, 162}
-\definecolor{tableau7}{RGB}{255, 157, 167}
-\definecolor{tableau8}{RGB}{156, 116, 94}
-\definecolor{tableau9}{RGB}{186, 176, 172}
-
-
+% Tableau 20 color palette, taken from
+% https://jrnold.github.io/ggthemes/reference/tableau_color_pal.html
+% we use the lighter variants here with 80% opacity
+% Blue
+\definecolor{red}{HTML}{A0CBE8}
+% Orange
+\definecolor{orange}{HTML}{FFBE7D}
+% Cyan
+\definecolor{cyan}{HTML}{86BCB6}
+% Green
+\definecolor{green}{HTML}{8CD17D}
+% Yellow
+\definecolor{yellow}{HTML}{F1CE63}
+% Salmon
+\definecolor{salmon}{HTML}{FF9D9A}
 
 \tikzstyle{every node}=[font=\sffamily,align=center]
 
-% Component types
-\tikzstyle{Optimization} = [rounded rectangle,draw,fill=tableau4!50,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{LP_Optimization} = [rectangle,draw,fill=tableau4!50,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{Analysis} = [rectangle,draw,fill=tableau2!50,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{ImplicitAnalysis} = [rectangle,draw,fill=tableau3!50,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{Function} = [rectangle,draw,fill=tableau2!50,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{MDA} = [rounded rectangle,draw,fill=tableau5!50,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{Metamodel} = [rectangle,draw,fill=tableau8!50,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{DOE} = [rounded rectangle,draw,fill=tableau8!50,inner sep=6pt,minimum height=1cm,text badly centered]
-%\tikzstyle{OptFunction} = [rectangle,draw,fill=red!20,inner sep=6pt,minimum height=1cm,text badly centered]
+\newcommand{\fillOpacity}{80}
 
+% Component shapes
+\newcommand{\compShape}{rectangle}
+\newcommand{\groupShape}{chamfered rectangle}
+\newcommand{\procShape}{rounded rectangle}
+
+% Colors
+\newcommand{\explicitColor}{green}
+\newcommand{\implicitColor}{salmon}
+\newcommand{\optimizationColor}{red} % also used by DOE
+
+% Component types
+\tikzstyle{Optimization} = [\procShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{MDA} = [\procShape,draw,fill=orange!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{DOE} = [\procShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{SubOptimization} = [\groupShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{Group} = [\groupShape,draw,fill=\explicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{ImplicitGroup} = [\groupShape,draw,fill=\implicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{Function} = [\compShape,draw,fill=\explicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{ImplicitFunction} = [\compShape,draw,fill=\implicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{Metamodel} = [\compShape,draw,fill=yellow!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 
 %% A simple command to give the repeated structure look for components and data
-% \tikzstyle{stack} = [double copy shadow]
 \tikzstyle{stack} = [double copy shadow={shadow xshift=.75ex, shadow yshift=-.75ex}]
 %% A simple command to fade components and data, e.g. demonstrating a sequence of steps in an animation
 \tikzstyle{faded} = [draw=black!50,fill=white,text opacity=0.5]
@@ -47,55 +50,18 @@
 \tikzstyle{fadeddata} = [color=black!20]
 \tikzstyle{fadedprocess} = [color=black!50]
 
-% **OLD** Component types for repeated structures (i.e. for parallel structures)
-%\tikzstyle{Optimization_i} = [double copy shadow, Optimization]
-%\tikzstyle{LP_Optimization_i} = [double copy shadow, LP_Optimization]
-%\tikzstyle{Analysis_i} = [double copy shadow, Analysis]
-%\tikzstyle{Function_i} = [double copy shadow, Function]
-%\tikzstyle{MDA_i} = [double copy shadow, MDA]
-%\tikzstyle{Metamodel_i} = [double copy shadow, Metamodel]
-%\tikzstyle{DOE_i} = [double copy shadow, DOE]
-
-% **OLD** Faded component types for, e.g. demonstrations of each step. We use these style definitions to "gray out" large parts of the diagram.
-%\tikzstyle{Optimization_fade} = [Optimization,fill=blue!10,draw=black!30,text opacity=0.3]
-%\tikzstyle{Analysis_fade} = [Analysis,fill=green!10,draw=black!30,text opacity=0.3]
-%\tikzstyle{Function_fade} = [Function,fill=purple!10,draw=black!30,text opacity=0.3]
-%\tikzstyle{MDA_fade} = [MDA,fill=orange!10,draw=black!30,text opacity=0.3]
-%\tikzstyle{Metamodel_fade} = [Metamodel,fill=yellow!10,draw=black!30,text opacity=0.3]
-%\tikzstyle{DOE_fade} = [DOE,fill=yellow!10,draw=black!30,text opacity=0.3]
-%
-%\tikzstyle{Optimization_i_fade} = [Optimization_i,fill=blue!10,draw=black!30,text opacity=0.3]
-%\tikzstyle{Analysis_i_fade} = [Analysis_i,fill=green!10,draw=black!30,text opacity=0.3]
-%\tikzstyle{Function_i_fade} = [Function_i,fill=purple!10,draw=black!30,text opacity=0.3]
-%\tikzstyle{MDA_i_fade} = [MDA_i,fill=orange!10,draw=black!30,text opacity=0.3]
-%\tikzstyle{Metamodel_i_fade} = [Metamodel_i,fill=yellow!10,draw=black!30,text opacity=0.3]
-%\tikzstyle{DOE_i_fade} = [DOE_i,fill=yellow!10,draw=black!30,text opacity=0.3]
-
 % Data types
-\tikzstyle{DataInter} = [trapezium,trapezium left angle=75,trapezium right angle=105,draw,fill=black!10]
-\tikzstyle{DataIO} = [trapezium,trapezium left angle=75,trapezium right angle=105,draw,fill=white]
+\newcommand{\dataRightAngle}{105}
+\newcommand{\dataLeftAngle}{75}
 
-% **OLD** Data types for repeated structures
-%\tikzstyle{DataInter_i} = [double copy shadow, DataInter]
-%\tikzstyle{DataIO_i} = [double copy shadow, DataIO]
-
-% **OLD** Faded data types
-%\tikzstyle{DataInter_fade} = [DataInter,draw=black!30,fill=white,text opacity=0.3]
-%\tikzstyle{DataIO_fade} = [DataIO_i,draw=black!30,fill=white,text opacity=0.3]
-%
-%\tikzstyle{DataInter_i_fade} = [DataInter_i,draw=black!30,fill=white,text opacity=0.3]
-%\tikzstyle{DataIO_i_fade} = [DataIO_i,draw=black!30,fill=white,text opacity=0.3]
+\tikzstyle{DataInter} = [trapezium,trapezium left angle=\dataLeftAngle,trapezium right angle=\dataRightAngle,draw,fill=black!10]
+\tikzstyle{DataIO} = [trapezium,trapezium left angle=\dataLeftAngle,trapezium right angle=\dataRightAngle,draw,fill=white]
 
 % Edges
 \tikzstyle{DataLine} = [color=black!40,line width=5pt,line cap=rect]
 \tikzstyle{ProcessHV} = [-,line width=1pt,to path={-| (\tikztotarget)}]
 \tikzstyle{ProcessHVA} = [->,line width=1pt,to path={-| (\tikztotarget)}]
 \tikzstyle{ProcessTip} = [-,line width=1pt]
-
-% **OLD** Faded edges
-%\tikzstyle{DataLine_fade} = [DataLine,color=black!10]
-%\tikzstyle{ProcessHV_fade} = [ProcessHV,color=black!30]
-%\tikzstyle{ProcessTip_fade} = [ProcessTip,color=black!30]
 
 % Matrix options
 \tikzstyle{MatrixSetup} = [row sep=3mm, column sep=2mm]

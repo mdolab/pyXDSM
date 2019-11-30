@@ -1,8 +1,8 @@
 from distutils.core import setup
 
 setup(name='pyXDSM',
-      version='1.0.0',
-      description="python script to generate PDF XDSM diagrams using tikz and latex",
+      version='2.0.0',
+      description="Python script to generate PDF XDSM diagrams using TikZ and LaTeX",
       long_description="""\
       """,
       classifiers=[
@@ -19,5 +19,5 @@ setup(name='pyXDSM',
           'pyxdsm': ['*.tex']
       },
       install_requires=[
-      'numpy>=1.9.2'
+            'numpy>=1.9.2'
       ])
