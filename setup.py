@@ -1,4 +1,10 @@
 from distutils.core import setup
+import re
+
+__version__ = re.findall(
+    r"""__version__ = ["']+([0-9\.]*)["']+""",
+    open('pyxdsm/__init__.py').read(),
+)[0]
 
 setup(name='pyXDSM',
       version='2.0.0',
