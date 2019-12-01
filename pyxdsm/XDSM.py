@@ -2,6 +2,8 @@ from __future__ import print_function
 import os
 import numpy as np
 
+from pyxdsm import __version__ as pyxdsm_version
+
 tikzpicture_template = r"""
 %%% Preamble Requirements %%%
 % \usepackage{{geometry}}
@@ -35,7 +37,7 @@ tikzpicture_template = r"""
 """
 
 tex_template = r"""
-% XDSM diagram created with pyXDSM 2.0.
+% XDSM diagram created with pyXDSM {version}.
 \documentclass{{article}}
 \usepackage{{geometry}}
 \usepackage{{amsfonts}}
@@ -347,7 +349,8 @@ class XDSM(object):
         tex_str = tex_template.format(nodes=nodes, edges=edges,
                                       tikzpicture_path=file_name + '.tikz',
                                       diagram_styles_path=diagram_styles_path,
-                                      optional_packages=optional_packages_str)
+                                      optional_packages=optional_packages_str,
+                                      version=pyxdsm_version)
 
         if file_name:
             with open(file_name + '.tex', 'w') as f:
