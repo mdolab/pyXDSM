@@ -7,7 +7,7 @@ __version__ = re.findall(
 )[0]
 
 setup(name='pyXDSM',
-      version='2.0.0',
+      version=__version__,
       description="Python script to generate PDF XDSM diagrams using TikZ and LaTeX",
       long_description="""\
       """,
