@@ -1,4 +1,5 @@
 # pyXDSM
+[![Build Status](https://travis-ci.com/mdolab/pyXDSM.svg?branch=master)](https://travis-ci.com/mdolab/pyXDSM)
 
 A python library for generating publication quality PDF XDSM diagrams.
 This library is a thin wrapper that uses the TikZ library and LaTeX to build the PDFs.
