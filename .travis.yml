@@ -1,0 +1,72 @@
+os:
+  - linux
+
+language: generic
+
+env:
+  - PY=2.7
+  - PY=3.6
+
+addons:
+  apt:
+    update: true
+    packages:
+    - texlive-pictures
+    - texlive-latex-extra
+
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/miniconda
+
+before_install:
+# Check for existence of files to determine if cache exists
+# If the dir doesn't exist, but is slated to be cached later,
+# Travis unhelpfully creates it, which then causes "dir already exists"
+# errors when you go to actually install the thing, so we must non-intuitively
+# delete the file before re-creating it later.
+- if [ -f $HOME/miniconda/bin/python$PY ]; then
+    echo "cached miniconda found -- nothing to do";
+  else
+    NOT_CACHED_CONDA=1;
+    rm -rf $HOME/miniconda;
+  fi
+
+- if [ -f $HOME/.cache/pip ]; then
+    echo "cached pip found -- nothing to do";
+  else
+    NOT_CACHED_PIP=1;
+    rm -rf $HOME/.cache/pip;
+  fi
+
+- rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyXDSM
+
+install:
+- if [ "$NOT_CACHED_CONDA" ]; then
+    wget "https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh" -O miniconda.sh;
+    chmod +x miniconda.sh;
+    ./miniconda.sh -b  -p $HOME/miniconda;
+    export PATH=$HOME/miniconda/bin:$PATH;
+    conda install --yes python=$PY;
+    conda install --yes pip;
+  else
+    export PATH=$HOME/miniconda/bin:$PATH;
+  fi
+
+- if [ "$NOT_CACHED_PIP" ]; then
+    pip install --upgrade pip;
+  fi
+
+- pip install .
+
+
+# display summary of installed packages and their versions
+- conda list
+
+script:
+- cd examples
+- python kitchen_sink.py
+- python mat_eqn.py
+- python mdf.py
+- ls
