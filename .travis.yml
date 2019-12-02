@@ -11,7 +11,7 @@ addons:
   apt:
     update: true
     packages:
-    - texlive-full
+    - texlive-pictures
 
 cache:
   apt: true
