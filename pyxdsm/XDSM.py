@@ -13,13 +13,13 @@ tikzpicture_template = r"""
 % \usepackage{{tikz}}
 
 % Optional packages such as sfmath set through python interface
-% \usepackage{{ {optional_packages} }}
+% \usepackage{{{optional_packages}}}
 
 % \usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}}
 
 %%% End Preamble Requirements %%%
 
-\input{{ {diagram_styles_path} }}
+\input{{{diagram_styles_path}}}
 \begin{{tikzpicture}}
 
 \matrix[MatrixSetup]{{
@@ -46,7 +46,7 @@ tex_template = r"""
 \usepackage{{tikz}}
 
 % Optional packages such as sfmath set through python interface
-\usepackage{{ {optional_packages} }}
+\usepackage{{{optional_packages}}}
 
 % Define the set of TikZ packages to be included in the architecture diagram document
 \usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}}
@@ -60,7 +60,7 @@ tex_template = r"""
 
 \begin{{document}}
 
-\input{{ {tikzpicture_path} }}
+\input{{{tikzpicture_path}}}
 
 \end{{document}}
 """
