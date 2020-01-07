@@ -224,7 +224,7 @@ class XDSM(object):
         for comp_name, in_data in self.ins.items():
             node_name, style, label, stack = in_data
             if stack:
-                style = ',stack'
+                style += ',stack'
 
             j_col = col_idx_map[comp_name]
             loc = (0, j_col)
@@ -271,21 +271,32 @@ class XDSM(object):
 
     def _build_process_chain(self):
         sys_names = [s[0] for s in self.comps]
-
+        output_names = [data[0] for _, data in self.ins.items()] + [data[0] for _, data in self.left_outs.items()] + [data[0] for _, data in self.right_outs.items()]
+        # comp_name, in_data in self.ins.items():
+        #     node_name, style, label, stack = in_data
         chain_str = ""
 
         for proc, arrow in zip(self.processes, self.process_arrows):
             chain_str += "{ [start chain=process]\n \\begin{pgfonlayer}{process} \n"
+            start_tip = False
             for i, sys in enumerate(proc):
-                if sys not in sys_names:
+                if sys not in sys_names and sys not in output_names:
                     raise ValueError('process includes a system named "{}" but no system with that name exists.'.format(sys))
+                if sys in output_names and i == 0:
+                    start_tip = True
                 if i == 0:
                     chain_str += "\\chainin ({});\n".format(sys)
                 else:
-                    if arrow:
-                        chain_str += "\\chainin ({}) [join=by ProcessHVA];\n".format(sys)
+                    if sys in output_names or (i == 1 and start_tip):
+                        if arrow:
+                            chain_str += "\\chainin ({}) [join=by ProcessTipA];\n".format(sys)
+                        else:
+                            chain_str += "\\chainin ({}) [join=by ProcessTip];\n".format(sys)
                     else:
-                        chain_str += "\\chainin ({}) [join=by ProcessHV];\n".format(sys)
+                        if arrow:
+                            chain_str += "\\chainin ({}) [join=by ProcessHVA];\n".format(sys)
+                        else:
+                            chain_str += "\\chainin ({}) [join=by ProcessHV];\n".format(sys)
             chain_str += "\\end{pgfonlayer}\n}"
 
         return chain_str

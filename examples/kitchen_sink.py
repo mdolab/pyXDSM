@@ -58,6 +58,7 @@ x.connect('H', 'opt', 'h', stack=True)
 # can specify inputs to represent external information coming into the XDSM
 x.add_input('D1', 'P_1')
 x.add_input('D2', 'P_2')
+x.add_input('opt', r'x_0', stack=True)
 
 # can put outputs on the left or right sides
 x.add_output('opt', r'x^*, z^*', side='right')
@@ -65,5 +66,8 @@ x.add_output('D1', r'y_1^*', side='left')
 x.add_output('D2', r'y_2^*', side='left')
 x.add_output('F', r'f^*', side='right')
 x.add_output('H', r'h^*', side='right')
+x.add_output('opt', r'y^*', side='left')
+
+x.add_process(['output_opt', 'opt', 'left_output_opt'])
 
 x.write('kitchen_sink', cleanup=False)
