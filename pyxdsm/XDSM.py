@@ -69,7 +69,6 @@ tex_template = r"""
 """
 
 def chunk_label(label, n_chunks): 
-      
     # looping till length l 
     for i in range(0, len(label), n_chunks):  
         yield label[i:i + n_chunks] 
@@ -248,7 +247,7 @@ class XDSM(object):
 
             j_col = col_idx_map[comp_name]
             loc = (0, j_col)
-            label = _parse_label(inp.label, label_width=inp.label)
+            label = _parse_label(inp.label, label_width=inp.label_width)
             node = node_str.format(style=style,
                                    node_name=inp.node_name,
                                    node_label=label)
