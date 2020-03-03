@@ -1,6 +1,9 @@
 from __future__ import print_function
 import os
 import numpy as np
+import json
+
+from collections import namedtuple
 
 from pyxdsm import __version__ as pyxdsm_version
 
@@ -65,11 +68,40 @@ tex_template = r"""
 \end{{document}}
 """
 
+def chunk_label(label, n_chunks): 
+      
+    # looping till length l 
+    for i in range(0, len(label), n_chunks):  
+        yield label[i:i + n_chunks] 
+
+def _parse_label(label, label_width=None):
+    if isinstance(label, (tuple, list)):
+        if label_width is None: 
+            return r'$\begin{array}{c}' + r' \\ '.join(label) + r'\end{array}$'
+        else: 
+            labels = []
+            for chunk in chunk_label(label, label_width): 
+                labels.append(", ".join(chunk))
+            return r'$\begin{array}{c}' + r' \\ '.join(labels) + r'\end{array}$'
+    else:
+        return r'${}$'.format(label)
+
+def _label_to_spec(label, spec): 
+    if isinstance(label, str): 
+        label = [label,]
+    for var in label: 
+        spec.add(var)
+
+
+System = namedtuple('System', 'node_name style label stack faded text_width spec_name')
+Input = namedtuple('Input', 'node_name label label_width style stack')
+Output = namedtuple('Output', 'node_name label label_width style stack side')
+Connection = namedtuple('Connection', 'src target label label_width style stack faded')
 
 class XDSM(object):
 
-    def __init__(self, **kwargs):
-        self.comps = []
+    def __init__(self, use_sfmath=True):
+        self.systems = []
         self.connections = []
         self.left_outs = {}
         self.right_outs = {}
@@ -77,52 +109,37 @@ class XDSM(object):
         self.processes = []
         self.process_arrows = []
 
-        # Check kwargs
-        self.kwargs = self._get_default_kwargs()
-        for key, val in kwargs.items():
-            # Check if exist in the default list
-            # If exist, then update else print error and exit
-            if key in self.kwargs:
-                self.kwargs[key] = val
-            else:
-                print('Keyword "{}" not found, quitting.')
-                exit(-1)
+        self.use_sfmath=use_sfmath
 
-    def add_system(self, node_name, style, label, stack=False, faded=False, text_width=None):
-        self.comps.append([node_name, style, label, stack, faded, text_width])
+       
+    def add_system(self, node_name, style, label, stack=False, faded=False, text_width=None, spec_name=None):
+        if spec_name is None: 
+            spec_name = node_name
 
-    def add_input(self, name, label, style='DataIO', stack=False):
-        self.ins[name] = ('output_'+name, style, label, stack)
+        sys = System(node_name, style, label, stack, faded, text_width, spec_name)
+        self.systems.append(sys)
 
-    def add_output(self, name, label, style='DataIO', stack=False, side="left"):
+    def add_input(self, name, label, label_width=4, style='DataIO', stack=False):
+        self.ins[name] = Input('output_'+name, label, label_width, style, stack)
+
+
+    def add_output(self, name, label, label_width=4, style='DataIO', stack=False, side="left"):
         if side == "left":
-            self.left_outs[name] = ('left_output_'+name, style, label, stack)
+            self.left_outs[name] = Output('left_output_'+name, label, label_width, style, stack, side)
         elif side == "right":
-            self.right_outs[name] = ('right_output_'+name, style, label, stack)
+            self.right_outs[name] = Output('right_output_'+name, label, label_width, style, stack, side)
 
-    def connect(self, src, target, label, style='DataInter', stack=False, faded=False):
+    def connect(self, src, target, label, label_width=4, style='DataInter', stack=False, faded=False):
         if src == target:
             raise ValueError('Can not connect component to itself')
-        self.connections.append([src, target, style, label, stack, faded])
+        self.connections.append(Connection(src, target, label, label_width, style, stack, faded))
 
     def add_process(self, systems, arrow=True):
         self.processes.append(systems)
         self.process_arrows.append(arrow)
-
-    @staticmethod
-    def _get_default_kwargs():
-        kw = {'use_sfmath': True}
-        return kw
-
-    @staticmethod
-    def _parse_label(label):
-        if isinstance(label, (tuple, list)):
-            return r'$\begin{array}{c}' + r' \\ '.join(label) + r'\end{array}$'
-        else:
-            return r'${}$'.format(label)
-
+    
     def _build_node_grid(self):
-        size = len(self.comps)
+        size = len(self.systems)
 
         comps_rows = np.arange(size)
         comps_cols = np.arange(size)
@@ -151,37 +168,39 @@ class XDSM(object):
         grid[:] = ''
 
         # add all the components on the diagonal
-        for i_row, j_col, comp in zip(comps_rows, comps_cols, self.comps):
-            node_name, style, label, stack, faded, text_width = comp
-            if stack is True:  # stacking
+        for i_row, j_col, comp in zip(comps_rows, comps_cols, self.systems):
+            style = comp.style
+            if comp.stack is True:  # stacking
                 style += ',stack'
-            if faded is True:  # fading
+            if comp.faded is True:  # fading
                 style += ',faded'
-            if text_width is not None:
+            if comp.text_width is not None:
                 style += ',text width={}cm'.format(text_width)
 
-            label = self._parse_label(label)
-            node = node_str.format(style=style, node_name=node_name, node_label=label)
+            label = _parse_label(comp.label)
+            node = node_str.format(style=comp.style, node_name=comp.node_name, node_label=label)
             grid[i_row, j_col] = node
 
-            row_idx_map[node_name] = i_row
-            col_idx_map[node_name] = j_col
+            row_idx_map[comp.node_name] = i_row
+            col_idx_map[comp.node_name] = j_col
 
         # add all the off diagonal nodes from components
-        for src, target, style, label, stack, faded in self.connections:
-            src_row = row_idx_map[src]
-            target_col = col_idx_map[target]
+        for conn in self.connections:
+            # src, target, style, label, stack, faded, label_width
+            src_row = row_idx_map[conn.src]
+            target_col = col_idx_map[conn.target]
 
             loc = (src_row, target_col)
 
-            if stack is True:  # stacking
+            style = conn.style
+            if conn.stack is True:  # stacking
                 style += ',stack'
-            if faded is True:  # fading
+            if conn.faded is True:  # fading
                 style += ',faded'
 
-            label = self._parse_label(label)
+            label = _parse_label(conn.label, conn.label_width)
 
-            node_name = '{}-{}'.format(src, target)
+            node_name = '{}-{}'.format(conn.src, conn.target)
 
             node = node_str.format(style=style,
                                    node_name=node_name,
@@ -190,47 +209,48 @@ class XDSM(object):
             grid[loc] = node
 
         # add the nodes for left outputs
-        for comp_name, out_data in self.left_outs.items():
-            node_name, style, label, stack = out_data
-            if stack:
+        for comp_name, out in self.left_outs.items():
+            style = out.style
+            if out.stack:
                 style += ',stack'
 
             i_row = row_idx_map[comp_name]
             loc = (i_row, 0)
 
-            label = self._parse_label(label)
+            label = _parse_label(out.label, out.label_width)
             node = node_str.format(style=style,
-                                   node_name=node_name,
+                                   node_name=out.node_name,
                                    node_label=label)
 
             grid[loc] = node
 
         # add the nodes for right outputs
-        for comp_name, out_data in self.right_outs.items():
-            node_name, style, label, stack = out_data
-            if stack:
+        for comp_name, out in self.right_outs.items():
+            style = out.style
+            if out.stack:
                 style += ',stack'
 
             i_row = row_idx_map[comp_name]
             loc = (i_row, -1)
-            label = self._parse_label(label)
+            label = _parse_label(out.label, out.label_width)
             node = node_str.format(style=style,
-                                   node_name=node_name,
+                                   node_name=out.node_name,
                                    node_label=label)
 
             grid[loc] = node
 
         # add the inputs to the top of the grid
-        for comp_name, in_data in self.ins.items():
-            node_name, style, label, stack = in_data
-            if stack:
+        for comp_name, inp in self.ins.items():
+            # node_name, style, label, stack = in_data
+            style = inp.style
+            if inp.stack:
                 style += ',stack'
 
             j_col = col_idx_map[comp_name]
             loc = (0, j_col)
-            label = self._parse_label(label)
+            label = _parse_label(inp.label, label_width=inp.label)
             node = node_str.format(style=style,
-                                   node_name=node_name,
+                                   node_name=inp.node_name,
                                    node_label=label)
 
             grid[loc] = node
@@ -247,21 +267,21 @@ class XDSM(object):
         v_edges = []
 
         edge_string = "({start}) edge [DataLine] ({end})"
-        for src, target, style, label, stack, faded in self.connections:
-            od_node_name = '{}-{}'.format(src, target)
-            h_edges.append(edge_string.format(start=src, end=od_node_name))
-            v_edges.append(edge_string.format(start=od_node_name, end=target))
+        for conn in self.connections:
+            od_node_name = '{}-{}'.format(conn.src, conn.target)
+            h_edges.append(edge_string.format(start=conn.src, end=od_node_name))
+            v_edges.append(edge_string.format(start=od_node_name, end=conn.target))
 
-        for comp_name, out_data in self.left_outs.items():
-            node_name = out_data[0]
+        for comp_name, out in self.left_outs.items():
+            node_name = out.node_name
             h_edges.append(edge_string.format(start=comp_name, end=node_name))
 
-        for comp_name, out_data in self.right_outs.items():
-            node_name = out_data[0]
+        for comp_name, out in self.right_outs.items():
+            node_name = out.node_name
             h_edges.append(edge_string.format(start=comp_name, end=node_name))
 
-        for comp_name, in_data in self.ins.items():
-            node_name = in_data[0]
+        for comp_name, inp in self.ins.items():
+            node_name = inp.node_name
             v_edges.append(edge_string.format(start=comp_name, end=node_name))
 
         paths_str = '% Horizontal edges\n' + '\n'.join(h_edges) + '\n'
@@ -270,7 +290,7 @@ class XDSM(object):
         return paths_str
 
     def _build_process_chain(self):
-        sys_names = [s[0] for s in self.comps]
+        sys_names = [s.node_name for s in self.systems]
         output_names = [data[0] for _, data in self.ins.items()] + [data[0] for _, data in self.left_outs.items()] + [data[0] for _, data in self.right_outs.items()]
         # comp_name, in_data in self.ins.items():
         #     node_name, style, label, stack = in_data
@@ -305,7 +325,7 @@ class XDSM(object):
 
         # Check for optional LaTeX packages
         optional_packages_list = []
-        if self.kwargs['use_sfmath']:
+        if self.use_sfmath:
             optional_packages_list.append('sfmath')
 
         # Join all packages into one string separated by comma
@@ -313,7 +333,7 @@ class XDSM(object):
 
         return optional_packages_str
 
-    def write(self, file_name=None, build=True, cleanup=True, quiet=False):
+    def write(self, file_name, build=True, cleanup=True, quiet=False):
         """
         Write output files for the XDSM diagram.  This produces the following:
 
@@ -377,3 +397,47 @@ class XDSM(object):
                     f_name = '{}.{}'.format(file_name, ext)
                     if os.path.exists(f_name):
                         os.remove(f_name)
+
+
+    def write_sys_specs(self, folder_name): 
+        """
+        Write i/o spec files for components to specified folder
+
+        Parameters
+        ----------
+        folder_name: str
+            name of the folder, which will be created if it doesn't exist, to put spec files into
+        """
+
+        # find un-connected to each system by looking at Inputs
+        specs = {}
+        for sys in self.systems: 
+            specs[sys.node_name] = {'inputs': set(), 'outputs': set()}
+
+        for sys_name, inp in self.ins.items():
+            _label_to_spec(inp.label, specs[sys_name]['inputs'])
+
+        # find connected inputs/outputs to each system by looking at Connections
+        for conn in self.connections: 
+            _label_to_spec(conn.label, specs[conn.target]['inputs'])
+            
+            _label_to_spec(conn.label, specs[conn.src]['outputs'])
+
+        # find unconnceted outputs to each system by looking at Outputs
+        for sys_name, out in self.left_outs.items():
+            _label_to_spec(out.label, specs[sys_name]['outputs']) 
+        for sys_name, out in self.right_outs.items():
+            _label_to_spec(out.label, specs[sys_name]['outputs']) 
+
+        if not os.path.isdir(folder_name): 
+            os.mkdir(folder_name)
+
+        for sys in self.systems: 
+            if sys.spec_name is not False: 
+                path = os.path.join(folder_name, sys.spec_name + ".json")
+                with open(path, 'w') as f: 
+                    spec = specs[sys.node_name]
+                    spec['inputs'] = list(spec['inputs'])
+                    spec['outputs'] = list(spec['outputs'])
+                    json_str = json.dumps(spec, indent=2)
+                    f.write(json_str)
