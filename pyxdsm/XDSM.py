@@ -439,4 +439,5 @@ class XDSM(object):
                     spec = specs[sys.node_name]
                     spec['inputs'] = list(spec['inputs'])
                     spec['outputs'] = list(spec['outputs'])
-                    json.dump(spec, f)
+                    json_str = json.dumps(spec, indent=2)
+                    f.write(json_str)
