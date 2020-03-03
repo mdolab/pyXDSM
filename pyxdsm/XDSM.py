@@ -92,7 +92,7 @@ Connection = namedtuple('Connection', 'src target label label_width style stack 
 
 class XDSM(object):
 
-    def __init__(self, **kwargs):
+    def __init__(self, use_sfmath=True):
         self.comps = []
         self.connections = []
         self.left_outs = {}
@@ -101,17 +101,9 @@ class XDSM(object):
         self.processes = []
         self.process_arrows = []
 
-        # Check kwargs
-        self.kwargs = self._get_default_kwargs()
-        for key, val in kwargs.items():
-            # Check if exist in the default list
-            # If exist, then update else print error and exit
-            if key in self.kwargs:
-                self.kwargs[key] = val
-            else:
-                print('Keyword "{}" not found, quitting.')
-                exit(-1)
+        self.use_sfmath=use_sfmath
 
+       
     def add_system(self, node_name, style, label, stack=False, faded=False, text_width=None, spec_name=None):
         if spec_name is None: 
             spec_name = node_name
@@ -137,11 +129,6 @@ class XDSM(object):
     def add_process(self, systems, arrow=True):
         self.processes.append(systems)
         self.process_arrows.append(arrow)
-
-    @staticmethod
-    def _get_default_kwargs():
-        kw = {'use_sfmath': True}
-        return kw
     
     def _build_node_grid(self):
         size = len(self.comps)
@@ -330,7 +317,7 @@ class XDSM(object):
 
         # Check for optional LaTeX packages
         optional_packages_list = []
-        if self.kwargs['use_sfmath']:
+        if self.use_sfmath:
             optional_packages_list.append('sfmath')
 
         # Join all packages into one string separated by comma
