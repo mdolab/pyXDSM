@@ -1,6 +1,7 @@
 from __future__ import print_function
 import os
 import numpy as np
+import json
 
 from collections import namedtuple
 
@@ -85,6 +86,13 @@ def _parse_label(label, label_width=None):
     else:
         return r'${}$'.format(label)
 
+def _label_to_spec(label, spec): 
+    if isinstance(label, str): 
+        label = [label,]
+    for var in label: 
+        spec.add(var)
+
+
 System = namedtuple('System', 'node_name style label stack faded text_width spec_name')
 Input = namedtuple('Input', 'node_name label label_width style stack')
 Output = namedtuple('Output', 'node_name label label_width style stack side')
@@ -93,7 +101,7 @@ Connection = namedtuple('Connection', 'src target label label_width style stack 
 class XDSM(object):
 
     def __init__(self, use_sfmath=True):
-        self.comps = []
+        self.systems = []
         self.connections = []
         self.left_outs = {}
         self.right_outs = {}
@@ -109,7 +117,7 @@ class XDSM(object):
             spec_name = node_name
 
         sys = System(node_name, style, label, stack, faded, text_width, spec_name)
-        self.comps.append(sys)
+        self.systems.append(sys)
 
     def add_input(self, name, label, label_width=4, style='DataIO', stack=False):
         self.ins[name] = Input('output_'+name, label, label_width, style, stack)
@@ -131,7 +139,7 @@ class XDSM(object):
         self.process_arrows.append(arrow)
     
     def _build_node_grid(self):
-        size = len(self.comps)
+        size = len(self.systems)
 
         comps_rows = np.arange(size)
         comps_cols = np.arange(size)
@@ -160,7 +168,7 @@ class XDSM(object):
         grid[:] = ''
 
         # add all the components on the diagonal
-        for i_row, j_col, comp in zip(comps_rows, comps_cols, self.comps):
+        for i_row, j_col, comp in zip(comps_rows, comps_cols, self.systems):
             style = comp.style
             if comp.stack is True:  # stacking
                 style += ',stack'
@@ -282,7 +290,7 @@ class XDSM(object):
         return paths_str
 
     def _build_process_chain(self):
-        sys_names = [s.node_name for s in self.comps]
+        sys_names = [s.node_name for s in self.systems]
         output_names = [data[0] for _, data in self.ins.items()] + [data[0] for _, data in self.left_outs.items()] + [data[0] for _, data in self.right_outs.items()]
         # comp_name, in_data in self.ins.items():
         #     node_name, style, label, stack = in_data
@@ -325,7 +333,7 @@ class XDSM(object):
 
         return optional_packages_str
 
-    def write(self, file_name=None, build=True, cleanup=True, quiet=False):
+    def write(self, file_name, build=True, cleanup=True, quiet=False):
         """
         Write output files for the XDSM diagram.  This produces the following:
 
@@ -389,3 +397,46 @@ class XDSM(object):
                     f_name = '{}.{}'.format(file_name, ext)
                     if os.path.exists(f_name):
                         os.remove(f_name)
+
+
+    def write_sys_specs(self, folder_name): 
+        """
+        Write i/o spec files for components to specified folder
+
+        Parameters
+        ----------
+        folder_name: str
+            name of the folder, which will be created if it doesn't exist, to put spec files into
+        """
+
+        # find un-connected to each system by looking at Inputs
+        specs = {}
+        for sys in self.systems: 
+            specs[sys.node_name] = {'inputs': set(), 'outputs': set()}
+
+        for sys_name, inp in self.ins.items():
+            _label_to_spec(inp.label, specs[sys_name]['inputs'])
+
+        # find connected inputs/outputs to each system by looking at Connections
+        for conn in self.connections: 
+            _label_to_spec(conn.label, specs[conn.target]['inputs'])
+            
+            _label_to_spec(conn.label, specs[conn.src]['outputs'])
+
+        # find unconnceted outputs to each system by looking at Outputs
+        for sys_name, out in self.left_outs.items():
+            _label_to_spec(out.label, specs[sys_name]['outputs']) 
+        for sys_name, out in self.right_outs.items():
+            _label_to_spec(out.label, specs[sys_name]['outputs']) 
+
+        if not os.path.isdir(folder_name): 
+            os.mkdir(folder_name)
+
+        for sys in self.systems: 
+            if sys.spec_name is not False: 
+                path = os.path.join(folder_name, sys.spec_name + ".json")
+                with open(path, 'w') as f: 
+                    spec = specs[sys.node_name]
+                    spec['inputs'] = list(spec['inputs'])
+                    spec['outputs'] = list(spec['outputs'])
+                    json.dump(spec, f)

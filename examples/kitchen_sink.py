@@ -36,7 +36,7 @@ x.add_system('H', func, 'H', stack=True)
 x.add_process(['opt', 'DOE', 'MDA', 'D1', 'D2', 'subopt', 'G1', 'G2', 'MM', 'F', 'H', 'opt'], arrow=True)
 
 x.connect('opt', 'D1', ['x', 'z', 'y_2'], label_width=2)
-x.connect('opt', 'D2', 'z, y_1')
+x.connect('opt', 'D2', ['z', 'y_1'])
 x.connect('opt', 'D3', 'z, y_1')
 x.connect('opt', 'subopt', 'z, y_1')
 x.connect('subopt', 'G1', 'z_2')
@@ -71,3 +71,4 @@ x.add_output('opt', r'y^*', side='left')
 x.add_process(['output_opt', 'opt', 'left_output_opt'])
 
 x.write('kitchen_sink', cleanup=False)
+x.write_sys_specs('sink_specs')
