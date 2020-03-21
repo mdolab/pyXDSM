@@ -422,7 +422,7 @@ class XDSM(object):
             
             _label_to_spec(conn.label, specs[conn.src]['outputs'])
 
-        # find unconnceted outputs to each system by looking at Outputs
+        # find unconnected outputs to each system by looking at Outputs
         for sys_name, out in self.left_outs.items():
             _label_to_spec(out.label, specs[sys_name]['outputs']) 
         for sys_name, out in self.right_outs.items():
