@@ -174,7 +174,7 @@ class XDSM(object):
             if comp.faded is True:  # fading
                 style += ',faded'
             if comp.text_width is not None:
-                style += ',text width={}cm'.format(text_width)
+                style += ',text width={}cm'.format(comp.text_width)
 
             label = _parse_label(comp.label)
             node = node_str.format(style=comp.style, node_name=comp.node_name, node_label=label)
