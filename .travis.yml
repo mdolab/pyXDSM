@@ -70,7 +70,11 @@ script:
 - python mat_eqn.py
 - python mdf.py
 - ls
+- cd ..
 
+before_deploy: 
+- pwd
+  
 deploy:
   provider: pypi
   user: "__token__"
