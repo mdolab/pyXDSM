@@ -15,7 +15,7 @@ addons:
     - texlive-latex-extra
 
 cache:
-  pip
+  pip: true
   apt: true
   directories:
     - $HOME/.cache/pip
