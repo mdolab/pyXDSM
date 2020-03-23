@@ -73,7 +73,7 @@ class TestXDSM(unittest.TestCase):
         # Check if TiKZ file was created.
         # Compare the content of the sample below and the newly created TiKZ file.
 
-        tikz_txt = r"""
+        sample_txt = r"""
             
             %%% Preamble Requirements %%%
             % \usepackage{geometry}
@@ -89,7 +89,7 @@ class TestXDSM(unittest.TestCase):
             
             %%% End Preamble Requirements %%%
             
-            \input{"D:/Documents/GitHub/mypyXDSM/pyXDSM/pyxdsm/diagram_styles"}
+            \input{"path/to/diagram_styles"}
             \begin{tikzpicture}
             
             \matrix[MatrixSetup]{
@@ -231,31 +231,33 @@ class TestXDSM(unittest.TestCase):
 
         self.assertTrue(os.path.isfile(tikz_file))
 
-        tikz_lines = tikz_txt.split('\n')
-        tikz_lines = filter_lines(tikz_lines)
+        sample_lines = sample_txt.split('\n')
+        sample_lines = filter_lines(sample_lines)
 
         with open(tikz_file, "r") as f:
-            lines = filter_lines(f.readlines())
+            new_lines = filter_lines(f.readlines())
 
         sample_no_match = []  # Sample text
         new_no_match = []  # New text
 
-        for line1, line2 in zip(lines, tikz_lines):
-            if line1 != line2:  # else everything is okay
+        for new_line, sample_line in zip(new_lines, sample_lines):
+            if new_line.startswith(r'\input{'):
+                continue
+            if new_line != sample_line:  # else everything is okay
                 # This can be because of the different ordering of lines or because of an error.
-                sample_no_match.append(line1)
-                new_no_match.append(line2)
+                sample_no_match.append(new_line)
+                new_no_match.append(sample_line)
 
         # Sort both sets of suspicious lines
         sample_no_match.sort()
         new_no_match.sort()
 
-        for line1, line2 in zip(sample_no_match, new_no_match):
+        for sample_line, new_line in zip(sample_no_match, new_no_match):
             # Now the lines should match, if only the ordering was different
-            self.assertEqual(line1, line2)
+            self.assertEqual(new_line, sample_line)
 
         # To be sure, check the length, otherwise a missing last line could get unnoticed because of using zip
-        self.assertEqual(len(lines), len(tikz_lines))
+        self.assertEqual(len(new_lines), len(sample_lines))
 
 
 if __name__ == "__main__":
