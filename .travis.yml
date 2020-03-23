@@ -4,8 +4,9 @@ os:
 language: python
 
 env:
-  - PY=2.7
   - PY=3.6
+  - PY=3.7
+  - PY=3.8
 
 addons:
   apt:
