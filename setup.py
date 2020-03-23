@@ -33,7 +33,7 @@ setup(name='pyXDSM',
       author='',
       author_email='',
       url='http://mdolab.engin.umich.edu/',
-    #   license='Apache License, Version 2.0',
+      license='Apache License Version 2.0',
       packages=[
           'pyxdsm',
       ],
@@ -44,7 +44,6 @@ setup(name='pyXDSM',
             'numpy>=1.9.2'
       ],
       classifiers=[
-        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python"]
       )
