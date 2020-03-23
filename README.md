@@ -5,10 +5,17 @@ A python library for generating publication quality PDF XDSM diagrams.
 This library is a thin wrapper that uses the TikZ library and LaTeX to build the PDFs.
 
 # Installation
-Clone this repo or download the zip and unzip it.
+This package can be installed using 
 
-    cd pyxdsm
-    pip install .
+```bash 
+pip install pyxdsm
+```
+
+Alternatively, clone this repo or download the zip and unzip it.
+```bash 
+cd pyxdsm
+pip install .
+```
 
 ![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/images_for_readme/mdf.png)
 
