@@ -1,7 +1,7 @@
 os:
   - linux
 
-language: generic
+language: python
 
 env:
   - PY=2.7
@@ -15,6 +15,7 @@ addons:
     - texlive-latex-extra
 
 cache:
+  pip
   apt: true
   directories:
     - $HOME/.cache/pip
@@ -33,13 +34,6 @@ before_install:
     rm -rf $HOME/miniconda;
   fi
 
-- if [ -f $HOME/.cache/pip ]; then
-    echo "cached pip found -- nothing to do";
-  else
-    NOT_CACHED_PIP=1;
-    rm -rf $HOME/.cache/pip;
-  fi
-
 - rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyXDSM
 
 install:
@@ -54,23 +48,14 @@ install:
     export PATH=$HOME/miniconda/bin:$PATH;
   fi
 
-- if [ "$NOT_CACHED_PIP" ]; then
-    pip install --upgrade pip;
-  fi
-
+- pip install testflo;
 - pip install .
-
 
 # display summary of installed packages and their versions
 - conda list
 
 script:
-- cd examples
-- python kitchen_sink.py
-- python mat_eqn.py
-- python mdf.py
-- ls
-- cd ..
+- testflo . -v
 
 deploy:
   provider: pypi
