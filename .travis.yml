@@ -70,3 +70,13 @@ script:
 - python mat_eqn.py
 - python mdf.py
 - ls
+
+deploy:
+  provider: pypi
+  user: "__token__"
+  password: 
+    secure: "$PYPI_TOKEN"
+  distributions: "sdist bdist_wheel" # Your distributions here
+  on:
+    tags: true
+  skip_existing: true
