@@ -32,7 +32,7 @@ setup(name='pyXDSM',
       keywords='optimization multidisciplinary multi-disciplinary analysis n2 xdsm',
       author='',
       author_email='',
-      url='http://mdolab.engin.umich.edu/',
+      url='https://github.com/mdolab/pyXDSM',
       license='Apache License Version 2.0',
       packages=[
           'pyxdsm',
