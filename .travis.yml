@@ -74,12 +74,12 @@ script:
 
 before_deploy: 
 - pwd
+- echo "$PYPI_TOKEN"
   
 deploy:
   provider: pypi
   user: "__token__"
-  password: 
-    secure: "$PYPI_TOKEN"
+  password: "$PYPI_TOKEN"
   distributions: "sdist bdist_wheel" # Your distributions here
   on:
     tags: true
