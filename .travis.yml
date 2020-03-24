@@ -16,10 +16,8 @@ addons:
     - texlive-latex-extra
 
 cache:
-  pip: true
   apt: true
   directories:
-    - $HOME/.cache/pip
     - $HOME/miniconda
 
 before_install:
@@ -34,8 +32,6 @@ before_install:
     NOT_CACHED_CONDA=1;
     rm -rf $HOME/miniconda;
   fi
-
-- rm -rf $HOME/miniconda/lib/python$PY/site-packages/pyXDSM
 
 install:
 - if [ "$NOT_CACHED_CONDA" ]; then
