@@ -46,7 +46,7 @@ install:
   fi
 
 - pip install testflo;
-- pip install . -e
+- pip install -e .
 
 # display summary of installed packages and their versions
 - conda list
