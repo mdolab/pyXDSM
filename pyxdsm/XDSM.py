@@ -118,17 +118,17 @@ class XDSM(object):
         sys = System(node_name, style, label, stack, faded, text_width, spec_name)
         self.systems.append(sys)
 
-    def add_input(self, name, label, label_width=4, style='DataIO', stack=False):
+    def add_input(self, name, label, label_width=None, style='DataIO', stack=False):
         self.ins[name] = Input('output_'+name, label, label_width, style, stack)
 
 
-    def add_output(self, name, label, label_width=4, style='DataIO', stack=False, side="left"):
+    def add_output(self, name, label, label_width=None, style='DataIO', stack=False, side="left"):
         if side == "left":
             self.left_outs[name] = Output('left_output_'+name, label, label_width, style, stack, side)
         elif side == "right":
             self.right_outs[name] = Output('right_output_'+name, label, label_width, style, stack, side)
 
-    def connect(self, src, target, label, label_width=4, style='DataInter', stack=False, faded=False):
+    def connect(self, src, target, label, label_width=None, style='DataInter', stack=False, faded=False):
         if src == target:
             raise ValueError('Can not connect component to itself')
         self.connections.append(Connection(src, target, label, label_width, style, stack, faded))
