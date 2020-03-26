@@ -1,7 +1,6 @@
 import unittest
 import os
-
-from pyxdsm.XDSM import XDSM
+from pyxdsm.XDSM import XDSM, __file__
 
 
 class TestXDSM(unittest.TestCase):
@@ -25,6 +24,23 @@ class TestXDSM(unittest.TestCase):
             shutil.rmtree(self.tempdir)
         except OSError:
             pass
+
+    def test_examples(self):
+        '''
+        This test just builds the three examples, and assert that the output files exist.
+        Unlike the other tests, this one requires LaTeX to be available.
+        '''
+        os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../examples'))
+        filenames = ['kitchen_sink', 'mdf']
+        for f in filenames:
+            os.system('python {}.py'.format(f))
+            self.assertTrue(os.path.isfile(f + '.tikz'))
+            self.assertTrue(os.path.isfile(f + '.tex'))
+            self.assertTrue(os.path.isfile(f + '.pdf'))
+        os.system('python mat_eqn.py')
+        self.assertTrue(os.path.isfile('mat_eqn_example.pdf'))
+        # change back to previous directory
+        os.chdir(self.tempdir)
 
     def test_options(self):
 
