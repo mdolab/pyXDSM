@@ -46,19 +46,13 @@ install:
   fi
 
 - pip install testflo;
-- pip install .
+- pip install . -e
 
 # display summary of installed packages and their versions
 - conda list
 
 script:
 - testflo . -v
-
-# now we build examples as a test
-- cd examples 
-- python kitchen_sink.py
-- python mat_eqn.py
-- python mdf.py
 
 deploy:
   provider: pypi
