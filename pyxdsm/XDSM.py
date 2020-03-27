@@ -92,7 +92,7 @@ def _label_to_spec(label, spec):
         spec.add(var)
 
 
-System = namedtuple('System', 'node_name style label stack faded text_width spec_name')
+System = namedtuple('System', 'node_name style label stack faded label_width spec_name')
 Input = namedtuple('Input', 'node_name label label_width style stack')
 Output = namedtuple('Output', 'node_name label label_width style stack side')
 Connection = namedtuple('Connection', 'src target label label_width style stack faded')
@@ -111,7 +111,7 @@ class XDSM(object):
         self.use_sfmath=use_sfmath
 
        
-    def add_system(self, node_name, style, label, stack=False, faded=False, text_width=None, spec_name=None):
+    def add_system(self, node_name, style, label, stack=False, faded=False, label_width=None, spec_name=None):
         """
         Add a "system" block, which will be placed on the diagonal of the XDSM diagram.
 
@@ -137,7 +137,7 @@ class XDSM(object):
         faded : bool
             If true, the component will be faded, in order to highlight some other system.
 
-        text_width : int or None
+        label_width : int or None
             If not None, AND if ``label`` is given as either a tuple or list, then this parameter
             controls how many items in the tuple/list will be displayed per line.
             If None, the label will be printed one item per line if given as a tuple or list,
@@ -150,7 +150,7 @@ class XDSM(object):
         if spec_name is None: 
             spec_name = node_name
 
-        sys = System(node_name, style, label, stack, faded, text_width, spec_name)
+        sys = System(node_name, style, label, stack, faded, label_width, spec_name)
         self.systems.append(sys)
 
     def add_input(self, name, label, label_width=None, style='DataIO', stack=False):
@@ -318,10 +318,8 @@ class XDSM(object):
                 style += ',stack'
             if comp.faded is True:  # fading
                 style += ',faded'
-            if comp.text_width is not None:
-                style += ',text width={}cm'.format(comp.text_width)
 
-            label = _parse_label(comp.label)
+            label = _parse_label(comp.label, comp.label_width)
             node = node_str.format(style=comp.style, node_name=comp.node_name, node_label=label)
             grid[i_row, j_col] = node
 

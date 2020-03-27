@@ -52,7 +52,7 @@ class TestXDSM(unittest.TestCase):
 
         x.add_system('opt', 'Optimization', r'\text{Optimizer}')
         x.add_system('solver', 'MDA', r'\text{Newton}')
-        x.add_system('D1', 'Function', 'D_1', text_width=2.0)
+        x.add_system('D1', 'Function', 'D_1', label_width=2.0)
         x.add_system('D2', 'Function', 'D_2', stack=False)
         x.add_system('F', 'Function', 'F', faded=True)
         x.add_system('G', 'Function', 'G', spec_name="G_spec")
