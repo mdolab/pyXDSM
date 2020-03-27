@@ -1,7 +1,7 @@
 import unittest
 import os
 from pyxdsm.XDSM import XDSM, __file__
-
+from numpy.distutils.exec_command import find_executable
 
 class TestXDSM(unittest.TestCase):
 
@@ -36,7 +36,10 @@ class TestXDSM(unittest.TestCase):
             os.system('python {}.py'.format(f))
             self.assertTrue(os.path.isfile(f + '.tikz'))
             self.assertTrue(os.path.isfile(f + '.tex'))
-            self.assertTrue(os.path.isfile(f + '.pdf'))
+            # look for the pdflatex executable
+            pdflatex = find_executable('pdflatex') is not None
+            # if no pdflatex, then do not assert that the pdf was compiled
+            self.assertTrue(not pdflatex or os.path.isfile(f + '.pdf'))
         os.system('python mat_eqn.py')
         self.assertTrue(os.path.isfile('mat_eqn_example.pdf'))
         # change back to previous directory
