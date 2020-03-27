@@ -112,6 +112,41 @@ class XDSM(object):
 
        
     def add_system(self, node_name, style, label, stack=False, faded=False, text_width=None, spec_name=None):
+        """
+        Add a "system" block, which will be placed on the diagonal of the XDSM diagram.
+
+        Parameters:
+        ----------
+        node_name : str
+            The unique name given to this component
+
+        style : str
+            The type of the component
+
+        label : str or list/tuple of strings
+            The label to appear on the diagram. There are two options for this:
+            - a single string
+            - a list or tuple of strings, which is used for line breaking
+            In either case, they should probably be enclosed in \text{} declarations to make sure
+            the font is upright.
+
+        stack : bool
+            If true, the system will be displayed as several stacked rectangles,
+            indicating the component is executed in parallel.
+
+        faded : bool
+            If true, the component will be faded, in order to highlight some other system.
+
+        text_width : int or None
+            If not None, AND if ``label`` is given as either a tuple or list, then this parameter
+            controls how many items in the tuple/list will be displayed per line.
+            If None, the label will be printed one item per line if given as a tuple or list,
+            otherwise the string will be printed on a single line.
+
+        spec_name : str
+            The spec name used for the spec file.
+
+        """
         if spec_name is None: 
             spec_name = node_name
 
@@ -119,21 +154,131 @@ class XDSM(object):
         self.systems.append(sys)
 
     def add_input(self, name, label, label_width=None, style='DataIO', stack=False):
+        """
+        Add an input, which will appear in the top row of the diagram.
+
+        Parameters:
+        ----------
+        name : str
+            The unique name given to this component
+
+        label : str or list/tuple of strings
+            The label to appear on the diagram. There are two options for this:
+            - a single string
+            - a list or tuple of strings, which is used for line breaking
+            In either case, they should probably be enclosed in \text{} declarations to make sure
+            the font is upright.
+
+        label_width : int or None
+            If not None, AND if ``label`` is given as either a tuple or list, then this parameter
+            controls how many items in the tuple/list will be displayed per line.
+            If None, the label will be printed one item per line if given as a tuple or list,
+            otherwise the string will be printed on a single line.
+
+        style : str
+            The style given to this component. Can be one of ['DataInter', 'DataIO']
+
+        stack : bool
+            If true, the system will be displayed as several stacked rectangles,
+            indicating the component is executed in parallel.
+        """
         self.ins[name] = Input('output_'+name, label, label_width, style, stack)
 
 
     def add_output(self, name, label, label_width=None, style='DataIO', stack=False, side="left"):
+        """
+        Add an output, which will appear in the left or right-most column of the diagram.
+
+        Parameters:
+        ----------
+        name : str
+            The unique name given to this component
+
+        label : str or list/tuple of strings
+            The label to appear on the diagram. There are two options for this:
+            - a single string
+            - a list or tuple of strings, which is used for line breaking
+            In either case, they should probably be enclosed in \text{} declarations to make sure
+            the font is upright.
+
+        label_width : int or None
+            If not None, AND if ``label`` is given as either a tuple or list, then this parameter
+            controls how many items in the tuple/list will be displayed per line.
+            If None, the label will be printed one item per line if given as a tuple or list,
+            otherwise the string will be printed on a single line.
+
+        style : str
+            The style given to this component. Can be one of ``['DataInter', 'DataIO']``
+
+        stack : bool
+            If true, the system will be displayed as several stacked rectangles,
+            indicating the component is executed in parallel.
+
+        side : str
+            Must be one of ``['left', 'right']``. This parameter controls whether the output
+            is placed on the left-most column or the right-most column of the diagram.
+        """
         if side == "left":
             self.left_outs[name] = Output('left_output_'+name, label, label_width, style, stack, side)
         elif side == "right":
             self.right_outs[name] = Output('right_output_'+name, label, label_width, style, stack, side)
+        else:
+            raise ValueError("The option 'side' must be given as either 'left' or 'right!'")
 
     def connect(self, src, target, label, label_width=None, style='DataInter', stack=False, faded=False):
+        """
+        Connects two components with a data line, and adds a label to indicate
+        the data being transferred.
+
+        Parameters:
+        ----------
+        src : str
+            The name of the source component.
+
+        target : str
+            The name of the target component.
+
+        label : str or list/tuple of strings
+            The label to appear on the diagram. There are two options for this:
+            - a single string
+            - a list or tuple of strings, which is used for line breaking
+            In either case, they should probably be enclosed in \text{} declarations to make sure
+            the font is upright.
+
+        label_width : int or None
+            If not None, AND if ``label`` is given as either a tuple or list, then this parameter
+            controls how many items in the tuple/list will be displayed per line.
+            If None, the label will be printed one item per line if given as a tuple or list,
+            otherwise the string will be printed on a single line.
+
+        style : str
+            The style given to this component. Can be one of ``['DataInter', 'DataIO']``
+
+        stack : bool
+            If true, the system will be displayed as several stacked rectangles,
+            indicating the component is executed in parallel.
+
+        faded : bool
+            If true, the component will be faded, in order to highlight some other system.
+        """
         if src == target:
             raise ValueError('Can not connect component to itself')
         self.connections.append(Connection(src, target, label, label_width, style, stack, faded))
 
     def add_process(self, systems, arrow=True):
+        """
+        Add a process line between a list of systems, to indicate process flow.
+
+        Parameters:
+        ----------
+        systems : list
+            The names of the components, in the order in which they should be connected.
+            For a complete cycle, repeat the first component as the last component.
+
+        arrow : bool
+            If true, arrows will be added to the process lines to indicate the direction
+            of the process flow.
+        """
         self.processes.append(systems)
         self.process_arrows.append(arrow)
     
