@@ -131,6 +131,9 @@ class XDSM(object):
     def connect(self, src, target, label, label_width=4, style='DataInter', stack=False, faded=False):
         if src == target:
             raise ValueError('Can not connect component to itself')
+        if not isinstance(label_width, int): 
+            raise ValueError('label_width argument must be an integer')
+            
         self.connections.append(Connection(src, target, label, label_width, style, stack, faded))
 
     def add_process(self, systems, arrow=True):
