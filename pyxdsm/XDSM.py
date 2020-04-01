@@ -89,7 +89,8 @@ def _label_to_spec(label, spec):
     if isinstance(label, str): 
         label = [label,]
     for var in label: 
-        spec.add(var)
+        if var: 
+            spec.add(var)
 
 
 System = namedtuple('System', 'node_name style label stack faded label_width spec_name')
@@ -263,7 +264,8 @@ class XDSM(object):
         """
         if src == target:
             raise ValueError('Can not connect component to itself')
-        if not isinstance(label_width, int): 
+
+        if (not isinstance(label_width, int)) and (not label_width is None): 
             raise ValueError('label_width argument must be an integer')
             
         self.connections.append(Connection(src, target, label, label_width, style, stack, faded))

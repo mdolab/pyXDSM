@@ -31,6 +31,7 @@ class TestXDSM(unittest.TestCase):
         Unlike the other tests, this one requires LaTeX to be available.
         '''
         os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../examples'))
+
         filenames = ['kitchen_sink', 'mdf']
         for f in filenames:
             os.system('python {}.py'.format(f))
