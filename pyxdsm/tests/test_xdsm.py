@@ -31,6 +31,7 @@ class TestXDSM(unittest.TestCase):
         Unlike the other tests, this one requires LaTeX to be available.
         '''
         os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../examples'))
+
         filenames = ['kitchen_sink', 'mdf']
         for f in filenames:
             os.system('python {}.py'.format(f))
@@ -44,6 +45,19 @@ class TestXDSM(unittest.TestCase):
         self.assertTrue(os.path.isfile('mat_eqn_example.pdf'))
         # change back to previous directory
         os.chdir(self.tempdir)
+
+
+    def test_connect(self): 
+        x = XDSM(use_sfmath=False)
+        x.add_system('D1', 'Function', 'D_1', label_width=2)
+        x.add_system('D2', 'Function', 'D_2', stack=False)
+
+        try: 
+            x.connect('D1', 'D2', r'\mathcal{R}(y_1)', 'foobar')
+        except ValueError as err: 
+            self.assertEquals(str(err), 'label_width argument must be an integer')
+        else: 
+            self.fail('Expected ValueError')
 
     def test_options(self):
 

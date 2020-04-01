@@ -89,7 +89,8 @@ def _label_to_spec(label, spec):
     if isinstance(label, str): 
         label = [label,]
     for var in label: 
-        spec.add(var)
+        if var: 
+            spec.add(var)
 
 
 System = namedtuple('System', 'node_name style label stack faded label_width spec_name')
@@ -263,6 +264,10 @@ class XDSM(object):
         """
         if src == target:
             raise ValueError('Can not connect component to itself')
+
+        if (not isinstance(label_width, int)) and (not label_width is None): 
+            raise ValueError('label_width argument must be an integer')
+            
         self.connections.append(Connection(src, target, label, label_width, style, stack, faded))
 
     def add_process(self, systems, arrow=True):
@@ -543,7 +548,18 @@ class XDSM(object):
 
     def write_sys_specs(self, folder_name): 
         """
-        Write i/o spec files for components to specified folder
+        Write I/O spec json files for systems to specified folder
+
+        An I/O spec of a system is the collection of all variables going into and out of it. 
+        That includes any variables being passed between systems, as well as all inputs and outputs. 
+        This information is useful for comparing implementations (such as components and groups in OpenMDAO)
+        to the XDSM diagrams. 
+
+        The json spec files can be used to write testing utilities that compare the inputs/outputs of an implementation 
+        to the XDSM, and thus allow you to verify that your codes match the XDSM diagram precisely. 
+        This technique is especially useful when large engineering teams are collaborating on 
+        model development. It allows them to use the XDSM as a shared contract between team members 
+        so everyone can be sure that their codes will sync up.  
 
         Parameters
         ----------
