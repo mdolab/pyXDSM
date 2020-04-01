@@ -46,6 +46,19 @@ class TestXDSM(unittest.TestCase):
         # change back to previous directory
         os.chdir(self.tempdir)
 
+
+    def test_connect(self): 
+        x = XDSM(use_sfmath=False)
+        x.add_system('D1', 'Function', 'D_1', label_width=2)
+        x.add_system('D2', 'Function', 'D_2', stack=False)
+
+        try: 
+            x.connect('D1', 'D2', r'\mathcal{R}(y_1)', 'foobar')
+        except ValueError as err: 
+            self.assertEquals(str(err), 'label_width argument must be an integer')
+        else: 
+            self.fail('Expected ValueError')
+
     def test_options(self):
 
         filename = 'xdsm_test_options'
