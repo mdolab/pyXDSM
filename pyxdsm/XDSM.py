@@ -325,7 +325,7 @@ class XDSM(object):
                 style += ',faded'
 
             label = _parse_label(comp.label, comp.label_width)
-            node = node_str.format(style=comp.style, node_name=comp.node_name, node_label=label)
+            node = node_str.format(style=style, node_name=comp.node_name, node_label=label)
             grid[i_row, j_col] = node
 
             row_idx_map[comp.node_name] = i_row
