@@ -3,6 +3,13 @@ import os
 from pyxdsm.XDSM import XDSM, __file__
 from numpy.distutils.exec_command import find_executable
 
+
+def filter_lines(lns):
+    # Empty lines are excluded.
+    # Leading and trailing whitespaces are removed
+    # Comments are removed.
+    return [ln.strip() for ln in lns if ln.strip() and not ln.strip().startswith('%')]
+
 class TestXDSM(unittest.TestCase):
 
     def setUp(self):
@@ -101,6 +108,24 @@ class TestXDSM(unittest.TestCase):
         self.assertTrue(os.path.isdir(spec_dir))
         self.assertTrue(os.path.isfile(os.path.join(spec_dir, 'F.json')))
         self.assertTrue(os.path.isfile(os.path.join(spec_dir, 'G_spec.json')))
+
+
+    def test_stacked_system(self): 
+
+        x = XDSM()
+
+        x.add_system('test', 'Optimization', r'\text{test}', stack=True)
+
+        file_name = "stacked_test"
+        x.write(file_name)
+
+        tikz_file = file_name + '.tikz'
+        with open(tikz_file, "r") as f:
+            tikz = f.read()
+
+        self.assertIn(r"\node [Optimization,stack]", tikz)
+
+
 
     def test_tikz_content(self):
         # Check if TiKZ file was created.
@@ -221,12 +246,6 @@ class TestXDSM(unittest.TestCase):
             \end{pgfonlayer}
             
             \end{tikzpicture}"""
-
-        def filter_lines(lns):
-            # Empty lines are excluded.
-            # Leading and trailing whitespaces are removed
-            # Comments are removed.
-            return [ln.strip() for ln in lns if ln.strip() and not ln.strip().startswith('%')]
 
         filename = 'xdsm_test_tikz'
 
