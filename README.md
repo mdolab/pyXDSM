@@ -20,7 +20,7 @@ pip install .
 ![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/images_for_readme/mdf.png)
 
 ## What is XDSM?
-The eXtended Design Struture Matrix (XDSM) is a graphical language for describing the movement of data and the execution sequence for a  multidisciplinary optimization  problem.
+The eXtended Design Structure Matrix (XDSM) is a graphical language for describing the movement of data and the execution sequence for a  multidisciplinary optimization  problem.
 You can read the [paper by Lambe and Martins](http://mdolab.engin.umich.edu/content/extensions-design-structure-matrix) for all the details.
 If you  would like a citation for XDSM, here is the bibtex for that paper:
 
