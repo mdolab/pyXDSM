@@ -1,18 +1,14 @@
-from pyxdsm.XDSM import XDSM
-
-opt = 'Optimization'
-solver = 'MDA'
-func = 'Function'
+from pyxdsm.XDSM import XDSM, OPT, SOLVER, FUNC
 
 # Change `use_sfmath` to False to use computer modern
 x = XDSM(use_sfmath=True)
 
-x.add_system('opt', opt, r'\text{Optimizer}')
-x.add_system('solver', solver, r'\text{Newton}')
-x.add_system('D1', func, 'D_1')
-x.add_system('D2', func, 'D_2')
-x.add_system('F', func, 'F')
-x.add_system('G', func, 'G')
+x.add_system('opt', OPT, r'\text{Optimizer}')
+x.add_system('solver', SOLVER, r'\text{Newton}')
+x.add_system('D1', FUNC, 'D_1')
+x.add_system('D2', FUNC, 'D_2')
+x.add_system('F', FUNC, 'F')
+x.add_system('G', FUNC, 'G')
 
 x.connect('opt', 'D1', 'x, z')
 x.connect('opt', 'D2', 'z')

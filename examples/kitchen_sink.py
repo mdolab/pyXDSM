@@ -1,4 +1,5 @@
-from pyxdsm.XDSM import XDSM
+from pyxdsm.XDSM import (XDSM, OPT, SUBOPT, SOLVER, DOE, 
+                         IFUNC, FUNC, GROUP, IGROUP, METAMODEL)
 
 # styling names for the boxes
 opt = 'Optimization'
