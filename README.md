@@ -41,20 +41,16 @@ You need to install these libraries for pyXDSM to work. See the [install guide](
 ## How do I use it?
 Here is a simple example. There are some other more advanced things you can do as well. Check out the [examples folder](https://github.com/mdolab/pyXDSM/blob/master/examples)
 ```python
-from pyxdsm.XDSM import XDSM
-
-opt = 'Optimization'
-solver = 'MDA'
-func = 'Function'
+from pyxdsm.XDSM import XDSM, OPT, SOLVER, FUNC
 
 x = XDSM()
 
-x.add_system('opt', opt, r'\text{Optimizer}')
-x.add_system('solver', solver, r'\text{Newton}')
-x.add_system('D1', func, 'D_1')
-x.add_system('D2', func, 'D_2')
-x.add_system('F', func, 'F')
-x.add_system('G', func, 'G')
+x.add_system('opt', OPT, r'\text{Optimizer}')
+x.add_system('solver', SOLVER, r'\text{Newton}')
+x.add_system('D1', FUNC, 'D_1')
+x.add_system('D2', FUNC, 'D_2')
+x.add_system('F', FUNC, 'F')
+x.add_system('G', FUNC, 'G')
 
 x.connect('opt', 'D1', 'x, z')
 x.connect('opt', 'D2', 'z')

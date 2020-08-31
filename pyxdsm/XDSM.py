@@ -7,6 +7,16 @@ from collections import namedtuple
 
 from pyxdsm import __version__ as pyxdsm_version
 
+OPT = 'Optimization'
+SUBOPT = 'SubOptimization'
+SOLVER = 'MDA'
+DOE = 'DOE'
+IFUNC = 'ImplicitFunction'
+FUNC = 'Function'
+GROUP = 'Group'
+IGROUP = 'ImplicitGroup'
+METAMODEL = 'Metamodel'
+
 tikzpicture_template = r"""
 %%% Preamble Requirements %%%
 % \usepackage{{geometry}}

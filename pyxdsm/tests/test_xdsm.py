@@ -1,6 +1,6 @@
 import unittest
 import os
-from pyxdsm.XDSM import XDSM, __file__
+from pyxdsm.XDSM import XDSM, __file__, OPT, FUNC, SOLVER
 from numpy.distutils.exec_command import find_executable
 
 
@@ -56,8 +56,8 @@ class TestXDSM(unittest.TestCase):
 
     def test_connect(self): 
         x = XDSM(use_sfmath=False)
-        x.add_system('D1', 'Function', 'D_1', label_width=2)
-        x.add_system('D2', 'Function', 'D_2', stack=False)
+        x.add_system('D1', FUNC, 'D_1', label_width=2)
+        x.add_system('D2', FUNC, 'D_2', stack=False)
 
         try: 
             x.connect('D1', 'D2', r'\mathcal{R}(y_1)', 'foobar')
@@ -74,12 +74,12 @@ class TestXDSM(unittest.TestCase):
         # Change `use_sfmath` to False to use computer modern
         x = XDSM(use_sfmath=False)
 
-        x.add_system('opt', 'Optimization', r'\text{Optimizer}')
-        x.add_system('solver', 'MDA', r'\text{Newton}')
-        x.add_system('D1', 'Function', 'D_1', label_width=2)
-        x.add_system('D2', 'Function', 'D_2', stack=False)
-        x.add_system('F', 'Function', 'F', faded=True)
-        x.add_system('G', 'Function', 'G', spec_name="G_spec")
+        x.add_system('opt', OPT, r'\text{Optimizer}')
+        x.add_system('solver', SOLVER, r'\text{Newton}')
+        x.add_system('D1', FUNC, 'D_1', label_width=2)
+        x.add_system('D2', FUNC, 'D_2', stack=False)
+        x.add_system('F', FUNC, 'F', faded=True)
+        x.add_system('G', FUNC, 'G', spec_name="G_spec")
 
         x.connect('opt', 'D1', 'x, z')
         x.connect('opt', 'D2', 'z')
@@ -114,7 +114,7 @@ class TestXDSM(unittest.TestCase):
 
         x = XDSM()
 
-        x.add_system('test', 'Optimization', r'\text{test}', stack=True)
+        x.add_system('test', OPT, r'\text{test}', stack=True)
 
         file_name = "stacked_test"
         x.write(file_name)
@@ -251,12 +251,12 @@ class TestXDSM(unittest.TestCase):
 
         x = XDSM(use_sfmath=True)
 
-        x.add_system('opt', 'Optimization', r'\text{Optimizer}')
-        x.add_system('solver', 'MDA', r'\text{Newton}')
-        x.add_system('D1', 'Function', 'D_1')
-        x.add_system('D2', 'Function', 'D_2')
-        x.add_system('F', 'Function', 'F')
-        x.add_system('G', 'Function', 'G')
+        x.add_system('opt', OPT, r'\text{Optimizer}')
+        x.add_system('solver', SOLVER, r'\text{Newton}')
+        x.add_system('D1', FUNC, 'D_1')
+        x.add_system('D2', FUNC, 'D_2')
+        x.add_system('F', FUNC, 'F')
+        x.add_system('G', FUNC, 'G')
 
         x.connect('opt', 'D1', 'x, z')
         x.connect('opt', 'D2', 'z')
