@@ -128,24 +128,24 @@ class TestXDSM(unittest.TestCase):
         # Compare the content of the sample below and the newly created TiKZ file.
 
         sample_txt = r"""
-            
+
             %%% Preamble Requirements %%%
             % \usepackage{geometry}
             % \usepackage{amsfonts}
             % \usepackage{amsmath}
             % \usepackage{amssymb}
             % \usepackage{tikz}
-            
+
             % Optional packages such as sfmath set through python interface
             % \usepackage{sfmath}
-            
+
             % \usetikzlibrary{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}
-            
+
             %%% End Preamble Requirements %%%
-            
+
             \input{"path/to/diagram_styles"}
             \begin{tikzpicture}
-            
+
             \matrix[MatrixSetup]{
             %Row 0
             \node [DataIO] (left_output_opt) {$x^*, z^*$};&
@@ -204,10 +204,10 @@ class TestXDSM(unittest.TestCase):
             &
             \\
             };
-            
+
             % XDSM process chains
-            
-            
+
+
             \begin{pgfonlayer}{data}
             \path
             % Horizontal edges
@@ -240,7 +240,7 @@ class TestXDSM(unittest.TestCase):
             (F-opt) edge [DataLine] (opt)
             (G-opt) edge [DataLine] (opt);
             \end{pgfonlayer}
-            
+
             \end{tikzpicture}"""
 
         filename = "xdsm_test_tikz"
