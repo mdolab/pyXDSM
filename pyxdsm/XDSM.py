@@ -278,7 +278,7 @@ class XDSM(object):
         if src == target:
             raise ValueError("Can not connect component to itself")
 
-        if (not isinstance(label_width, int)) and (not label_width is None):
+        if (not isinstance(label_width, int)) and (label_width is not None):
             raise ValueError("label_width argument must be an integer")
 
         self.connections.append(Connection(src, target, label, label_width, style, stack, faded))
