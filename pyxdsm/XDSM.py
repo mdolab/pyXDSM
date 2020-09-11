@@ -7,15 +7,15 @@ from collections import namedtuple
 
 from pyxdsm import __version__ as pyxdsm_version
 
-OPT = 'Optimization'
-SUBOPT = 'SubOptimization'
-SOLVER = 'MDA'
-DOE = 'DOE'
-IFUNC = 'ImplicitFunction'
-FUNC = 'Function'
-GROUP = 'Group'
-IGROUP = 'ImplicitGroup'
-METAMODEL = 'Metamodel'
+OPT = "Optimization"
+SUBOPT = "SubOptimization"
+SOLVER = "MDA"
+DOE = "DOE"
+IFUNC = "ImplicitFunction"
+FUNC = "Function"
+GROUP = "Group"
+IGROUP = "ImplicitGroup"
+METAMODEL = "Metamodel"
 
 tikzpicture_template = r"""
 %%% Preamble Requirements %%%
@@ -78,38 +78,43 @@ tex_template = r"""
 \end{{document}}
 """
 
-def chunk_label(label, n_chunks): 
-    # looping till length l 
-    for i in range(0, len(label), n_chunks):  
-        yield label[i:i + n_chunks] 
+
+def chunk_label(label, n_chunks):
+    # looping till length l
+    for i in range(0, len(label), n_chunks):
+        yield label[i : i + n_chunks]
+
 
 def _parse_label(label, label_width=None):
     if isinstance(label, (tuple, list)):
-        if label_width is None: 
-            return r'$\begin{array}{c}' + r' \\ '.join(label) + r'\end{array}$'
-        else: 
+        if label_width is None:
+            return r"$\begin{array}{c}" + r" \\ ".join(label) + r"\end{array}$"
+        else:
             labels = []
-            for chunk in chunk_label(label, label_width): 
+            for chunk in chunk_label(label, label_width):
                 labels.append(", ".join(chunk))
-            return r'$\begin{array}{c}' + r' \\ '.join(labels) + r'\end{array}$'
+            return r"$\begin{array}{c}" + r" \\ ".join(labels) + r"\end{array}$"
     else:
-        return r'${}$'.format(label)
+        return r"${}$".format(label)
 
-def _label_to_spec(label, spec): 
-    if isinstance(label, str): 
-        label = [label,]
-    for var in label: 
-        if var: 
+
+def _label_to_spec(label, spec):
+    if isinstance(label, str):
+        label = [
+            label,
+        ]
+    for var in label:
+        if var:
             spec.add(var)
 
 
-System = namedtuple('System', 'node_name style label stack faded label_width spec_name')
-Input = namedtuple('Input', 'node_name label label_width style stack')
-Output = namedtuple('Output', 'node_name label label_width style stack side')
-Connection = namedtuple('Connection', 'src target label label_width style stack faded')
+System = namedtuple("System", "node_name style label stack faded label_width spec_name")
+Input = namedtuple("Input", "node_name label label_width style stack")
+Output = namedtuple("Output", "node_name label label_width style stack side")
+Connection = namedtuple("Connection", "src target label label_width style stack faded")
+
 
 class XDSM(object):
-
     def __init__(self, use_sfmath=True):
         self.systems = []
         self.connections = []
@@ -119,9 +124,8 @@ class XDSM(object):
         self.processes = []
         self.process_arrows = []
 
-        self.use_sfmath=use_sfmath
+        self.use_sfmath = use_sfmath
 
-       
     def add_system(self, node_name, style, label, stack=False, faded=False, label_width=None, spec_name=None):
         """
         Add a "system" block, which will be placed on the diagonal of the XDSM diagram.
@@ -158,13 +162,13 @@ class XDSM(object):
             The spec name used for the spec file.
 
         """
-        if spec_name is None: 
+        if spec_name is None:
             spec_name = node_name
 
         sys = System(node_name, style, label, stack, faded, label_width, spec_name)
         self.systems.append(sys)
 
-    def add_input(self, name, label, label_width=None, style='DataIO', stack=False):
+    def add_input(self, name, label, label_width=None, style="DataIO", stack=False):
         """
         Add an input, which will appear in the top row of the diagram.
 
@@ -193,10 +197,9 @@ class XDSM(object):
             If true, the system will be displayed as several stacked rectangles,
             indicating the component is executed in parallel.
         """
-        self.ins[name] = Input('output_'+name, label, label_width, style, stack)
+        self.ins[name] = Input("output_" + name, label, label_width, style, stack)
 
-
-    def add_output(self, name, label, label_width=None, style='DataIO', stack=False, side="left"):
+    def add_output(self, name, label, label_width=None, style="DataIO", stack=False, side="left"):
         """
         Add an output, which will appear in the left or right-most column of the diagram.
 
@@ -230,13 +233,13 @@ class XDSM(object):
             is placed on the left-most column or the right-most column of the diagram.
         """
         if side == "left":
-            self.left_outs[name] = Output('left_output_'+name, label, label_width, style, stack, side)
+            self.left_outs[name] = Output("left_output_" + name, label, label_width, style, stack, side)
         elif side == "right":
-            self.right_outs[name] = Output('right_output_'+name, label, label_width, style, stack, side)
+            self.right_outs[name] = Output("right_output_" + name, label, label_width, style, stack, side)
         else:
             raise ValueError("The option 'side' must be given as either 'left' or 'right!'")
 
-    def connect(self, src, target, label, label_width=None, style='DataInter', stack=False, faded=False):
+    def connect(self, src, target, label, label_width=None, style="DataInter", stack=False, faded=False):
         """
         Connects two components with a data line, and adds a label to indicate
         the data being transferred.
@@ -273,11 +276,11 @@ class XDSM(object):
             If true, the component will be faded, in order to highlight some other system.
         """
         if src == target:
-            raise ValueError('Can not connect component to itself')
+            raise ValueError("Can not connect component to itself")
 
-        if (not isinstance(label_width, int)) and (not label_width is None): 
-            raise ValueError('label_width argument must be an integer')
-            
+        if (not isinstance(label_width, int)) and (label_width is not None):
+            raise ValueError("label_width argument must be an integer")
+
         self.connections.append(Connection(src, target, label, label_width, style, stack, faded))
 
     def add_process(self, systems, arrow=True):
@@ -296,7 +299,7 @@ class XDSM(object):
         """
         self.processes.append(systems)
         self.process_arrows.append(arrow)
-    
+
     def _build_node_grid(self):
         size = len(self.systems)
 
@@ -321,18 +324,18 @@ class XDSM(object):
         row_idx_map = {}
         col_idx_map = {}
 
-        node_str = r'\node [{style}] ({node_name}) {{{node_label}}};'
+        node_str = r"\node [{style}] ({node_name}) {{{node_label}}};"
 
         grid = np.empty((size, size), dtype=object)
-        grid[:] = ''
+        grid[:] = ""
 
         # add all the components on the diagonal
         for i_row, j_col, comp in zip(comps_rows, comps_cols, self.systems):
             style = comp.style
             if comp.stack is True:  # stacking
-                style += ',stack'
+                style += ",stack"
             if comp.faded is True:  # fading
-                style += ',faded'
+                style += ",faded"
 
             label = _parse_label(comp.label, comp.label_width)
             node = node_str.format(style=style, node_name=comp.node_name, node_label=label)
@@ -351,17 +354,15 @@ class XDSM(object):
 
             style = conn.style
             if conn.stack is True:  # stacking
-                style += ',stack'
+                style += ",stack"
             if conn.faded is True:  # fading
-                style += ',faded'
+                style += ",faded"
 
             label = _parse_label(conn.label, conn.label_width)
 
-            node_name = '{}-{}'.format(conn.src, conn.target)
+            node_name = "{}-{}".format(conn.src, conn.target)
 
-            node = node_str.format(style=style,
-                                   node_name=node_name,
-                                   node_label=label)
+            node = node_str.format(style=style, node_name=node_name, node_label=label)
 
             grid[loc] = node
 
@@ -369,15 +370,13 @@ class XDSM(object):
         for comp_name, out in self.left_outs.items():
             style = out.style
             if out.stack:
-                style += ',stack'
+                style += ",stack"
 
             i_row = row_idx_map[comp_name]
             loc = (i_row, 0)
 
             label = _parse_label(out.label, out.label_width)
-            node = node_str.format(style=style,
-                                   node_name=out.node_name,
-                                   node_label=label)
+            node = node_str.format(style=style, node_name=out.node_name, node_label=label)
 
             grid[loc] = node
 
@@ -385,14 +384,12 @@ class XDSM(object):
         for comp_name, out in self.right_outs.items():
             style = out.style
             if out.stack:
-                style += ',stack'
+                style += ",stack"
 
             i_row = row_idx_map[comp_name]
             loc = (i_row, -1)
             label = _parse_label(out.label, out.label_width)
-            node = node_str.format(style=style,
-                                   node_name=out.node_name,
-                                   node_label=label)
+            node = node_str.format(style=style, node_name=out.node_name, node_label=label)
 
             grid[loc] = node
 
@@ -401,21 +398,19 @@ class XDSM(object):
             # node_name, style, label, stack = in_data
             style = inp.style
             if inp.stack:
-                style += ',stack'
+                style += ",stack"
 
             j_col = col_idx_map[comp_name]
             loc = (0, j_col)
             label = _parse_label(inp.label, label_width=inp.label_width)
-            node = node_str.format(style=style,
-                                   node_name=inp.node_name,
-                                   node_label=label)
+            node = node_str.format(style=style, node_name=inp.node_name, node_label=label)
 
             grid[loc] = node
 
         # mash the grid data into a string
-        rows_str = ''
+        rows_str = ""
         for i, row in enumerate(grid):
-            rows_str += "%Row {}\n".format(i) + '&\n'.join(row) + r'\\'+'\n'
+            rows_str += "%Row {}\n".format(i) + "&\n".join(row) + r"\\" + "\n"
 
         return rows_str
 
@@ -425,7 +420,7 @@ class XDSM(object):
 
         edge_string = "({start}) edge [DataLine] ({end})"
         for conn in self.connections:
-            od_node_name = '{}-{}'.format(conn.src, conn.target)
+            od_node_name = "{}-{}".format(conn.src, conn.target)
             h_edges.append(edge_string.format(start=conn.src, end=od_node_name))
             v_edges.append(edge_string.format(start=od_node_name, end=conn.target))
 
@@ -441,14 +436,18 @@ class XDSM(object):
             node_name = inp.node_name
             v_edges.append(edge_string.format(start=comp_name, end=node_name))
 
-        paths_str = '% Horizontal edges\n' + '\n'.join(h_edges) + '\n'
-        paths_str += '% Vertical edges\n' + '\n'.join(v_edges) + ';'
+        paths_str = "% Horizontal edges\n" + "\n".join(h_edges) + "\n"
+        paths_str += "% Vertical edges\n" + "\n".join(v_edges) + ";"
 
         return paths_str
 
     def _build_process_chain(self):
         sys_names = [s.node_name for s in self.systems]
-        output_names = [data[0] for _, data in self.ins.items()] + [data[0] for _, data in self.left_outs.items()] + [data[0] for _, data in self.right_outs.items()]
+        output_names = (
+            [data[0] for _, data in self.ins.items()]
+            + [data[0] for _, data in self.left_outs.items()]
+            + [data[0] for _, data in self.right_outs.items()]
+        )
         # comp_name, in_data in self.ins.items():
         #     node_name, style, label, stack = in_data
         chain_str = ""
@@ -458,7 +457,9 @@ class XDSM(object):
             start_tip = False
             for i, sys in enumerate(proc):
                 if sys not in sys_names and sys not in output_names:
-                    raise ValueError('process includes a system named "{}" but no system with that name exists.'.format(sys))
+                    raise ValueError(
+                        'process includes a system named "{}" but no system with that name exists.'.format(sys)
+                    )
                 if sys in output_names and i == 0:
                     start_tip = True
                 if i == 0:
@@ -483,7 +484,7 @@ class XDSM(object):
         # Check for optional LaTeX packages
         optional_packages_list = []
         if self.use_sfmath:
-            optional_packages_list.append('sfmath')
+            optional_packages_list.append("sfmath")
 
         # Join all packages into one string separated by comma
         optional_packages_str = ",".join(optional_packages_list)
@@ -519,57 +520,61 @@ class XDSM(object):
         process = self._build_process_chain()
 
         module_path = os.path.dirname(__file__)
-        diagram_styles_path = os.path.join(module_path, 'diagram_styles')
+        diagram_styles_path = os.path.join(module_path, "diagram_styles")
         # Hack for Windows. MiKTeX needs Linux style paths.
-        diagram_styles_path = diagram_styles_path.replace('\\', '/')
+        diagram_styles_path = diagram_styles_path.replace("\\", "/")
 
         optional_packages_str = self._compose_optional_package_list()
 
-        tikzpicture_str = tikzpicture_template.format(nodes=nodes,
-                                                      edges=edges,
-                                                      process=process,
-                                                      diagram_styles_path=diagram_styles_path,
-                                                      optional_packages=optional_packages_str)
+        tikzpicture_str = tikzpicture_template.format(
+            nodes=nodes,
+            edges=edges,
+            process=process,
+            diagram_styles_path=diagram_styles_path,
+            optional_packages=optional_packages_str,
+        )
 
-        with open(file_name + '.tikz', 'w') as f:
+        with open(file_name + ".tikz", "w") as f:
             f.write(tikzpicture_str)
 
-        tex_str = tex_template.format(nodes=nodes, edges=edges,
-                                      tikzpicture_path=file_name + '.tikz',
-                                      diagram_styles_path=diagram_styles_path,
-                                      optional_packages=optional_packages_str,
-                                      version=pyxdsm_version)
+        tex_str = tex_template.format(
+            nodes=nodes,
+            edges=edges,
+            tikzpicture_path=file_name + ".tikz",
+            diagram_styles_path=diagram_styles_path,
+            optional_packages=optional_packages_str,
+            version=pyxdsm_version,
+        )
 
         if file_name:
-            with open(file_name + '.tex', 'w') as f:
+            with open(file_name + ".tex", "w") as f:
                 f.write(tex_str)
 
         if build:
-            command = 'pdflatex '
+            command = "pdflatex "
             if quiet:
                 command += " -interaction=batchmode -halt-on-error "
-            os.system(command + file_name + '.tex')
+            os.system(command + file_name + ".tex")
             if cleanup:
-                for ext in ['aux', 'fdb_latexmk', 'fls', 'log']:
-                    f_name = '{}.{}'.format(file_name, ext)
+                for ext in ["aux", "fdb_latexmk", "fls", "log"]:
+                    f_name = "{}.{}".format(file_name, ext)
                     if os.path.exists(f_name):
                         os.remove(f_name)
 
-
-    def write_sys_specs(self, folder_name): 
+    def write_sys_specs(self, folder_name):
         """
         Write I/O spec json files for systems to specified folder
 
-        An I/O spec of a system is the collection of all variables going into and out of it. 
-        That includes any variables being passed between systems, as well as all inputs and outputs. 
+        An I/O spec of a system is the collection of all variables going into and out of it.
+        That includes any variables being passed between systems, as well as all inputs and outputs.
         This information is useful for comparing implementations (such as components and groups in OpenMDAO)
-        to the XDSM diagrams. 
+        to the XDSM diagrams.
 
-        The json spec files can be used to write testing utilities that compare the inputs/outputs of an implementation 
-        to the XDSM, and thus allow you to verify that your codes match the XDSM diagram precisely. 
-        This technique is especially useful when large engineering teams are collaborating on 
-        model development. It allows them to use the XDSM as a shared contract between team members 
-        so everyone can be sure that their codes will sync up.  
+        The json spec files can be used to write testing utilities that compare the inputs/outputs of an implementation
+        to the XDSM, and thus allow you to verify that your codes match the XDSM diagram precisely.
+        This technique is especially useful when large engineering teams are collaborating on
+        model development. It allows them to use the XDSM as a shared contract between team members
+        so everyone can be sure that their codes will sync up.
 
         Parameters
         ----------
@@ -579,33 +584,33 @@ class XDSM(object):
 
         # find un-connected to each system by looking at Inputs
         specs = {}
-        for sys in self.systems: 
-            specs[sys.node_name] = {'inputs': set(), 'outputs': set()}
+        for sys in self.systems:
+            specs[sys.node_name] = {"inputs": set(), "outputs": set()}
 
         for sys_name, inp in self.ins.items():
-            _label_to_spec(inp.label, specs[sys_name]['inputs'])
+            _label_to_spec(inp.label, specs[sys_name]["inputs"])
 
         # find connected inputs/outputs to each system by looking at Connections
-        for conn in self.connections: 
-            _label_to_spec(conn.label, specs[conn.target]['inputs'])
-            
-            _label_to_spec(conn.label, specs[conn.src]['outputs'])
+        for conn in self.connections:
+            _label_to_spec(conn.label, specs[conn.target]["inputs"])
+
+            _label_to_spec(conn.label, specs[conn.src]["outputs"])
 
         # find unconnected outputs to each system by looking at Outputs
         for sys_name, out in self.left_outs.items():
-            _label_to_spec(out.label, specs[sys_name]['outputs']) 
+            _label_to_spec(out.label, specs[sys_name]["outputs"])
         for sys_name, out in self.right_outs.items():
-            _label_to_spec(out.label, specs[sys_name]['outputs']) 
+            _label_to_spec(out.label, specs[sys_name]["outputs"])
 
-        if not os.path.isdir(folder_name): 
+        if not os.path.isdir(folder_name):
             os.mkdir(folder_name)
 
-        for sys in self.systems: 
-            if sys.spec_name is not False: 
+        for sys in self.systems:
+            if sys.spec_name is not False:
                 path = os.path.join(folder_name, sys.spec_name + ".json")
-                with open(path, 'w') as f: 
+                with open(path, "w") as f:
                     spec = specs[sys.node_name]
-                    spec['inputs'] = list(spec['inputs'])
-                    spec['outputs'] = list(spec['outputs'])
+                    spec["inputs"] = list(spec["inputs"])
+                    spec["outputs"] = list(spec["outputs"])
                     json_str = json.dumps(spec, indent=2)
                     f.write(json_str)
