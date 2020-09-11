@@ -8,16 +8,16 @@ def filter_lines(lns):
     # Empty lines are excluded.
     # Leading and trailing whitespaces are removed
     # Comments are removed.
-    return [ln.strip() for ln in lns if ln.strip() and not ln.strip().startswith('%')]
+    return [ln.strip() for ln in lns if ln.strip() and not ln.strip().startswith("%")]
+
 
 class TestXDSM(unittest.TestCase):
-
     def setUp(self):
         import os
         import tempfile
 
         self.startdir = os.getcwd()
-        self.tempdir = tempfile.mkdtemp(prefix='testdir-')
+        self.tempdir = tempfile.mkdtemp(prefix="testdir-")
 
         os.chdir(self.tempdir)
 
@@ -33,99 +33,95 @@ class TestXDSM(unittest.TestCase):
             pass
 
     def test_examples(self):
-        '''
+        """
         This test just builds the three examples, and assert that the output files exist.
         Unlike the other tests, this one requires LaTeX to be available.
-        '''
-        os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../examples'))
+        """
+        os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../examples"))
 
-        filenames = ['kitchen_sink', 'mdf']
+        filenames = ["kitchen_sink", "mdf"]
         for f in filenames:
-            os.system('python {}.py'.format(f))
-            self.assertTrue(os.path.isfile(f + '.tikz'))
-            self.assertTrue(os.path.isfile(f + '.tex'))
+            os.system("python {}.py".format(f))
+            self.assertTrue(os.path.isfile(f + ".tikz"))
+            self.assertTrue(os.path.isfile(f + ".tex"))
             # look for the pdflatex executable
-            pdflatex = find_executable('pdflatex') is not None
+            pdflatex = find_executable("pdflatex") is not None
             # if no pdflatex, then do not assert that the pdf was compiled
-            self.assertTrue(not pdflatex or os.path.isfile(f + '.pdf'))
-        os.system('python mat_eqn.py')
-        self.assertTrue(os.path.isfile('mat_eqn_example.pdf'))
+            self.assertTrue(not pdflatex or os.path.isfile(f + ".pdf"))
+        os.system("python mat_eqn.py")
+        self.assertTrue(os.path.isfile("mat_eqn_example.pdf"))
         # change back to previous directory
         os.chdir(self.tempdir)
 
-
-    def test_connect(self): 
+    def test_connect(self):
         x = XDSM(use_sfmath=False)
-        x.add_system('D1', FUNC, 'D_1', label_width=2)
-        x.add_system('D2', FUNC, 'D_2', stack=False)
+        x.add_system("D1", FUNC, "D_1", label_width=2)
+        x.add_system("D2", FUNC, "D_2", stack=False)
 
-        try: 
-            x.connect('D1', 'D2', r'\mathcal{R}(y_1)', 'foobar')
-        except ValueError as err: 
-            self.assertEquals(str(err), 'label_width argument must be an integer')
-        else: 
-            self.fail('Expected ValueError')
+        try:
+            x.connect("D1", "D2", r"\mathcal{R}(y_1)", "foobar")
+        except ValueError as err:
+            self.assertEquals(str(err), "label_width argument must be an integer")
+        else:
+            self.fail("Expected ValueError")
 
     def test_options(self):
 
-        filename = 'xdsm_test_options'
-        spec_dir = filename + '_specs'
+        filename = "xdsm_test_options"
+        spec_dir = filename + "_specs"
 
         # Change `use_sfmath` to False to use computer modern
         x = XDSM(use_sfmath=False)
 
-        x.add_system('opt', OPT, r'\text{Optimizer}')
-        x.add_system('solver', SOLVER, r'\text{Newton}')
-        x.add_system('D1', FUNC, 'D_1', label_width=2)
-        x.add_system('D2', FUNC, 'D_2', stack=False)
-        x.add_system('F', FUNC, 'F', faded=True)
-        x.add_system('G', FUNC, 'G', spec_name="G_spec")
+        x.add_system("opt", OPT, r"\text{Optimizer}")
+        x.add_system("solver", SOLVER, r"\text{Newton}")
+        x.add_system("D1", FUNC, "D_1", label_width=2)
+        x.add_system("D2", FUNC, "D_2", stack=False)
+        x.add_system("F", FUNC, "F", faded=True)
+        x.add_system("G", FUNC, "G", spec_name="G_spec")
 
-        x.connect('opt', 'D1', 'x, z')
-        x.connect('opt', 'D2', 'z')
-        x.connect('opt', 'F', 'x, z')
-        x.connect('solver', 'D1', 'y_2')
-        x.connect('solver', 'D2', 'y_1')
-        x.connect('D1', 'solver', r'\mathcal{R}(y_1)')
-        x.connect('solver', 'F', 'y_1, y_2')
-        x.connect('D2', 'solver', r'\mathcal{R}(y_2)')
-        x.connect('solver', 'G', 'y_1, y_2')
+        x.connect("opt", "D1", "x, z")
+        x.connect("opt", "D2", "z")
+        x.connect("opt", "F", "x, z")
+        x.connect("solver", "D1", "y_2")
+        x.connect("solver", "D2", "y_1")
+        x.connect("D1", "solver", r"\mathcal{R}(y_1)")
+        x.connect("solver", "F", "y_1, y_2")
+        x.connect("D2", "solver", r"\mathcal{R}(y_2)")
+        x.connect("solver", "G", "y_1, y_2")
 
-        x.connect('F', 'opt', 'f')
-        x.connect('G', 'opt', 'g')
+        x.connect("F", "opt", "f")
+        x.connect("G", "opt", "g")
 
-        x.add_output('opt', 'x^*, z^*', side='right')
-        x.add_output('D1', 'y_1^*', side='left', stack=True)
-        x.add_output('D2', 'y_2^*', side='left')
-        x.add_output('F', 'f^*', side='left')
-        x.add_output('G', 'g^*')
+        x.add_output("opt", "x^*, z^*", side="right")
+        x.add_output("D1", "y_1^*", side="left", stack=True)
+        x.add_output("D2", "y_2^*", side="left")
+        x.add_output("F", "f^*", side="left")
+        x.add_output("G", "g^*")
         x.write(filename)
         x.write_sys_specs(spec_dir)
 
         # Test if files where created
-        self.assertTrue(os.path.isfile(filename + '.tikz'))
-        self.assertTrue(os.path.isfile(filename + '.tex'))
+        self.assertTrue(os.path.isfile(filename + ".tikz"))
+        self.assertTrue(os.path.isfile(filename + ".tex"))
         self.assertTrue(os.path.isdir(spec_dir))
-        self.assertTrue(os.path.isfile(os.path.join(spec_dir, 'F.json')))
-        self.assertTrue(os.path.isfile(os.path.join(spec_dir, 'G_spec.json')))
+        self.assertTrue(os.path.isfile(os.path.join(spec_dir, "F.json")))
+        self.assertTrue(os.path.isfile(os.path.join(spec_dir, "G_spec.json")))
 
-
-    def test_stacked_system(self): 
+    def test_stacked_system(self):
 
         x = XDSM()
 
-        x.add_system('test', OPT, r'\text{test}', stack=True)
+        x.add_system("test", OPT, r"\text{test}", stack=True)
 
         file_name = "stacked_test"
         x.write(file_name)
 
-        tikz_file = file_name + '.tikz'
+        tikz_file = file_name + ".tikz"
         with open(tikz_file, "r") as f:
             tikz = f.read()
 
         self.assertIn(r"\node [Optimization,stack]", tikz)
-
-
 
     def test_tikz_content(self):
         # Check if TiKZ file was created.
@@ -247,43 +243,43 @@ class TestXDSM(unittest.TestCase):
             
             \end{tikzpicture}"""
 
-        filename = 'xdsm_test_tikz'
+        filename = "xdsm_test_tikz"
 
         x = XDSM(use_sfmath=True)
 
-        x.add_system('opt', OPT, r'\text{Optimizer}')
-        x.add_system('solver', SOLVER, r'\text{Newton}')
-        x.add_system('D1', FUNC, 'D_1')
-        x.add_system('D2', FUNC, 'D_2')
-        x.add_system('F', FUNC, 'F')
-        x.add_system('G', FUNC, 'G')
+        x.add_system("opt", OPT, r"\text{Optimizer}")
+        x.add_system("solver", SOLVER, r"\text{Newton}")
+        x.add_system("D1", FUNC, "D_1")
+        x.add_system("D2", FUNC, "D_2")
+        x.add_system("F", FUNC, "F")
+        x.add_system("G", FUNC, "G")
 
-        x.connect('opt', 'D1', 'x, z')
-        x.connect('opt', 'D2', 'z')
-        x.connect('opt', 'F', 'x, z')
-        x.connect('solver', 'D1', 'y_2')
-        x.connect('solver', 'D2', 'y_1')
-        x.connect('D1', 'solver', r'\mathcal{R}(y_1)')
-        x.connect('solver', 'F', 'y_1, y_2')
-        x.connect('D2', 'solver', r'\mathcal{R}(y_2)')
-        x.connect('solver', 'G', 'y_1, y_2')
+        x.connect("opt", "D1", "x, z")
+        x.connect("opt", "D2", "z")
+        x.connect("opt", "F", "x, z")
+        x.connect("solver", "D1", "y_2")
+        x.connect("solver", "D2", "y_1")
+        x.connect("D1", "solver", r"\mathcal{R}(y_1)")
+        x.connect("solver", "F", "y_1, y_2")
+        x.connect("D2", "solver", r"\mathcal{R}(y_2)")
+        x.connect("solver", "G", "y_1, y_2")
 
-        x.connect('F', 'opt', 'f')
-        x.connect('G', 'opt', 'g')
+        x.connect("F", "opt", "f")
+        x.connect("G", "opt", "g")
 
-        x.add_output('opt', 'x^*, z^*', side='left')
-        x.add_output('D1', 'y_1^*', side='left')
-        x.add_output('D2', 'y_2^*', side='left')
-        x.add_output('F', 'f^*', side='left')
-        x.add_output('G', 'g^*', side='left')
+        x.add_output("opt", "x^*, z^*", side="left")
+        x.add_output("D1", "y_1^*", side="left")
+        x.add_output("D2", "y_2^*", side="left")
+        x.add_output("F", "f^*", side="left")
+        x.add_output("G", "g^*", side="left")
         x.write(filename)
 
         # Check if file was created
-        tikz_file = filename + '.tikz'
+        tikz_file = filename + ".tikz"
 
         self.assertTrue(os.path.isfile(tikz_file))
 
-        sample_lines = sample_txt.split('\n')
+        sample_lines = sample_txt.split("\n")
         sample_lines = filter_lines(sample_lines)
 
         with open(tikz_file, "r") as f:
@@ -293,7 +289,7 @@ class TestXDSM(unittest.TestCase):
         new_no_match = []  # New text
 
         for new_line, sample_line in zip(new_lines, sample_lines):
-            if new_line.startswith(r'\input{'):
+            if new_line.startswith(r"\input{"):
                 continue
             if new_line != sample_line:  # else everything is okay
                 # This can be because of the different ordering of lines or because of an error.

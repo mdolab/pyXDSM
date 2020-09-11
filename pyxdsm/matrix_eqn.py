@@ -211,45 +211,46 @@ base_file_end = r"""
 \end{document}"""
 
 
-Variable = namedtuple('Variable', field_names=['size', 'idx', 'text', 'color'])
+Variable = namedtuple("Variable", field_names=["size", "idx", "text", "color"])
 
-CellData = namedtuple('CellData', field_names=['text', 'color', 'highlight'])
+CellData = namedtuple("CellData", field_names=["text", "color", "highlight"])
+
 
 def _color(base_color, h_light):
     if h_light == -1:
-        color = 'white'
+        color = "white"
     elif h_light == 0:
-        color = 'Tgrey'
+        color = "Tgrey"
     elif h_light == 1:
-        color = 'T{}'.format(base_color)
+        color = "T{}".format(base_color)
     elif h_light == 2:
-        color = 'D{}'.format(base_color)
+        color = "D{}".format(base_color)
     elif h_light == 3:
-        color = 'B{}'.format(base_color)
+        color = "B{}".format(base_color)
 
     elif h_light == "diag":
         color = base_color
 
     return color
 
+
 def _write_tikz(tikz, out_file, build=True, cleanup=True):
-    with open('{}.tex'.format(out_file), 'w') as f:
+    with open("{}.tex".format(out_file), "w") as f:
         f.write(base_file_start)
         f.write(tikz)
         f.write(base_file_end)
 
     if build:
-        os.system('pdflatex {}.tex'.format(out_file))
+        os.system("pdflatex {}.tex".format(out_file))
 
         if cleanup:
-            for ext in ['aux', 'fdb_latexmk', 'fls', 'log', 'tex']:
-                f_name = '{}.{}'.format(out_file, ext)
+            for ext in ["aux", "fdb_latexmk", "fls", "log", "tex"]:
+                f_name = "{}.{}".format(out_file, ext)
                 if os.path.exists(f_name):
                     os.remove(f_name)
 
 
 class TotalJacobian(object):
-
     def __init__(self):
         self._variables = {}
         self._j_inputs = {}
@@ -263,22 +264,22 @@ class TotalJacobian(object):
 
         self._setup = False
 
-    def add_input(self, name, size=1, text=''):
+    def add_input(self, name, size=1, text=""):
         self._variables[name] = Variable(size=size, idx=self._n_inputs, text=text, color=None)
         self._j_inputs[self._n_inputs] = self._variables[name]
         self._n_inputs += 1
 
-    def add_output(self, name, size=1, text=''):
+    def add_output(self, name, size=1, text=""):
         self._variables[name] = Variable(size=size, idx=self._n_outputs, text=text, color=None)
         self._i_outputs[self._n_outputs] = self._variables[name]
         self._n_outputs += 1
 
-    def connect(self, src, target, text='', color='tableau0'):
+    def connect(self, src, target, text="", color="tableau0"):
         if isinstance(target, (list, tuple)):
             for t in target:
-                self._connections[src, t] = CellData(text=text, color=color, highlight='diag')
+                self._connections[src, t] = CellData(text=text, color=color, highlight="diag")
         else:
-            self._connections[src, target] = CellData(text=text, color=color, highlight='diag')
+            self._connections[src, target] = CellData(text=text, color=color, highlight="diag")
 
     def _process_vars(self):
 
@@ -291,7 +292,6 @@ class TotalJacobian(object):
             j_target = self._variables[target].idx
 
             self._ij_connections[i_src, j_target] = cell_data
-
 
         self._setup = True
 
@@ -319,55 +319,58 @@ class TotalJacobian(object):
         """
         self._process_vars()
 
-        tikz =[]
+        tikz = []
 
-        #label the columns
-        tikz.append(r'\blockrow{')
+        # label the columns
+        tikz.append(r"\blockrow{")
         # emtpy column for the row labels
-        tikz.append(r'  \blockcol{')
-        tikz.append(r'    \blockempty{%s*\comp}{%s*\comp}{%s}\\'%(1, 1, ''))
-        tikz.append(r'  }')
+        tikz.append(r"  \blockcol{")
+        tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\" % (1, 1, ""))
+        tikz.append(r"  }")
         for j in range(self._n_inputs):
             var = self._j_inputs[j]
             col_size = var.size
-            tikz.append(r'  \blockcol{')
-            tikz.append(r'    \blockempty{%s*\comp}{%s*\comp}{%s}\\'%(col_size, 1, var.text))
-            tikz.append(r'  }')
-        tikz.append(r'}')
+            tikz.append(r"  \blockcol{")
+            tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\" % (col_size, 1, var.text))
+            tikz.append(r"  }")
+        tikz.append(r"}")
 
         for i in range(self._n_outputs):
             output = self._i_outputs[i]
             row_size = output.size
 
-            tikz.append(r'\blockrow{')
+            tikz.append(r"\blockrow{")
 
             # label the row with the output name
-            tikz.append(r'  \blockcol{')
-            tikz.append(r'    \blockempty{%s*\comp}{%s*\comp}{%s}\\'%(1, row_size, output.text))
-            tikz.append(r'  }')
+            tikz.append(r"  \blockcol{")
+            tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\" % (1, row_size, output.text))
+            tikz.append(r"  }")
 
             for j in range(self._n_inputs):
                 var = self._j_inputs[j]
                 col_size = var.size
-                tikz.append(r'  \blockcol{')
-                if (j,i) in self._ij_connections:
-                    cell_data = self._ij_connections[(j,i)]
-                    conn_color = 'T{}'.format(var.color)
+                tikz.append(r"  \blockcol{")
+                if (j, i) in self._ij_connections:
+                    cell_data = self._ij_connections[(j, i)]
+                    conn_color = "T{}".format(var.color)
                     if cell_data.color is not None:
                         conn_color = _color(cell_data.color, cell_data.highlight)
-                    tikz.append(r'    \blockmat{%s*\comp}{%s*\comp}{%s}{draw=white,fill=%s}{}\\'%(col_size, row_size, cell_data.text, conn_color))
+                    tikz.append(
+                        r"    \blockmat{%s*\comp}{%s*\comp}{%s}{draw=white,fill=%s}{}\\"
+                        % (col_size, row_size, cell_data.text, conn_color)
+                    )
                 else:
-                    tikz.append(r'    \blockempty{%s*\comp}{%s*\comp}{}\\'%(col_size, row_size))
-                tikz.append(r'  }')
+                    tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{}\\" % (col_size, row_size))
+                tikz.append(r"  }")
 
-            tikz.append(r'}')
+            tikz.append(r"}")
 
         jac_tikz = "\n".join(tikz)
 
         _write_tikz(jac_tikz, out_file, build, cleanup)
 
-class MatrixEquation(object):
 
+class MatrixEquation(object):
     def __init__(self):
         self._variables = {}
         self._ij_variables = {}
@@ -389,14 +392,14 @@ class MatrixEquation(object):
     def clear_terms(self):
         self._terms = []
 
-    def add_variable(self, name, size=1, text='', color='blue'):
+    def add_variable(self, name, size=1, text="", color="blue"):
         self._variables[name] = Variable(size=size, idx=self._n_vars, text=text, color=color)
         self._ij_variables[self._n_vars] = self._variables[name]
         self._n_vars += 1
 
         self._total_size += size
 
-    def connect(self, src, target, text='', color=None, highlight=1):
+    def connect(self, src, target, text="", color=None, highlight=1):
 
         if isinstance(target, (list, tuple)):
             for t in target:
@@ -429,7 +432,6 @@ class MatrixEquation(object):
 
         self._setup = True
 
-
     def jacobian(self, transpose=False):
 
         self._process_vars()
@@ -437,44 +439,48 @@ class MatrixEquation(object):
         tikz = []
 
         for i in range(self._n_vars):
-            tikz.append(r'\blockrow{')
+            tikz.append(r"\blockrow{")
 
             row_size = self._ij_variables[i].size
             for j in range(self._n_vars):
                 var = self._ij_variables[j]
                 col_size = var.size
-                tikz.append(r'  \blockcol{')
+                tikz.append(r"  \blockcol{")
 
                 if transpose:
-                    location = (i,j)
+                    location = (i, j)
                 else:
-                    location = (j,i)
+                    location = (j, i)
 
                 if i == j:
-                    tikz.append(r'    \blockmat{%s*\comp}{%s*\comp}{%s}{draw=white,fill=D%s}{}\\'%(col_size, row_size, var.text, var.color))
+                    tikz.append(
+                        r"    \blockmat{%s*\comp}{%s*\comp}{%s}{draw=white,fill=D%s}{}\\"
+                        % (col_size, row_size, var.text, var.color)
+                    )
                 elif location in self._ij_connections:
                     cell_data = self._ij_connections[location]
-                    conn_color = 'T{}'.format(var.color)
+                    conn_color = "T{}".format(var.color)
                     if cell_data.color is not None:
                         conn_color = _color(cell_data.color, cell_data.highlight)
-                    tikz.append(r'    \blockmat{%s*\comp}{%s*\comp}{%s}{draw=white,fill=%s}{}\\'%(col_size, row_size, cell_data.text, conn_color))
+                    tikz.append(
+                        r"    \blockmat{%s*\comp}{%s*\comp}{%s}{draw=white,fill=%s}{}\\"
+                        % (col_size, row_size, cell_data.text, conn_color)
+                    )
                 elif location in self._ij_text:
                     cell_data = self._ij_text[location]
-                    tikz.append(r'    \blockempty{%s*\comp}{%s*\comp}{%s}\\'%(col_size, row_size, cell_data.text))
+                    tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\" % (col_size, row_size, cell_data.text))
                 else:
-                    tikz.append(r'    \blockempty{%s*\comp}{%s*\comp}{}\\'%(col_size, row_size))
-                tikz.append(r'  }')
+                    tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{}\\" % (col_size, row_size))
+                tikz.append(r"  }")
 
-            tikz.append(r'}')
-
+            tikz.append(r"}")
 
         lhs_tikz = "\n".join(tikz)
 
         self._terms.append(lhs_tikz)
         return lhs_tikz
 
-
-    def vector(self, base_color='red', highlight=None):
+    def vector(self, base_color="red", highlight=None):
 
         self._process_vars()
 
@@ -489,13 +495,16 @@ class MatrixEquation(object):
 
             row_size = self._ij_variables[i].size
 
-            tikz.append(r'\blockrow{\blockcol{')
+            tikz.append(r"\blockrow{\blockcol{")
             if h_light == "diag":
-                tikz.append(r'  \blockdiag{1*\comp}{%s*\comp}{}{draw=white,fill=T%s}{\dt}{draw=white,fill=D%s}\\'%(row_size, color, color))
+                tikz.append(
+                    r"  \blockdiag{1*\comp}{%s*\comp}{}{draw=white,fill=T%s}{\dt}{draw=white,fill=D%s}\\"
+                    % (row_size, color, color)
+                )
             else:
-                tikz.append(r'  \blockmat{1*\comp}{%s*\comp}{}{draw=white,fill=%s}{}\\'%(row_size, color))
+                tikz.append(r"  \blockmat{1*\comp}{%s*\comp}{}{draw=white,fill=%s}{}\\" % (row_size, color))
 
-            tikz.append(r'}}')
+            tikz.append(r"}}")
 
         vec_tikz = "\n".join(tikz)
 
@@ -508,13 +517,13 @@ class MatrixEquation(object):
 
         tikz = []
 
-        padding_size = (self._total_size-1)/2
+        padding_size = (self._total_size - 1) / 2
 
-        tikz.append(r'\blockrow{')
-        tikz.append(r'  \blockempty{\mwid}{%s*\comp}{} \\'%(padding_size))
-        tikz.append(r'  \blockmat{\mwid}{1*\comp}{\huge $%s$}{draw=white,fill=white}{}\\'%(opperator))
-        tikz.append(r'  \blockempty{\mwid}{%s*\comp}{} \\'%(padding_size))
-        tikz.append(r'}')
+        tikz.append(r"\blockrow{")
+        tikz.append(r"  \blockempty{\mwid}{%s*\comp}{} \\" % (padding_size))
+        tikz.append(r"  \blockmat{\mwid}{1*\comp}{\huge $%s$}{draw=white,fill=white}{}\\" % (opperator))
+        tikz.append(r"  \blockempty{\mwid}{%s*\comp}{} \\" % (padding_size))
+        tikz.append(r"}")
 
         op_tikz = "\n".join(tikz)
 
@@ -530,15 +539,14 @@ class MatrixEquation(object):
         for i in range(self._n_vars):
             row_size = self._ij_variables[i].size
 
-            tikz.append(r'\blockrow{\blockcol{')
-            tikz.append(r'  \blockmat{.25*\mwid}{%s*\comp}{}{draw=white,fill=white}{}\\'%(row_size))
-            tikz.append(r'}}')
+            tikz.append(r"\blockrow{\blockcol{")
+            tikz.append(r"  \blockmat{.25*\mwid}{%s*\comp}{}{draw=white,fill=white}{}\\" % (row_size))
+            tikz.append(r"}}")
 
         spacer_tikz = "\n".join(tikz)
 
         self._terms.append(spacer_tikz)
         return spacer_tikz
-
 
     def write(self, out_file=None, build=True, cleanup=True):
         """
@@ -563,13 +571,13 @@ class MatrixEquation(object):
             Flag that determines if padlatex build files will be deleted after build is complete
         """
         tikz = []
-        tikz.append(r'\blockrow{')
+        tikz.append(r"\blockrow{")
 
         for term in self._terms:
-            tikz.append(r'\blockcol{')
+            tikz.append(r"\blockcol{")
             tikz.append(term)
-            tikz.append(r'}')
-        tikz.append(r'}')
+            tikz.append(r"}")
+        tikz.append(r"}")
 
         eqn_tikz = "\n".join(tikz)
 
@@ -589,49 +597,43 @@ class MatrixEquation(object):
             #                 os.remove(f_name)
             _write_tikz(eqn_tikz, out_file, build, cleanup)
 
+
 if __name__ == "__main__":
     lst = MatrixEquation()
 
-    lst.add_variable('x', text=r'$x$')
-    lst.add_variable('y', size=3, text=r'$y$')
-    lst.add_variable('z')
+    lst.add_variable("x", text=r"$x$")
+    lst.add_variable("y", size=3, text=r"$y$")
+    lst.add_variable("z")
 
-    lst.connect('x', 'y')
-    lst.connect('y', 'z')
-    lst.text('z', 'x', r'$0$')
+    lst.connect("x", "y")
+    lst.connect("y", "z")
+    lst.text("z", "x", r"$0$")
 
     lst.jacobian(transpose=True)
     lst.spacer()
-    lst.vector(base_color='green', highlight=[3,2,'diag'])
-    lst.operator('=')
-    lst.vector(base_color='red')
-    lst.vector(base_color='red')
+    lst.vector(base_color="green", highlight=[3, 2, "diag"])
+    lst.operator("=")
+    lst.vector(base_color="red")
+    lst.vector(base_color="red")
 
-    lst.write('test')
-
+    lst.write("test")
 
     J = TotalJacobian()
-    J.add_input('a', text=r'$a$')
-    J.add_input('b', text=r'$b$')
-    J.add_input('c', text=r'$c$')
-    J.add_input('d', text=r'$d$')
-    J.add_input('e', text=r'$e$')
+    J.add_input("a", text=r"$a$")
+    J.add_input("b", text=r"$b$")
+    J.add_input("c", text=r"$c$")
+    J.add_input("d", text=r"$d$")
+    J.add_input("e", text=r"$e$")
 
-    J.add_output('gc', text=r'$g_c$')
-    J.add_output('gd', text=r'$g_d$')
-    J.add_output('ge', text=r'$g_e$')
-    J.add_output('f', text=r'$f$')
+    J.add_output("gc", text=r"$g_c$")
+    J.add_output("gd", text=r"$g_d$")
+    J.add_output("ge", text=r"$g_e$")
+    J.add_output("f", text=r"$f$")
 
-    J.connect('a', ('gc', 'gd', 'ge', 'f'))
-    J.connect('b', ('gc', 'gd', 'ge', 'f'))
-    J.connect('c', 'gc')
-    J.connect('d', 'gd')
-    J.connect('e', ('ge','f'))
+    J.connect("a", ("gc", "gd", "ge", "f"))
+    J.connect("b", ("gc", "gd", "ge", "f"))
+    J.connect("c", "gc")
+    J.connect("d", "gd")
+    J.connect("e", ("ge", "f"))
 
-    J.write('J_test', cleanup=False)
-
-
-
-
-
-
+    J.write("J_test", cleanup=False)
