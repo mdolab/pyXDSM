@@ -1,5 +1,6 @@
 # pyXDSM
 [![Build Status](https://travis-ci.com/mdolab/pyXDSM.svg?branch=master)](https://travis-ci.com/mdolab/pyXDSM)
+[![Documentation Status](https://readthedocs.com/projects/mdolab-pyxdsm/badge/?version=latest)](https://mdolab-pyxdsm.readthedocs-hosted.com/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/pyxdsm)](https://pypi.org/project/pyXDSM/)
 
 A python library for generating publication quality PDF XDSM diagrams.
