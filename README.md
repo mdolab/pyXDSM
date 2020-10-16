@@ -17,7 +17,7 @@ You can then view the built documentation in the `_build` folder.
 
 
 ## Citation
-Please cite the [paper by Lambe and Martins](http://www.umich.edu/~mdolaboratory/pdf/Lambe2012a.pdf) when using XDSM.
+Please cite the [paper by Lambe and Martins](http://mdolab.engin.umich.edu/bibliography/Lambe2012a.html) when using XDSM.
 Here is the bibtex entry for that paper:
 
     @article {Lambe2012,
