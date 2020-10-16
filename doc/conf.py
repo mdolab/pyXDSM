@@ -17,19 +17,19 @@ from sphinx_mdolab_theme.config import (
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath("../"))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'pyXDSM'
+project = "pyXDSM"
 
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-# extensions.extend = ([])
+extensions.extend(["numpydoc"])
 
 # mock import for autodoc
 autodoc_mock_imports = ["numpy"]
