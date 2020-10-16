@@ -18,7 +18,7 @@ cd pyxdsm
 pip install .
 ```
 
-![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/images_for_readme/mdf.png)
+![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/doc/images/mdf.png)
 
 ## What is XDSM?
 The eXtended Design Structure Matrix (XDSM) is a graphical language for describing the movement of data and the execution sequence for a  multidisciplinary optimization  problem.
@@ -73,7 +73,7 @@ x.add_output('F', 'f^*', side='left')
 x.add_output('G', 'g^*', side='left')
 x.write('mdf')
 ```
-![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/images_for_readme/mdf.png)
+![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/doc/images/mdf.png)
 
 This will output `mdf.tex`, a standalone tex document that (by default) is also compiled to `mdf.pdf`.
 
@@ -82,7 +82,7 @@ This will output `mdf.tex`, a standalone tex document that (by default) is also 
 Here is an example that uses a whole bunch of the more advanced features in pyXDSM. Its mostly just a reference for all the customizations you can do.
 The code for this is in the [examples folder](https://github.com/mdolab/pyXDSM/blob/master/examples/kitchen_sink.py)
 
-![XDSM of With all the bells and whistles](https://github.com/mdolab/pyXDSM/blob/master/images_for_readme/kitchen_sink.png)
+![XDSM of With all the bells and whistles](https://github.com/mdolab/pyXDSM/blob/master/doc/images/kitchen_sink.png)
 
 ## Embedding the diagram directly in LaTeX
 
