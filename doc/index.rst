@@ -31,7 +31,6 @@ The following pages provide detailed info on how to use the python library:
 
    install
    examples
-   options
    API
 
 TikZ and LaTeX
