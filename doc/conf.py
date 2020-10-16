@@ -32,4 +32,4 @@ project = 'pyXDSM'
 # extensions.extend = ([])
 
 # mock import for autodoc
-autodoc_mock_imports = ["numpy", "mpi4py"]
+autodoc_mock_imports = ["numpy"]
