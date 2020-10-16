@@ -12,7 +12,7 @@ Please see the [documentation]() for installation details and API documentation.
 To locally build the documentation, enter the `doc` folder and enter `make html` in the terminal. 
 You can then view the built documentation in the `_build` folder.
 
-![XDSM of MDF](https://github.com/mdolab/pyXDSM/blob/master/doc/images/mdf.png)
+![XDSM of MDF](doc/images/mdf.png)
 
 
 
