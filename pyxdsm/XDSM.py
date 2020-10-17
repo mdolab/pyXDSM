@@ -130,7 +130,7 @@ class XDSM(object):
         """
         Add a "system" block, which will be placed on the diagonal of the XDSM diagram.
 
-        Parameters:
+        Parameters
         ----------
         node_name : str
             The unique name given to this component
@@ -172,7 +172,7 @@ class XDSM(object):
         """
         Add an input, which will appear in the top row of the diagram.
 
-        Parameters:
+        Parameters
         ----------
         name : str
             The unique name given to this component
@@ -203,7 +203,7 @@ class XDSM(object):
         """
         Add an output, which will appear in the left or right-most column of the diagram.
 
-        Parameters:
+        Parameters
         ----------
         name : str
             The unique name given to this component
@@ -244,7 +244,7 @@ class XDSM(object):
         Connects two components with a data line, and adds a label to indicate
         the data being transferred.
 
-        Parameters:
+        Parameters
         ----------
         src : str
             The name of the source component.
@@ -287,7 +287,7 @@ class XDSM(object):
         """
         Add a process line between a list of systems, to indicate process flow.
 
-        Parameters:
+        Parameters
         ----------
         systems : list
             The names of the components, in the order in which they should be connected.

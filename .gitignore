@@ -1,0 +1,17 @@
+*.so
+*.o
+*.pyc
+*~
+.*~
+*.orig
+*.mod
+*.pyf
+*.a
+*.dat
+*.mk
+*.xyz
+*.phy
+*.fmt
+*.lay
+*.plt
+_build*
