@@ -1,13 +1,4 @@
-from sphinx_mdolab_theme.config import (
-    copyright,
-    exclude_patterns,
-    master_doc,
-    html_static_path,
-    html_context,
-    html_theme,
-    html_theme_options,
-    extensions,
-)
+from sphinx_mdolab_theme.config import *
 
 # -- Path setup --------------------------------------------------------------
 
@@ -30,6 +21,7 @@ project = "pyXDSM"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions.extend(["numpydoc"])
+numpydoc_show_class_members = False
 
 # mock import for autodoc
 autodoc_mock_imports = ["numpy"]
