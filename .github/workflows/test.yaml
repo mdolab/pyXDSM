@@ -15,7 +15,6 @@ jobs:
           PY: 37
         - python-version: '3.8'
           PY: 38
-
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -25,7 +24,9 @@ jobs:
     - name: Install dependencies
       run: pip install flake8 black
     - name: Lint with flake8
-      run: flake8 . --count --show-source --statistics
+      run: |
+        wget https://raw.githubusercontent.com/mdolab/.github/master/.flake8
+        flake8 . --count --show-source --statistics
     - name: Format check
       run: black . --check -l 120 --target-version py${{ matrix.PY }}
 
