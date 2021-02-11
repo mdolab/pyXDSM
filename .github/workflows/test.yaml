@@ -1,0 +1,52 @@
+name: Python package
+
+on: [push]
+
+jobs:
+  lint-format:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - python-version: '3.6'
+          PY: 36
+        - python-version: '3.7'
+          PY: 37
+        - python-version: '3.8'
+          PY: 38
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: pip install flake8 black
+    - name: Lint with flake8
+      run: flake8 . --count --show-source --statistics
+    - name: Format check
+      run: black . --check -l 120 --target-version py${{ matrix.PY }}
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        sudo apt-get install texlive-pictures texlive-latex-extra
+        pip install testflo
+    - name: Install
+      run: |
+        pip install .
+    - name: Test with pytest
+      run: |
+        testflo . -v
