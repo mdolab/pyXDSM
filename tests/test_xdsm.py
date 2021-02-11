@@ -1,6 +1,7 @@
 import unittest
 import os
 import shutil
+import tempfile
 from pyxdsm.XDSM import XDSM, OPT, FUNC, SOLVER
 from numpy.distutils.exec_command import find_executable
 
@@ -14,18 +15,12 @@ def filter_lines(lns):
 
 class TestXDSM(unittest.TestCase):
     def setUp(self):
-        import os
-        import tempfile
-
-        self.startdir = os.path.dirname(os.path.abspath(__file__))
+        self.basedir = os.path.dirname(os.path.abspath(__file__))
         self.tempdir = tempfile.mkdtemp(prefix="testdir-")
-
         os.chdir(self.tempdir)
 
     def tearDown(self):
-        import os
-
-        os.chdir(self.startdir)
+        os.chdir(self.basedir)
 
         try:
             shutil.rmtree(self.tempdir)
@@ -37,7 +32,8 @@ class TestXDSM(unittest.TestCase):
         This test just builds the three examples, and assert that the output files exist.
         Unlike the other tests, this one requires LaTeX to be available.
         """
-        shutil.copytree(os.path.join(self.startdir, "../examples"), os.path.join(self.tempdir, "examples"))
+        # we first copy the examples to the temp dir
+        shutil.copytree(os.path.join(self.basedir, "../examples"), os.path.join(self.tempdir, "examples"))
         os.chdir(os.path.join(self.tempdir, "examples"))
 
         filenames = ["kitchen_sink", "mdf"]
