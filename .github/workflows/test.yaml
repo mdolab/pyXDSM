@@ -44,10 +44,10 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get install texlive-pictures texlive-latex-extra
-        pip install testflo
+        pip install testflo wheel
     - name: Install
       run: |
-        pip install .
+        pip install . --user
     - name: Run tests
       run: |
         testflo . -v

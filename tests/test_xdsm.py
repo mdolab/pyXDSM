@@ -20,6 +20,8 @@ class TestXDSM(unittest.TestCase):
         os.chdir(self.tempdir)
 
     def tearDown(self):
+        os.chdir(self.basedir)
+
         try:
             shutil.rmtree(self.tempdir)
         except OSError:
