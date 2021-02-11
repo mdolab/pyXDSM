@@ -1,6 +1,7 @@
 import unittest
 import os
-from pyxdsm.XDSM import XDSM, __file__, OPT, FUNC, SOLVER
+import shutil
+from pyxdsm.XDSM import XDSM, OPT, FUNC, SOLVER
 from numpy.distutils.exec_command import find_executable
 
 
@@ -16,14 +17,13 @@ class TestXDSM(unittest.TestCase):
         import os
         import tempfile
 
-        self.startdir = os.getcwd()
+        self.startdir = os.path.dirname(os.path.abspath(__file__))
         self.tempdir = tempfile.mkdtemp(prefix="testdir-")
 
         os.chdir(self.tempdir)
 
     def tearDown(self):
         import os
-        import shutil
 
         os.chdir(self.startdir)
 
@@ -37,7 +37,8 @@ class TestXDSM(unittest.TestCase):
         This test just builds the three examples, and assert that the output files exist.
         Unlike the other tests, this one requires LaTeX to be available.
         """
-        os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../examples"))
+        shutil.copytree(os.path.join(self.startdir, "../examples"), os.path.join(self.tempdir, "examples"))
+        os.chdir(os.path.join(self.tempdir, "examples"))
 
         filenames = ["kitchen_sink", "mdf"]
         for f in filenames:
