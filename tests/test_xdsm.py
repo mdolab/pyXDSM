@@ -5,6 +5,8 @@ import tempfile
 from pyxdsm.XDSM import XDSM, OPT, FUNC, SOLVER
 from numpy.distutils.exec_command import find_executable
 
+basedir = os.path.dirname(os.path.abspath(__file__))
+
 
 def filter_lines(lns):
     # Empty lines are excluded.
@@ -15,12 +17,11 @@ def filter_lines(lns):
 
 class TestXDSM(unittest.TestCase):
     def setUp(self):
-        self.basedir = os.path.dirname(os.path.abspath(__file__))
         self.tempdir = tempfile.mkdtemp(prefix="testdir-")
         os.chdir(self.tempdir)
 
     def tearDown(self):
-        os.chdir(self.basedir)
+        os.chdir(basedir)
 
         try:
             shutil.rmtree(self.tempdir)
@@ -33,7 +34,7 @@ class TestXDSM(unittest.TestCase):
         Unlike the other tests, this one requires LaTeX to be available.
         """
         # we first copy the examples to the temp dir
-        shutil.copytree(os.path.join(self.basedir, "../examples"), os.path.join(self.tempdir, "examples"))
+        shutil.copytree(os.path.join(basedir, "../examples"), os.path.join(self.tempdir, "examples"))
         os.chdir(os.path.join(self.tempdir, "examples"))
 
         filenames = ["kitchen_sink", "mdf"]
