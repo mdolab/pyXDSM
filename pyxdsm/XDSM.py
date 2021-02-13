@@ -2,7 +2,7 @@ from __future__ import print_function
 import os
 import numpy as np
 import json
-
+import subprocess
 from collections import namedtuple
 
 from pyxdsm import __version__ as pyxdsm_version
@@ -551,10 +551,11 @@ class XDSM(object):
                 f.write(tex_str)
 
         if build:
-            command = "pdflatex "
+            command = "pdflatex -halt-on-error -interaction=nonstopmode"
             if quiet:
-                command += " -interaction=batchmode -halt-on-error "
-            os.system(command + file_name + ".tex")
+                command += " -interaction=batchmode -halt-on-error"
+            command += f" {file_name}.tex"
+            subprocess.run(command, shell=True, check=True)
             if cleanup:
                 for ext in ["aux", "fdb_latexmk", "fls", "log"]:
                     f_name = "{}.{}".format(file_name, ext)
