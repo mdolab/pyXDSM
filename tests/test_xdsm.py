@@ -1,7 +1,12 @@
 import unittest
 import os
-from pyxdsm.XDSM import XDSM, __file__, OPT, FUNC, SOLVER
+import shutil
+import tempfile
+import subprocess
+from pyxdsm.XDSM import XDSM, OPT, FUNC, SOLVER
 from numpy.distutils.exec_command import find_executable
+
+basedir = os.path.dirname(os.path.abspath(__file__))
 
 
 def filter_lines(lns):
@@ -13,19 +18,11 @@ def filter_lines(lns):
 
 class TestXDSM(unittest.TestCase):
     def setUp(self):
-        import os
-        import tempfile
-
-        self.startdir = os.getcwd()
         self.tempdir = tempfile.mkdtemp(prefix="testdir-")
-
         os.chdir(self.tempdir)
 
     def tearDown(self):
-        import os
-        import shutil
-
-        os.chdir(self.startdir)
+        os.chdir(basedir)
 
         try:
             shutil.rmtree(self.tempdir)
@@ -37,18 +34,20 @@ class TestXDSM(unittest.TestCase):
         This test just builds the three examples, and assert that the output files exist.
         Unlike the other tests, this one requires LaTeX to be available.
         """
-        os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../examples"))
+        # we first copy the examples to the temp dir
+        shutil.copytree(os.path.join(basedir, "../examples"), os.path.join(self.tempdir, "examples"))
+        os.chdir(os.path.join(self.tempdir, "examples"))
 
         filenames = ["kitchen_sink", "mdf"]
         for f in filenames:
-            os.system("python {}.py".format(f))
+            subprocess.run(["python", f"{f}.py"], check=True)
             self.assertTrue(os.path.isfile(f + ".tikz"))
             self.assertTrue(os.path.isfile(f + ".tex"))
             # look for the pdflatex executable
             pdflatex = find_executable("pdflatex") is not None
             # if no pdflatex, then do not assert that the pdf was compiled
             self.assertTrue(not pdflatex or os.path.isfile(f + ".pdf"))
-        os.system("python mat_eqn.py")
+        subprocess.run(["python", "mat_eqn.py"], check=True)
         self.assertTrue(os.path.isfile("mat_eqn_example.pdf"))
         # change back to previous directory
         os.chdir(self.tempdir)
