@@ -551,11 +551,11 @@ class XDSM(object):
                 f.write(tex_str)
 
         if build:
-            command = "pdflatex -halt-on-error -interaction=nonstopmode"
+            command = ["pdflatex", "-halt-on-error", "-interaction=nonstopmode"]
             if quiet:
-                command += " -interaction=batchmode -halt-on-error"
-            command += f" {file_name}.tex"
-            subprocess.run(command, shell=True, check=True)
+                command += ["-interaction=batchmode", "-halt-on-error"]
+            command += [f"{file_name}.tex"]
+            subprocess.run(command, check=True)
             if cleanup:
                 for ext in ["aux", "fdb_latexmk", "fls", "log"]:
                     f_name = "{}.{}".format(file_name, ext)

@@ -1,10 +1,7 @@
-from __future__ import division
-
 import os
-
-import numpy as np
-
+import subprocess
 from collections import namedtuple
+import numpy as np
 
 
 # color pallette link: http://paletton.com/#uid=72Q1j0kllllkS5tKC9H96KClOKC
@@ -241,7 +238,7 @@ def _write_tikz(tikz, out_file, build=True, cleanup=True):
         f.write(base_file_end)
 
     if build:
-        os.system("pdflatex {}.tex".format(out_file))
+        subprocess.run(["pdflatex", f"{out_file}.tex"], check=True)
 
         if cleanup:
             for ext in ["aux", "fdb_latexmk", "fls", "log", "tex"]:
@@ -582,19 +579,6 @@ class MatrixEquation(object):
         eqn_tikz = "\n".join(tikz)
 
         if out_file:
-            # with open('{}.tex'.format(out_file), 'w') as f:
-            #     f.write(base_file_start)
-            #     f.write(eqn_tikz)
-            #     f.write(base_file_end)
-
-            # if build:
-            #     os.system('pdflatex {}.tex'.format(out_file))
-
-            #     if cleanup:
-            #         for ext in ['aux', 'fdb_latexmk', 'fls', 'log', 'tex']:
-            #             f_name = '{}.{}'.format(out_file, ext)
-            #             if os.path.exists(f_name):
-            #                 os.remove(f_name)
             _write_tikz(eqn_tikz, out_file, build, cleanup)
 
 

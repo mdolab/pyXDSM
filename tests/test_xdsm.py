@@ -2,6 +2,7 @@ import unittest
 import os
 import shutil
 import tempfile
+import subprocess
 from pyxdsm.XDSM import XDSM, OPT, FUNC, SOLVER
 from numpy.distutils.exec_command import find_executable
 
@@ -39,14 +40,14 @@ class TestXDSM(unittest.TestCase):
 
         filenames = ["kitchen_sink", "mdf"]
         for f in filenames:
-            os.system("python {}.py".format(f))
+            subprocess.run(["python", f"{f}.py"], check=True)
             self.assertTrue(os.path.isfile(f + ".tikz"))
             self.assertTrue(os.path.isfile(f + ".tex"))
             # look for the pdflatex executable
             pdflatex = find_executable("pdflatex") is not None
             # if no pdflatex, then do not assert that the pdf was compiled
             self.assertTrue(not pdflatex or os.path.isfile(f + ".pdf"))
-        os.system("python mat_eqn.py")
+        subprocess.run(["python", "mat_eqn.py"], check=True)
         self.assertTrue(os.path.isfile("mat_eqn_example.pdf"))
         # change back to previous directory
         os.chdir(self.tempdir)
