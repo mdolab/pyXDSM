@@ -50,7 +50,7 @@ jobs:
         pip install testflo wheel
     - name: Install
       run: |
-        pip install . --user
+        pip install .
     - name: Run tests
       run: |
         testflo . -v
