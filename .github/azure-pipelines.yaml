@@ -1,0 +1,48 @@
+trigger:
+  branches:
+    include:
+    - master
+  tags:
+    include:
+    - '*'
+
+pr:
+- master
+
+resources:
+  repositories:
+  - repository: azure_template
+    type: github
+    name: mdolab/.github
+    endpoint: mdolab
+
+stages:
+- stage: Test
+  dependsOn: []
+  displayName: Test
+  jobs:
+  - job:
+    pool:
+      vmImage: 'ubuntu-20.04'
+    strategy:
+    matrix:
+      'python36':
+        PYTHON_VERSION: '3.6'
+      'python37':
+        PYTHON_VERSION: '3.7'
+      'python38':
+        PYTHON_VERSION: '3.8'
+    steps:
+    - script: |
+        pip install testflo
+        pip install .
+        testflo . -v
+
+- stage:
+  dependsOn: Test
+  displayName: PyPI
+  condition: and(succeeded(), contains(variables['build.sourceBranch'], 'tags'))
+  jobs:
+  - template: azure/azure_template.yaml@azure_template
+    parameters:
+      REPO_NAME: pyXDSM
