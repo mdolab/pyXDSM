@@ -36,7 +36,7 @@ stages:
     - script: |
         pip install testflo
         pip install .
-        testflo . -v
+        python -m testflo . -v
 
 - stage:
   dependsOn: Test
