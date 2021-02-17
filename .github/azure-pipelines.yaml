@@ -38,6 +38,7 @@ stages:
         python3 -m pip install -U pip
         python3 -m venv test
         source test/bin/activate
+        pip install wheel
         pip install testflo
         pip install .
         testflo . -v 
