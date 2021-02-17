@@ -38,7 +38,7 @@ stages:
         python3 -m pip install -U pip
         pip3 install testflo
         pip3 install .
-        testflo . -v
+        python3 -m testflo . -v
 
 - stage:
   dependsOn: Test
