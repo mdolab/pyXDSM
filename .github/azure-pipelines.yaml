@@ -25,13 +25,13 @@ stages:
     pool:
       vmImage: 'ubuntu-20.04'
     strategy:
-    matrix:
-      'python36':
-        PYTHON_VERSION: '3.6'
-      'python37':
-        PYTHON_VERSION: '3.7'
-      'python38':
-        PYTHON_VERSION: '3.8'
+      matrix:
+        'python36':
+          PYTHON_VERSION: '3.6'
+        'python37':
+          PYTHON_VERSION: '3.7'
+        'python38':
+          PYTHON_VERSION: '3.8'
     steps:
     - script: |
         pip install testflo
