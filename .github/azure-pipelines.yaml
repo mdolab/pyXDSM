@@ -43,6 +43,6 @@ stages:
   displayName: PyPI
   condition: and(succeeded(), contains(variables['build.sourceBranch'], 'tags'))
   jobs:
-  - template: azure/azure_template.yaml@azure_template
+  - template: azure/azure_template.yaml@azure_pypi
     parameters:
       REPO_NAME: pyXDSM
