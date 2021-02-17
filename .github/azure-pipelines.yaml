@@ -34,9 +34,11 @@ stages:
           PYTHON_VERSION: '3.8'
     steps:
     - script: |
-        pip install testflo
-        pip install .
-        python -m testflo . -v
+        python3 --version
+        python3 -m pip install -U pip
+        pip3 install testflo
+        pip3 install .
+        testflo . -v
 
 - stage:
   dependsOn: Test
