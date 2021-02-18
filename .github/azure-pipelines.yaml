@@ -4,7 +4,7 @@ trigger:
     - master
   tags:
     include:
-    - '*'
+    - ^v\d+\.\d+(\.\d+)?(-\S*)?$
 
 pr:
 - master
@@ -33,16 +33,19 @@ stages:
         'python38':
           PYTHON_VERSION: '3.8'
     steps:
+    - script: sudo apt-get install texlive-pictures texlive-latex-extra -y
+      displayName: Prepare Repository
     - script: |
-        sudo apt-get install texlive-pictures texlive-latex-extra -y
-        python3 --version
-        python3 -m pip install -U pip
         python3 -m venv test
         source test/bin/activate
+      displayName: Setup Environment
+    - script: |
         pip install wheel
         pip install testflo
         pip install .
-        testflo . -v 
+      displayName: Install Packages
+    - script: testflo . -v 
+      displayName: Run Test
 
 - stage:
   dependsOn: Test
