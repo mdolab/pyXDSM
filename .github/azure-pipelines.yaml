@@ -38,14 +38,11 @@ stages:
     - script: |
         python3 -m venv test
         source test/bin/activate
-      displayName: Setup Environment
-    - script: |
         pip install wheel
         pip install testflo
         pip install .
-      displayName: Install Packages
-    - script: testflo . -v 
-      displayName: Run Test
+        testflo . -v 
+      displayName: Install and Test
 
 - stage:
   dependsOn: Test
