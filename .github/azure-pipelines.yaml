@@ -4,7 +4,7 @@ trigger:
     - master
   tags:
     include:
-    - ^v\d+\.\d+(\.\d+)?(-\S*)?$
+    - ^v?(\d+(?:\.\d+)*)$
 
 pr:
 - master
@@ -17,7 +17,7 @@ resources:
     endpoint: mdolab
 
 stages:
-- stage: Test
+- stage:
   dependsOn: []
   displayName: Test
   jobs:
@@ -33,6 +33,9 @@ stages:
         'python38':
           PYTHON_VERSION: '3.8'
     steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: $(PYTHON_VERSION)
     - script: sudo apt-get install texlive-pictures texlive-latex-extra -y
       displayName: Prepare Repository
     - script: |
@@ -44,8 +47,19 @@ stages:
         testflo . -v 
       displayName: Install and Test
 
+- stage: Style
+  dependsOn: []
+  displayName: Style
+  jobs:
+  - template: azure/azure_style.yaml@azure_template
+    parameters:
+      REPO_NAME: pyXDSM
+      IGNORE_STYLE: false
+
 - stage:
-  dependsOn: Test
+  dependsOn: 
+  - Test
+  - Style
   displayName: PyPI
   condition: and(succeeded(), contains(variables['build.sourceBranch'], 'tags'))
   jobs:
