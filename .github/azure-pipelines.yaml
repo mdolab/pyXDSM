@@ -1,0 +1,67 @@
+trigger:
+  branches:
+    include:
+    - master
+  tags:
+    include:
+    - ^v\d+\.\d+(\.\d+)?(-\S*)?$
+
+pr:
+- master
+
+resources:
+  repositories:
+  - repository: azure_template
+    type: github
+    name: mdolab/.github
+    endpoint: mdolab
+
+stages:
+- stage: Test
+  dependsOn: []
+  displayName: Test
+  jobs:
+  - job:
+    pool:
+      vmImage: 'ubuntu-20.04'
+    strategy:
+      matrix:
+        'python36':
+          PYTHON_VERSION: '3.6'
+        'python37':
+          PYTHON_VERSION: '3.7'
+        'python38':
+          PYTHON_VERSION: '3.8'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: $(PYTHON_VERSION)
+    - script: sudo apt-get install texlive-pictures texlive-latex-extra -y
+      displayName: Install Dependencies
+    - script: |
+        pip install testflo
+        pip install .
+      displayName: Install Package
+    - script: |
+        testflo . -v
+      displayName: Test Package
+
+- stage: Style
+  dependsOn: []
+  displayName: Style
+  jobs:
+  - template: azure/azure_style.yaml@azure_template
+    parameters:
+      REPO_NAME: pyXDSM
+      IGNORE_STYLE: false
+
+- stage:
+  dependsOn: 
+  - Test
+  - Style
+  displayName: PyPI
+  condition: and(succeeded(), contains(variables['build.sourceBranch'], 'tags'))
+  jobs:
+  - template: azure/azure_pypi.yaml@azure_template
+    parameters:
+      REPO_NAME: pyXDSM
