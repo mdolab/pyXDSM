@@ -39,9 +39,10 @@ stages:
     - script: sudo apt-get install texlive-pictures texlive-latex-extra -y
       displayName: Prepare Repository
     - script: |
-        python3 -m venv test
-        source test/bin/activate
-        pip install wheel
+        #python3 -m venv test
+        #source test/bin/activate
+        #pip install wheel
+        python -V
         pip install testflo
         pip install .
         testflo . -v 
@@ -54,7 +55,6 @@ stages:
   - template: azure/azure_style.yaml@azure_template
     parameters:
       REPO_NAME: pyXDSM
-      IGNORE_STYLE: false
 
 - stage:
   dependsOn: 
