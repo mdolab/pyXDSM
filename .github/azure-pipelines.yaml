@@ -55,6 +55,7 @@ stages:
   - template: azure/azure_style.yaml@azure_template
     parameters:
       REPO_NAME: pyXDSM
+      IGNORE_STYLE: false
 
 - stage:
   dependsOn: 
