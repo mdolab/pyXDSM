@@ -17,7 +17,7 @@ resources:
     endpoint: mdolab
 
 stages:
-- stage:
+- stage: Test
   dependsOn: []
   displayName: Test
   jobs:
