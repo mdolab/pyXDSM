@@ -306,6 +306,23 @@ class TestXDSM(unittest.TestCase):
         # To be sure, check the length, otherwise a missing last line could get unnoticed because of using zip
         self.assertEqual(len(new_lines), len(sample_lines))
 
+    def test_write_outdir(self):
+        fname = "test"
+
+        for abspath in [True, False]:
+            subdir = tempfile.mkdtemp(dir=self.tempdir)
+            outdir = subdir if abspath else os.path.basename(subdir)
+
+            x = XDSM()
+            x.add_system("x", FUNC, "x")
+            x.write(fname, outdir=outdir)
+
+            for ext in [".tex", ".tikz", ".pdf"]:
+                self.assertTrue(os.path.isfile(os.path.join(subdir, fname + ext)))
+
+        # no files outside the subdirs
+        self.assertFalse(any(os.path.isfile(fp) for fp in os.listdir(self.tempdir)))
+
 
 if __name__ == "__main__":
     unittest.main()

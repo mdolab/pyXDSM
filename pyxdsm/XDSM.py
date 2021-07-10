@@ -491,7 +491,7 @@ class XDSM(object):
 
         return optional_packages_str
 
-    def write(self, file_name, build=True, cleanup=True, quiet=False):
+    def write(self, file_name, build=True, cleanup=True, quiet=False, outdir="."):
         """
         Write output files for the XDSM diagram.  This produces the following:
 
@@ -510,10 +510,13 @@ class XDSM(object):
         build : bool
             Flag that determines whether the standalone PDF of the XDSM will be compiled.
             Default is True.
-        cleanup: bool
+        cleanup : bool
             Flag that determines if pdflatex build files will be deleted after build is complete
-        quiet: bool
+        quiet : bool
             Set to True to suppress output from pdflatex.
+        outdir : str
+            Path to an existing directory in which to place output files. If a relative
+            path is given, it is interpreted relative to the current working directory.
         """
         nodes = self._build_node_grid()
         edges = self._build_edges()
@@ -534,7 +537,8 @@ class XDSM(object):
             optional_packages=optional_packages_str,
         )
 
-        with open(file_name + ".tikz", "w") as f:
+        base_output_fp = os.path.join(outdir, file_name)
+        with open(base_output_fp + ".tikz", "w") as f:
             f.write(tikzpicture_str)
 
         tex_str = tex_template.format(
@@ -546,19 +550,23 @@ class XDSM(object):
             version=pyxdsm_version,
         )
 
-        if file_name:
-            with open(file_name + ".tex", "w") as f:
-                f.write(tex_str)
+        with open(base_output_fp + ".tex", "w") as f:
+            f.write(tex_str)
 
         if build:
-            command = ["pdflatex", "-halt-on-error", "-interaction=nonstopmode"]
+            command = [
+                "pdflatex",
+                "-halt-on-error",
+                "-interaction=nonstopmode",
+                "-output-directory={}".format(outdir),
+            ]
             if quiet:
                 command += ["-interaction=batchmode", "-halt-on-error"]
             command += [f"{file_name}.tex"]
             subprocess.run(command, check=True)
             if cleanup:
                 for ext in ["aux", "fdb_latexmk", "fls", "log"]:
-                    f_name = "{}.{}".format(file_name, ext)
+                    f_name = "{}.{}".format(base_output_fp, ext)
                     if os.path.exists(f_name):
                         os.remove(f_name)
 
