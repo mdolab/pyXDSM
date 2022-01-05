@@ -35,9 +35,7 @@ class TestXDSM(unittest.TestCase):
         Unlike the other tests, this one requires LaTeX to be available.
         """
         # we first copy the examples to the temp dir
-        shutil.copytree(
-            os.path.join(basedir, "../examples"), os.path.join(self.tempdir, "examples")
-        )
+        shutil.copytree(os.path.join(basedir, "../examples"), os.path.join(self.tempdir, "examples"))
         os.chdir(os.path.join(self.tempdir, "examples"))
 
         filenames = ["kitchen_sink", "mdf"]
