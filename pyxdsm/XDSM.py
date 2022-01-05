@@ -16,8 +16,8 @@ FUNC = "Function"
 GROUP = "Group"
 IGROUP = "ImplicitGroup"
 METAMODEL = "Metamodel"
-LEFT = "LEFT"
-RIGHT = "RIGHT"
+LEFT = "left"
+RIGHT = "right"
 
 tikzpicture_template = r"""
 %%% Preamble Requirements %%%
@@ -84,7 +84,7 @@ tex_template = r"""
 def chunk_label(label, n_chunks):
     # looping till length l
     for i in range(0, len(label), n_chunks):
-        yield label[i : i + n_chunks]
+        yield label[i: i + n_chunks]
 
 
 def _parse_label(label, label_width=None):
@@ -128,7 +128,16 @@ class XDSM(object):
 
         self.use_sfmath = use_sfmath
 
-    def add_system(self, node_name, style, label, stack=False, faded=False, label_width=None, spec_name=None):
+    def add_system(
+        self,
+        node_name,
+        style,
+        label,
+        stack=False,
+        faded=False,
+        label_width=None,
+        spec_name=None,
+    ):
         """
         Add a "system" block, which will be placed on the diagonal of the XDSM diagram.
 
@@ -201,7 +210,9 @@ class XDSM(object):
         """
         self.ins[name] = Input("output_" + name, label, label_width, style, stack)
 
-    def add_output(self, name, label, label_width=None, style="DataIO", stack=False, side="left"):
+    def add_output(
+        self, name, label, label_width=None, style="DataIO", stack=False, side="left"
+    ):
         """
         Add an output, which will appear in the left or right-most column of the diagram.
 
@@ -235,13 +246,28 @@ class XDSM(object):
             is placed on the left-most column or the right-most column of the diagram.
         """
         if side == "left":
-            self.left_outs[name] = Output("left_output_" + name, label, label_width, style, stack, side)
+            self.left_outs[name] = Output(
+                "left_output_" + name, label, label_width, style, stack, side
+            )
         elif side == "right":
-            self.right_outs[name] = Output("right_output_" + name, label, label_width, style, stack, side)
+            self.right_outs[name] = Output(
+                "right_output_" + name, label, label_width, style, stack, side
+            )
         else:
-            raise ValueError("The option 'side' must be given as either 'left' or 'right!'")
+            raise ValueError(
+                "The option 'side' must be given as either 'left' or 'right'!"
+            )
 
-    def connect(self, src, target, label, label_width=None, style="DataInter", stack=False, faded=False):
+    def connect(
+        self,
+        src,
+        target,
+        label,
+        label_width=None,
+        style="DataInter",
+        stack=False,
+        faded=False,
+    ):
         """
         Connects two components with a data line, and adds a label to indicate
         the data being transferred.
@@ -283,7 +309,9 @@ class XDSM(object):
         if (not isinstance(label_width, int)) and (label_width is not None):
             raise ValueError("label_width argument must be an integer")
 
-        self.connections.append(Connection(src, target, label, label_width, style, stack, faded))
+        self.connections.append(
+            Connection(src, target, label, label_width, style, stack, faded)
+        )
 
     def add_process(self, systems, arrow=True):
         """
@@ -340,7 +368,9 @@ class XDSM(object):
                 style += ",faded"
 
             label = _parse_label(comp.label, comp.label_width)
-            node = node_str.format(style=style, node_name=comp.node_name, node_label=label)
+            node = node_str.format(
+                style=style, node_name=comp.node_name, node_label=label
+            )
             grid[i_row, j_col] = node
 
             row_idx_map[comp.node_name] = i_row
@@ -378,7 +408,9 @@ class XDSM(object):
             loc = (i_row, 0)
 
             label = _parse_label(out.label, out.label_width)
-            node = node_str.format(style=style, node_name=out.node_name, node_label=label)
+            node = node_str.format(
+                style=style, node_name=out.node_name, node_label=label
+            )
 
             grid[loc] = node
 
@@ -391,7 +423,9 @@ class XDSM(object):
             i_row = row_idx_map[comp_name]
             loc = (i_row, -1)
             label = _parse_label(out.label, out.label_width)
-            node = node_str.format(style=style, node_name=out.node_name, node_label=label)
+            node = node_str.format(
+                style=style, node_name=out.node_name, node_label=label
+            )
 
             grid[loc] = node
 
@@ -405,7 +439,9 @@ class XDSM(object):
             j_col = col_idx_map[comp_name]
             loc = (0, j_col)
             label = _parse_label(inp.label, label_width=inp.label_width)
-            node = node_str.format(style=style, node_name=inp.node_name, node_label=label)
+            node = node_str.format(
+                style=style, node_name=inp.node_name, node_label=label
+            )
 
             grid[loc] = node
 
@@ -460,7 +496,9 @@ class XDSM(object):
             for i, sys in enumerate(proc):
                 if sys not in sys_names and sys not in output_names:
                     raise ValueError(
-                        'process includes a system named "{}" but no system with that name exists.'.format(sys)
+                        'process includes a system named "{}" but no system with that name exists.'.format(
+                            sys
+                        )
                     )
                 if sys in output_names and i == 0:
                     start_tip = True
@@ -469,14 +507,22 @@ class XDSM(object):
                 else:
                     if sys in output_names or (i == 1 and start_tip):
                         if arrow:
-                            chain_str += "\\chainin ({}) [join=by ProcessTipA];\n".format(sys)
+                            chain_str += (
+                                "\\chainin ({}) [join=by ProcessTipA];\n".format(sys)
+                            )
                         else:
-                            chain_str += "\\chainin ({}) [join=by ProcessTip];\n".format(sys)
+                            chain_str += (
+                                "\\chainin ({}) [join=by ProcessTip];\n".format(sys)
+                            )
                     else:
                         if arrow:
-                            chain_str += "\\chainin ({}) [join=by ProcessHVA];\n".format(sys)
+                            chain_str += (
+                                "\\chainin ({}) [join=by ProcessHVA];\n".format(sys)
+                            )
                         else:
-                            chain_str += "\\chainin ({}) [join=by ProcessHV];\n".format(sys)
+                            chain_str += "\\chainin ({}) [join=by ProcessHV];\n".format(
+                                sys
+                            )
             chain_str += "\\end{pgfonlayer}\n}"
 
         return chain_str

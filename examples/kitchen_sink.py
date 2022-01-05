@@ -1,4 +1,17 @@
-from pyxdsm.XDSM import XDSM, OPT, SUBOPT, SOLVER, DOE, IFUNC, FUNC, GROUP, IGROUP, METAMODEL, LEFT, RIGHT
+from pyxdsm.XDSM import (
+    XDSM,
+    OPT,
+    SUBOPT,
+    SOLVER,
+    DOE,
+    IFUNC,
+    FUNC,
+    GROUP,
+    IGROUP,
+    METAMODEL,
+    LEFT,
+    RIGHT,
+)
 
 x = XDSM()
 
@@ -22,7 +35,10 @@ x.add_system("F", FUNC, ("F", r"\text{Functional}"))
 # stacked can be used to represent multiple instances that can be run in parallel
 x.add_system("H", FUNC, "H", stack=True)
 
-x.add_process(["opt", "DOE", "MDA", "D1", "D2", "subopt", "G1", "G2", "MM", "F", "H", "opt"], arrow=True)
+x.add_process(
+    ["opt", "DOE", "MDA", "D1", "D2", "subopt", "G1", "G2", "MM", "F", "H", "opt"],
+    arrow=True,
+)
 
 x.connect("opt", "D1", ["x", "z", "y_2"], label_width=2)
 x.connect("opt", "D2", ["z", "y_1"])
