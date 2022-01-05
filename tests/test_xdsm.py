@@ -3,7 +3,7 @@ import os
 import shutil
 import tempfile
 import subprocess
-from pyxdsm.XDSM import XDSM, OPT, FUNC, SOLVER
+from pyxdsm.XDSM import XDSM, OPT, FUNC, SOLVER, LEFT, RIGHT
 from numpy.distutils.exec_command import find_executable
 
 basedir = os.path.dirname(os.path.abspath(__file__))
@@ -92,10 +92,10 @@ class TestXDSM(unittest.TestCase):
         x.connect("F", "opt", "f")
         x.connect("G", "opt", "g")
 
-        x.add_output("opt", "x^*, z^*", side="right")
-        x.add_output("D1", "y_1^*", side="left", stack=True)
-        x.add_output("D2", "y_2^*", side="left")
-        x.add_output("F", "f^*", side="left")
+        x.add_output("opt", "x^*, z^*", side=RIGHT)
+        x.add_output("D1", "y_1^*", side=LEFT, stack=True)
+        x.add_output("D2", "y_2^*", side=LEFT)
+        x.add_output("F", "f^*", side=LEFT)
         x.add_output("G", "g^*")
         x.write(filename)
         x.write_sys_specs(spec_dir)

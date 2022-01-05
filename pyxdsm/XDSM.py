@@ -16,6 +16,8 @@ FUNC = "Function"
 GROUP = "Group"
 IGROUP = "ImplicitGroup"
 METAMODEL = "Metamodel"
+LEFT = "left"
+RIGHT = "right"
 
 tikzpicture_template = r"""
 %%% Preamble Requirements %%%
@@ -126,7 +128,16 @@ class XDSM(object):
 
         self.use_sfmath = use_sfmath
 
-    def add_system(self, node_name, style, label, stack=False, faded=False, label_width=None, spec_name=None):
+    def add_system(
+        self,
+        node_name,
+        style,
+        label,
+        stack=False,
+        faded=False,
+        label_width=None,
+        spec_name=None,
+    ):
         """
         Add a "system" block, which will be placed on the diagonal of the XDSM diagram.
 
@@ -237,9 +248,18 @@ class XDSM(object):
         elif side == "right":
             self.right_outs[name] = Output("right_output_" + name, label, label_width, style, stack, side)
         else:
-            raise ValueError("The option 'side' must be given as either 'left' or 'right!'")
+            raise ValueError("The option 'side' must be given as either 'left' or 'right'!")
 
-    def connect(self, src, target, label, label_width=None, style="DataInter", stack=False, faded=False):
+    def connect(
+        self,
+        src,
+        target,
+        label,
+        label_width=None,
+        style="DataInter",
+        stack=False,
+        faded=False,
+    ):
         """
         Connects two components with a data line, and adds a label to indicate
         the data being transferred.
