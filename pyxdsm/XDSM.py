@@ -84,7 +84,7 @@ tex_template = r"""
 def chunk_label(label, n_chunks):
     # looping till length l
     for i in range(0, len(label), n_chunks):
-        yield label[i: i + n_chunks]
+        yield label[i : i + n_chunks]
 
 
 def _parse_label(label, label_width=None):
