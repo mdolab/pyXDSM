@@ -16,6 +16,8 @@ FUNC = "Function"
 GROUP = "Group"
 IGROUP = "ImplicitGroup"
 METAMODEL = "Metamodel"
+LEFT = "LEFT"
+RIGHT = "RIGHT"
 
 tikzpicture_template = r"""
 %%% Preamble Requirements %%%

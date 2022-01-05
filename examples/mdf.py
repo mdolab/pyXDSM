@@ -1,4 +1,4 @@
-from pyxdsm.XDSM import XDSM, OPT, SOLVER, FUNC
+from pyxdsm.XDSM import XDSM, OPT, SOLVER, FUNC, LEFT, RIGHT
 
 # Change `use_sfmath` to False to use computer modern
 x = XDSM(use_sfmath=True)
@@ -23,9 +23,9 @@ x.connect("solver", "G", "y_1, y_2")
 x.connect("F", "opt", "f")
 x.connect("G", "opt", "g")
 
-x.add_output("opt", "x^*, z^*", side="left")
-x.add_output("D1", "y_1^*", side="left")
-x.add_output("D2", "y_2^*", side="left")
-x.add_output("F", "f^*", side="left")
-x.add_output("G", "g^*", side="left")
+x.add_output("opt", "x^*, z^*", side=LEFT)
+x.add_output("D1", "y_1^*", side=LEFT)
+x.add_output("D2", "y_2^*", side=LEFT)
+x.add_output("F", "f^*", side=LEFT)
+x.add_output("G", "g^*", side=LEFT)
 x.write("mdf")
