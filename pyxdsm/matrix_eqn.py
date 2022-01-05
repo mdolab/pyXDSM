@@ -262,29 +262,21 @@ class TotalJacobian(object):
         self._setup = False
 
     def add_input(self, name, size=1, text=""):
-        self._variables[name] = Variable(
-            size=size, idx=self._n_inputs, text=text, color=None
-        )
+        self._variables[name] = Variable(size=size, idx=self._n_inputs, text=text, color=None)
         self._j_inputs[self._n_inputs] = self._variables[name]
         self._n_inputs += 1
 
     def add_output(self, name, size=1, text=""):
-        self._variables[name] = Variable(
-            size=size, idx=self._n_outputs, text=text, color=None
-        )
+        self._variables[name] = Variable(size=size, idx=self._n_outputs, text=text, color=None)
         self._i_outputs[self._n_outputs] = self._variables[name]
         self._n_outputs += 1
 
     def connect(self, src, target, text="", color="tableau0"):
         if isinstance(target, (list, tuple)):
             for t in target:
-                self._connections[src, t] = CellData(
-                    text=text, color=color, highlight="diag"
-                )
+                self._connections[src, t] = CellData(text=text, color=color, highlight="diag")
         else:
-            self._connections[src, target] = CellData(
-                text=text, color=color, highlight="diag"
-            )
+            self._connections[src, target] = CellData(text=text, color=color, highlight="diag")
 
     def _process_vars(self):
 
@@ -336,9 +328,7 @@ class TotalJacobian(object):
             var = self._j_inputs[j]
             col_size = var.size
             tikz.append(r"  \blockcol{")
-            tikz.append(
-                r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\" % (col_size, 1, var.text)
-            )
+            tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\" % (col_size, 1, var.text))
             tikz.append(r"  }")
         tikz.append(r"}")
 
@@ -350,10 +340,7 @@ class TotalJacobian(object):
 
             # label the row with the output name
             tikz.append(r"  \blockcol{")
-            tikz.append(
-                r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\"
-                % (1, row_size, output.text)
-            )
+            tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\" % (1, row_size, output.text))
             tikz.append(r"  }")
 
             for j in range(self._n_inputs):
@@ -370,10 +357,7 @@ class TotalJacobian(object):
                         % (col_size, row_size, cell_data.text, conn_color)
                     )
                 else:
-                    tikz.append(
-                        r"    \blockempty{%s*\comp}{%s*\comp}{}\\"
-                        % (col_size, row_size)
-                    )
+                    tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{}\\" % (col_size, row_size))
                 tikz.append(r"  }")
 
             tikz.append(r"}")
@@ -406,9 +390,7 @@ class MatrixEquation(object):
         self._terms = []
 
     def add_variable(self, name, size=1, text="", color="blue"):
-        self._variables[name] = Variable(
-            size=size, idx=self._n_vars, text=text, color=color
-        )
+        self._variables[name] = Variable(size=size, idx=self._n_vars, text=text, color=color)
         self._ij_variables[self._n_vars] = self._variables[name]
         self._n_vars += 1
 
@@ -418,13 +400,9 @@ class MatrixEquation(object):
 
         if isinstance(target, (list, tuple)):
             for t in target:
-                self._connections[src, t] = CellData(
-                    text=text, color=color, highlight=highlight
-                )
+                self._connections[src, t] = CellData(text=text, color=color, highlight=highlight)
         else:
-            self._connections[src, target] = CellData(
-                text=text, color=color, highlight=highlight
-            )
+            self._connections[src, target] = CellData(text=text, color=color, highlight=highlight)
 
     def text(self, src, target, text):
         "don't connect the src and target, but put some text where a connection would be"
@@ -487,15 +465,9 @@ class MatrixEquation(object):
                     )
                 elif location in self._ij_text:
                     cell_data = self._ij_text[location]
-                    tikz.append(
-                        r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\"
-                        % (col_size, row_size, cell_data.text)
-                    )
+                    tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\" % (col_size, row_size, cell_data.text))
                 else:
-                    tikz.append(
-                        r"    \blockempty{%s*\comp}{%s*\comp}{}\\"
-                        % (col_size, row_size)
-                    )
+                    tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{}\\" % (col_size, row_size))
                 tikz.append(r"  }")
 
             tikz.append(r"}")
@@ -527,10 +499,7 @@ class MatrixEquation(object):
                     % (row_size, color, color)
                 )
             else:
-                tikz.append(
-                    r"  \blockmat{1*\comp}{%s*\comp}{}{draw=white,fill=%s}{}\\"
-                    % (row_size, color)
-                )
+                tikz.append(r"  \blockmat{1*\comp}{%s*\comp}{}{draw=white,fill=%s}{}\\" % (row_size, color))
 
             tikz.append(r"}}")
 
@@ -549,10 +518,7 @@ class MatrixEquation(object):
 
         tikz.append(r"\blockrow{")
         tikz.append(r"  \blockempty{\mwid}{%s*\comp}{} \\" % (padding_size))
-        tikz.append(
-            r"  \blockmat{\mwid}{1*\comp}{\huge $%s$}{draw=white,fill=white}{}\\"
-            % (opperator)
-        )
+        tikz.append(r"  \blockmat{\mwid}{1*\comp}{\huge $%s$}{draw=white,fill=white}{}\\" % (opperator))
         tikz.append(r"  \blockempty{\mwid}{%s*\comp}{} \\" % (padding_size))
         tikz.append(r"}")
 
@@ -571,10 +537,7 @@ class MatrixEquation(object):
             row_size = self._ij_variables[i].size
 
             tikz.append(r"\blockrow{\blockcol{")
-            tikz.append(
-                r"  \blockmat{.25*\mwid}{%s*\comp}{}{draw=white,fill=white}{}\\"
-                % (row_size)
-            )
+            tikz.append(r"  \blockmat{.25*\mwid}{%s*\comp}{}{draw=white,fill=white}{}\\" % (row_size))
             tikz.append(r"}}")
 
         spacer_tikz = "\n".join(tikz)
