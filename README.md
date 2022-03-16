@@ -1,5 +1,5 @@
 # pyXDSM
-[![Build Status](https://dev.azure.com/mdolab/Public/_apis/build/status/mdolab.pyXDSM?repoName=mdolab%2FpyXDSM&branchName=master)](https://dev.azure.com/mdolab/Public/_build/latest?definitionId=33&repoName=mdolab%2FpyXDSM&branchName=master)
+[![Build Status](https://dev.azure.com/mdolab/Public/_apis/build/status/mdolab.pyXDSM?repoName=mdolab%2FpyXDSM&branchName=main)](https://dev.azure.com/mdolab/Public/_build/latest?definitionId=33&repoName=mdolab%2FpyXDSM&branchName=main)
 [![Documentation Status](https://readthedocs.com/projects/mdolab-pyxdsm/badge/?version=latest)](https://mdolab-pyxdsm.readthedocs-hosted.com/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/pyxdsm)](https://pypi.org/project/pyXDSM/)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/pyXDSM)
