@@ -144,9 +144,7 @@ class XDSM(object):
             elif isinstance(optional_latex_packages, list):
                 self.optional_packages = optional_latex_packages
             else:
-                raise ValueError(
-                    "optional_latex_packages must be a string or a list of strings"
-                )
+                raise ValueError("optional_latex_packages must be a string or a list of strings")
 
     def add_system(
         self,
