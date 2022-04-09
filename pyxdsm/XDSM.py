@@ -117,7 +117,7 @@ Connection = namedtuple("Connection", "src target label label_width style stack 
 
 
 class XDSM(object):
-    def __init__(self, use_sfmath=True):
+    def __init__(self, use_sfmath=True, optional_latex_packages=None):
         self.systems = []
         self.connections = []
         self.left_outs = {}
@@ -127,6 +127,10 @@ class XDSM(object):
         self.process_arrows = []
 
         self.use_sfmath = use_sfmath
+        if optional_latex_packages is None:
+            self.optional_packages = []
+        else:
+            self.optional_packages = optional_latex_packages
 
     def add_system(
         self,
@@ -502,7 +506,7 @@ class XDSM(object):
     def _compose_optional_package_list(self):
 
         # Check for optional LaTeX packages
-        optional_packages_list = []
+        optional_packages_list = self.optional_packages
         if self.use_sfmath:
             optional_packages_list.append("sfmath")
 
