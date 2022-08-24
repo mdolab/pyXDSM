@@ -111,8 +111,8 @@ def _label_to_spec(label, spec):
 
 
 System = namedtuple("System", "node_name style label stack faded label_width spec_name")
-Input = namedtuple("Input", "node_name label label_width style stack")
-Output = namedtuple("Output", "node_name label label_width style stack side")
+Input = namedtuple("Input", "node_name label label_width style stack faded")
+Output = namedtuple("Output", "node_name label label_width style stack faded side")
 Connection = namedtuple("Connection", "src target label label_width style stack faded")
 
 
@@ -197,7 +197,7 @@ class XDSM(object):
         sys = System(node_name, style, label, stack, faded, label_width, spec_name)
         self.systems.append(sys)
 
-    def add_input(self, name, label, label_width=None, style="DataIO", stack=False):
+    def add_input(self, name, label, label_width=None, style="DataIO", stack=False, faded=False):
         """
         Add an input, which will appear in the top row of the diagram.
 
@@ -225,10 +225,13 @@ class XDSM(object):
         stack : bool
             If true, the system will be displayed as several stacked rectangles,
             indicating the component is executed in parallel.
-        """
-        self.ins[name] = Input("output_" + name, label, label_width, style, stack)
 
-    def add_output(self, name, label, label_width=None, style="DataIO", stack=False, side="left"):
+        faded : bool
+            If true, the component will be faded, in order to highlight some other system.
+        """
+        self.ins[name] = Input("output_" + name, label, label_width, style, stack, faded)
+
+    def add_output(self, name, label, label_width=None, style="DataIO", stack=False, faded=False, side="left"):
         """
         Add an output, which will appear in the left or right-most column of the diagram.
 
@@ -257,14 +260,17 @@ class XDSM(object):
             If true, the system will be displayed as several stacked rectangles,
             indicating the component is executed in parallel.
 
+        faded : bool
+            If true, the component will be faded, in order to highlight some other system.
+
         side : str
             Must be one of ``['left', 'right']``. This parameter controls whether the output
             is placed on the left-most column or the right-most column of the diagram.
         """
         if side == "left":
-            self.left_outs[name] = Output("left_output_" + name, label, label_width, style, stack, side)
+            self.left_outs[name] = Output("left_output_" + name, label, label_width, style, stack, faded, side)
         elif side == "right":
-            self.right_outs[name] = Output("right_output_" + name, label, label_width, style, stack, side)
+            self.right_outs[name] = Output("right_output_" + name, label, label_width, style, stack, faded, side)
         else:
             raise ValueError("The option 'side' must be given as either 'left' or 'right'!")
 
@@ -409,6 +415,8 @@ class XDSM(object):
             style = out.style
             if out.stack:
                 style += ",stack"
+            if out.faded is True:  # fading
+                style += ",faded"
 
             i_row = row_idx_map[comp_name]
             loc = (i_row, 0)
@@ -423,6 +431,8 @@ class XDSM(object):
             style = out.style
             if out.stack:
                 style += ",stack"
+            if out.faded is True:  # fading
+                style += ",faded"
 
             i_row = row_idx_map[comp_name]
             loc = (i_row, -1)
@@ -437,6 +447,8 @@ class XDSM(object):
             style = inp.style
             if inp.stack:
                 style += ",stack"
+            if inp.faded is True:  # fading
+                style += ",faded"
 
             j_col = col_idx_map[comp_name]
             loc = (0, j_col)
@@ -456,23 +468,35 @@ class XDSM(object):
         h_edges = []
         v_edges = []
 
-        edge_string = "({start}) edge [DataLine] ({end})"
+        edge_string = "({start}) edge [{style}] ({end})"
         for conn in self.connections:
+            style = "DataLine"
+            if conn.faded:
+                style += ",faded"
             od_node_name = "{}-{}".format(conn.src, conn.target)
-            h_edges.append(edge_string.format(start=conn.src, end=od_node_name))
-            v_edges.append(edge_string.format(start=od_node_name, end=conn.target))
+            h_edges.append(edge_string.format(start=conn.src, end=od_node_name, style=style))
+            v_edges.append(edge_string.format(start=od_node_name, end=conn.target, style=style))
 
         for comp_name, out in self.left_outs.items():
+            style = "DataLine"
+            if out.faded:
+                style += ",faded"
             node_name = out.node_name
-            h_edges.append(edge_string.format(start=comp_name, end=node_name))
+            h_edges.append(edge_string.format(start=comp_name, end=node_name, style=style))
 
         for comp_name, out in self.right_outs.items():
+            style = "DataLine"
+            if out.faded:
+                style += ",faded"
             node_name = out.node_name
-            h_edges.append(edge_string.format(start=comp_name, end=node_name))
+            h_edges.append(edge_string.format(start=comp_name, end=node_name, style=style))
 
         for comp_name, inp in self.ins.items():
+            style = "DataLine"
+            if inp.faded:
+                style += ",faded"
             node_name = inp.node_name
-            v_edges.append(edge_string.format(start=comp_name, end=node_name))
+            v_edges.append(edge_string.format(start=comp_name, end=node_name, style=style))
 
         paths_str = "% Horizontal edges\n" + "\n".join(h_edges) + "\n"
         paths_str += "% Vertical edges\n" + "\n".join(v_edges) + ";"
