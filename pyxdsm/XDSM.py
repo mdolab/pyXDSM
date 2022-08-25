@@ -468,35 +468,35 @@ class XDSM(object):
         h_edges = []
         v_edges = []
 
-        edge_string = "({start}) edge [{style}] ({end})"
+        edge_format_string = "({start}) edge [{style}] ({end})"
         for conn in self.connections:
             style = "DataLine"
             if conn.faded:
                 style += ",faded"
             od_node_name = "{}-{}".format(conn.src, conn.target)
-            h_edges.append(edge_string.format(start=conn.src, end=od_node_name, style=style))
-            v_edges.append(edge_string.format(start=od_node_name, end=conn.target, style=style))
+            h_edges.append(edge_format_string.format(start=conn.src, end=od_node_name, style=style))
+            v_edges.append(edge_format_string.format(start=od_node_name, end=conn.target, style=style))
 
         for comp_name, out in self.left_outs.items():
             style = "DataLine"
             if out.faded:
                 style += ",faded"
             node_name = out.node_name
-            h_edges.append(edge_string.format(start=comp_name, end=node_name, style=style))
+            h_edges.append(edge_format_string.format(start=comp_name, end=node_name, style=style))
 
         for comp_name, out in self.right_outs.items():
             style = "DataLine"
             if out.faded:
                 style += ",faded"
             node_name = out.node_name
-            h_edges.append(edge_string.format(start=comp_name, end=node_name, style=style))
+            h_edges.append(edge_format_string.format(start=comp_name, end=node_name, style=style))
 
         for comp_name, inp in self.ins.items():
             style = "DataLine"
             if inp.faded:
                 style += ",faded"
             node_name = inp.node_name
-            v_edges.append(edge_string.format(start=comp_name, end=node_name, style=style))
+            v_edges.append(edge_format_string.format(start=comp_name, end=node_name, style=style))
 
         paths_str = "% Horizontal edges\n" + "\n".join(h_edges) + "\n"
         paths_str += "% Vertical edges\n" + "\n".join(v_edges) + ";"
