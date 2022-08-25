@@ -15,3 +15,5 @@
 *.lay
 *.plt
 _build*
+*.egg-info
+*.vscode
