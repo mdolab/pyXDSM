@@ -376,9 +376,9 @@ class XDSM(object):
         # add all the components on the diagonal
         for i_row, j_col, comp in zip(comps_rows, comps_cols, self.systems):
             style = comp.style
-            if comp.stack :  # stacking
+            if comp.stack:
                 style += ",stack"
-            if comp.faded:  # fading
+            if comp.faded:
                 style += ",faded"
 
             label = _parse_label(comp.label, comp.label_width)
@@ -397,9 +397,9 @@ class XDSM(object):
             loc = (src_row, target_col)
 
             style = conn.style
-            if conn.stack :  # stacking
+            if conn.stack:
                 style += ",stack"
-            if conn.faded:  # fading
+            if conn.faded:
                 style += ",faded"
 
             label = _parse_label(conn.label, conn.label_width)
@@ -415,7 +415,7 @@ class XDSM(object):
             style = out.style
             if out.stack:
                 style += ",stack"
-            if out.faded :  # fading
+            if out.faded:
                 style += ",faded"
 
             i_row = row_idx_map[comp_name]
@@ -431,7 +431,7 @@ class XDSM(object):
             style = out.style
             if out.stack:
                 style += ",stack"
-            if out.faded :  # fading
+            if out.faded:
                 style += ",faded"
 
             i_row = row_idx_map[comp_name]
@@ -447,7 +447,7 @@ class XDSM(object):
             style = inp.style
             if inp.stack:
                 style += ",stack"
-            if inp.faded :  # fading
+            if inp.faded:
                 style += ",faded"
 
             j_col = col_idx_map[comp_name]
