@@ -116,8 +116,8 @@ Output = namedtuple("Output", "node_name label label_width style stack faded sid
 Connection = namedtuple("Connection", "src target label label_width style stack faded")
 
 
-class XDSM(object):
-    def __init__(self, use_sfmath=True, optional_latex_packages=None):
+class XDSM:
+    def __init__(self, use_sfmath=True, optional_latex_packages=None, auto_fade=None):
         """Initialize XDSM object
 
         Parameters
@@ -126,6 +126,11 @@ class XDSM(object):
             Whether to use the sfmath latex package, by default True
         optional_latex_packages : string or list of strings, optional
             Additional latex packages to use when creating the pdf and tex versions of the diagram, by default None
+        auto_fade : dictionary, optional
+            For each key "inputs", "outputs", "connections", the value can be one of:
+            - "all" : fade all blocks
+            - "unconnected" : fade all components connected to faded blocks
+            - "none" : do not auto-fade anything
         """
         self.systems = []
         self.connections = []
@@ -145,6 +150,9 @@ class XDSM(object):
                 self.optional_packages = optional_latex_packages
             else:
                 raise ValueError("optional_latex_packages must be a string or a list of strings")
+        if auto_fade is None:
+            auto_fade = {"inputs": "none", "outputs": "none", "connections": "none"}
+        self.auto_fade = auto_fade
 
     def add_system(
         self,
@@ -229,6 +237,13 @@ class XDSM(object):
         faded : bool
             If true, the component will be faded, in order to highlight some other system.
         """
+        sys_faded = {}
+        for s in self.systems:
+            sys_faded[s.node_name] = s.faded
+        if (self.auto_fade["inputs"] == "all") or (
+            self.auto_fade["inputs"] == "unconnected" and name in sys_faded and sys_faded[name]
+        ):
+            faded = True
         self.ins[name] = Input("output_" + name, label, label_width, style, stack, faded)
 
     def add_output(self, name, label, label_width=None, style="DataIO", stack=False, faded=False, side="left"):
@@ -267,6 +282,13 @@ class XDSM(object):
             Must be one of ``['left', 'right']``. This parameter controls whether the output
             is placed on the left-most column or the right-most column of the diagram.
         """
+        sys_faded = {}
+        for s in self.systems:
+            sys_faded[s.node_name] = s.faded
+        if (self.auto_fade["outputs"] == "all") or (
+            self.auto_fade["outputs"] == "unconnected" and name in sys_faded and sys_faded[name]
+        ):
+            faded = True
         if side == "left":
             self.left_outs[name] = Output("left_output_" + name, label, label_width, style, stack, faded, side)
         elif side == "right":
@@ -324,6 +346,15 @@ class XDSM(object):
 
         if (not isinstance(label_width, int)) and (label_width is not None):
             raise ValueError("label_width argument must be an integer")
+
+        sys_faded = {}
+        for s in self.systems:
+            sys_faded[s.node_name] = s.faded
+        if (self.auto_fade["connections"] == "all") or (
+            self.auto_fade["connections"] == "unconnected"
+            and ((src in sys_faded and sys_faded[src]) or (target in sys_faded and sys_faded[target]))
+        ):
+            faded = True
 
         self.connections.append(Connection(src, target, label, label_width, style, stack, faded))
 
