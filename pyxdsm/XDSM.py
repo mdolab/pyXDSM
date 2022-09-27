@@ -114,6 +114,7 @@ System = namedtuple("System", "node_name style label stack faded label_width spe
 Input = namedtuple("Input", "node_name label label_width style stack faded")
 Output = namedtuple("Output", "node_name label label_width style stack faded side")
 Connection = namedtuple("Connection", "src target label label_width style stack faded")
+Process = namedtuple("Process", "systems arrow faded")
 
 
 class XDSM:
@@ -138,7 +139,6 @@ class XDSM:
         self.right_outs = {}
         self.ins = {}
         self.processes = []
-        self.process_arrows = []
 
         self.use_sfmath = use_sfmath
         if optional_latex_packages is None:
@@ -151,7 +151,7 @@ class XDSM:
             else:
                 raise ValueError("optional_latex_packages must be a string or a list of strings")
         if auto_fade is None:
-            auto_fade = {"inputs": "none", "outputs": "none", "connections": "none"}
+            auto_fade = {"inputs": "none", "outputs": "none", "connections": "none", "processes": "none"}
         self.auto_fade = auto_fade
 
     def add_system(
@@ -164,7 +164,7 @@ class XDSM:
         label_width=None,
         spec_name=None,
     ):
-        """
+        r"""
         Add a "system" block, which will be placed on the diagonal of the XDSM diagram.
 
         Parameters
@@ -206,7 +206,7 @@ class XDSM:
         self.systems.append(sys)
 
     def add_input(self, name, label, label_width=None, style="DataIO", stack=False, faded=False):
-        """
+        r"""
         Add an input, which will appear in the top row of the diagram.
 
         Parameters
@@ -247,7 +247,7 @@ class XDSM:
         self.ins[name] = Input("output_" + name, label, label_width, style, stack, faded)
 
     def add_output(self, name, label, label_width=None, style="DataIO", stack=False, faded=False, side="left"):
-        """
+        r"""
         Add an output, which will appear in the left or right-most column of the diagram.
 
         Parameters
@@ -306,7 +306,7 @@ class XDSM:
         stack=False,
         faded=False,
     ):
-        """
+        r"""
         Connects two components with a data line, and adds a label to indicate
         the data being transferred.
 
@@ -358,7 +358,7 @@ class XDSM:
 
         self.connections.append(Connection(src, target, label, label_width, style, stack, faded))
 
-    def add_process(self, systems, arrow=True):
+    def add_process(self, systems, arrow=True, faded=False):
         """
         Add a process line between a list of systems, to indicate process flow.
 
@@ -372,8 +372,15 @@ class XDSM:
             If true, arrows will be added to the process lines to indicate the direction
             of the process flow.
         """
-        self.processes.append(systems)
-        self.process_arrows.append(arrow)
+        sys_faded = {}
+        for s in self.systems:
+            sys_faded[s.node_name] = s.faded
+        if (self.auto_fade["processes"] == "all") or (
+            self.auto_fade["processes"] == "unconnected" and any([sys_faded[s] for s in systems])
+        ):
+            faded = True
+            print([sys_faded[s] for s in systems])
+        self.processes.append(Process(systems, arrow, faded))
 
     def _build_node_grid(self):
         size = len(self.systems)
@@ -545,10 +552,10 @@ class XDSM:
         #     node_name, style, label, stack = in_data
         chain_str = ""
 
-        for proc, arrow in zip(self.processes, self.process_arrows):
+        for proc in self.processes:
             chain_str += "{ [start chain=process]\n \\begin{pgfonlayer}{process} \n"
             start_tip = False
-            for i, sys in enumerate(proc):
+            for i, sys in enumerate(proc.systems):
                 if sys not in sys_names and sys not in output_names:
                     raise ValueError(
                         'process includes a system named "{}" but no system with that name exists.'.format(sys)
@@ -559,15 +566,18 @@ class XDSM:
                     chain_str += "\\chainin ({});\n".format(sys)
                 else:
                     if sys in output_names or (i == 1 and start_tip):
-                        if arrow:
-                            chain_str += "\\chainin ({}) [join=by ProcessTipA];\n".format(sys)
+                        if proc.arrow:
+                            style = "ProcessTipA"
                         else:
-                            chain_str += "\\chainin ({}) [join=by ProcessTip];\n".format(sys)
+                            style = "ProcessTip"
                     else:
-                        if arrow:
-                            chain_str += "\\chainin ({}) [join=by ProcessHVA];\n".format(sys)
+                        if proc.arrow:
+                            style = "ProcessHVA"
                         else:
-                            chain_str += "\\chainin ({}) [join=by ProcessHV];\n".format(sys)
+                            style = "ProcessHV"
+                    if proc.faded:
+                        style = "Faded" + style
+                    chain_str += "\\chainin ({}) [join=by {}];\n".format(sys, style)
             chain_str += "\\end{pgfonlayer}\n}"
 
         return chain_str
