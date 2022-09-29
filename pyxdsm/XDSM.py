@@ -128,7 +128,7 @@ class XDSM:
         optional_latex_packages : string or list of strings, optional
             Additional latex packages to use when creating the pdf and tex versions of the diagram, by default None
         auto_fade : dictionary, optional
-            For each key "inputs", "outputs", "connections", the value can be one of:
+            For each key "inputs", "outputs", "connections", and "processes", the value can be one of:
             - "all" : fade all blocks
             - "unconnected" : fade all components connected to faded blocks
             - "none" : do not auto-fade anything
@@ -152,6 +152,12 @@ class XDSM:
                 raise ValueError("optional_latex_packages must be a string or a list of strings")
         if auto_fade is None:
             auto_fade = {"inputs": "none", "outputs": "none", "connections": "none", "processes": "none"}
+        else:
+            if set(auto_fade.keys()) != {"inputs", "outputs", "connections", "processes"}:
+                raise ValueError(
+                    "The supplied 'auto_fade' dictionary does not contain all the expected keys. "
+                    + "Need to provide keys for 'inputs', 'outputs', 'connections', 'processes'."
+                )
         self.auto_fade = auto_fade
 
     def add_system(
