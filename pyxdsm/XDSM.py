@@ -382,10 +382,12 @@ class XDSM:
         for s in self.systems:
             sys_faded[s.node_name] = s.faded
         if (self.auto_fade["processes"] == "all") or (
-            self.auto_fade["processes"] == "connected" and any([sys_faded[s] for s in systems])
+            self.auto_fade["processes"] == "connected"
+            and any(
+                [sys_faded[s] for s in systems if s in sys_faded.keys()]
+            )  # sometimes a process may contain off-diagonal blocks
         ):
             faded = True
-            print([sys_faded[s] for s in systems])
         self.processes.append(Process(systems, arrow, faded))
 
     def _build_node_grid(self):
