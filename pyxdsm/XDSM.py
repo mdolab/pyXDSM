@@ -130,7 +130,7 @@ class XDSM:
         auto_fade : dictionary, optional
             For each key "inputs", "outputs", "connections", and "processes", the value can be one of:
             - "all" : fade all blocks
-            - "unconnected" : fade all components connected to faded blocks
+            - "connected" : fade all components connected to faded blocks
             - "none" : do not auto-fade anything
         """
         self.systems = []
@@ -247,7 +247,7 @@ class XDSM:
         for s in self.systems:
             sys_faded[s.node_name] = s.faded
         if (self.auto_fade["inputs"] == "all") or (
-            self.auto_fade["inputs"] == "unconnected" and name in sys_faded and sys_faded[name]
+            self.auto_fade["inputs"] == "connected" and name in sys_faded and sys_faded[name]
         ):
             faded = True
         self.ins[name] = Input("output_" + name, label, label_width, style, stack, faded)
@@ -292,7 +292,7 @@ class XDSM:
         for s in self.systems:
             sys_faded[s.node_name] = s.faded
         if (self.auto_fade["outputs"] == "all") or (
-            self.auto_fade["outputs"] == "unconnected" and name in sys_faded and sys_faded[name]
+            self.auto_fade["outputs"] == "connected" and name in sys_faded and sys_faded[name]
         ):
             faded = True
         if side == "left":
@@ -357,7 +357,7 @@ class XDSM:
         for s in self.systems:
             sys_faded[s.node_name] = s.faded
         if (self.auto_fade["connections"] == "all") or (
-            self.auto_fade["connections"] == "unconnected"
+            self.auto_fade["connections"] == "connected"
             and ((src in sys_faded and sys_faded[src]) or (target in sys_faded and sys_faded[target]))
         ):
             faded = True
@@ -382,7 +382,7 @@ class XDSM:
         for s in self.systems:
             sys_faded[s.node_name] = s.faded
         if (self.auto_fade["processes"] == "all") or (
-            self.auto_fade["processes"] == "unconnected" and any([sys_faded[s] for s in systems])
+            self.auto_fade["processes"] == "connected" and any([sys_faded[s] for s in systems])
         ):
             faded = True
             print([sys_faded[s] for s in systems])
