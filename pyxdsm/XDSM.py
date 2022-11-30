@@ -3,7 +3,7 @@ import os
 import numpy as np
 import json
 import subprocess
-from collections import namedtuple
+from recordclass import recordclass
 
 from pyxdsm import __version__ as pyxdsm_version
 
@@ -110,10 +110,10 @@ def _label_to_spec(label, spec):
             spec.add(var)
 
 
-System = namedtuple("System", "node_name style label stack faded label_width spec_name")
-Input = namedtuple("Input", "node_name label label_width style stack faded")
-Output = namedtuple("Output", "node_name label label_width style stack faded side")
-Connection = namedtuple("Connection", "src target label label_width style stack faded")
+System = recordclass("System", "node_name style label stack faded label_width spec_name")
+Input = recordclass("Input", "node_name label label_width style stack faded")
+Output = recordclass("Output", "node_name label label_width style stack faded side")
+Connection = recordclass("Connection", "src target label label_width style stack faded")
 
 
 class XDSM(object):
