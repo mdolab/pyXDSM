@@ -3,7 +3,7 @@ import os
 import shutil
 import tempfile
 import subprocess
-from pyxdsm.XDSM import XDSM, OPT, FUNC, SOLVER, LEFT, RIGHT
+from pyxdsm.XDSM import XDSM, OPT, FUNC, SOLVER, LEFT, RIGHT, IFUNC
 from numpy.distutils.exec_command import find_executable
 
 basedir = os.path.dirname(os.path.abspath(__file__))
@@ -322,6 +322,15 @@ class TestXDSM(unittest.TestCase):
 
         # no files outside the subdirs
         self.assertFalse(any(os.path.isfile(fp) for fp in os.listdir(self.tempdir)))
+
+    def test_mutability_of_systems(self):
+        x = XDSM()
+        f = x.add_system("func", FUNC, "func")
+        g = x.add_system("cons", IFUNC, "cons")
+        f.stack = True
+        g.label = "cons_new"
+        self.assertEqual(x.systems[0].stack, True)
+        self.assertEqual(x.systems[1].label, "cons_new")
 
 
 if __name__ == "__main__":
