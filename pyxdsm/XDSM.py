@@ -196,6 +196,7 @@ class XDSM(object):
 
         sys = System(node_name, style, label, stack, faded, label_width, spec_name)
         self.systems.append(sys)
+        return sys
 
     def add_input(self, name, label, label_width=None, style="DataIO", stack=False, faded=False):
         """
@@ -229,7 +230,9 @@ class XDSM(object):
         faded : bool
             If true, the component will be faded, in order to highlight some other system.
         """
-        self.ins[name] = Input("output_" + name, label, label_width, style, stack, faded)
+        inp = Input("output_" + name, label, label_width, style, stack, faded)
+        self.ins[name] = inp
+        return inp
 
     def add_output(self, name, label, label_width=None, style="DataIO", stack=False, faded=False, side="left"):
         """
@@ -268,11 +271,14 @@ class XDSM(object):
             is placed on the left-most column or the right-most column of the diagram.
         """
         if side == "left":
-            self.left_outs[name] = Output("left_output_" + name, label, label_width, style, stack, faded, side)
+            outp = Output("left_output_" + name, label, label_width, style, stack, faded, side)
+            self.left_outs[name] = outp
         elif side == "right":
-            self.right_outs[name] = Output("right_output_" + name, label, label_width, style, stack, faded, side)
+            outp = Output("right_output_" + name, label, label_width, style, stack, faded, side)
+            self.right_outs[name] = outp
         else:
             raise ValueError("The option 'side' must be given as either 'left' or 'right'!")
+        return outp
 
     def connect(
         self,
@@ -325,7 +331,9 @@ class XDSM(object):
         if (not isinstance(label_width, int)) and (label_width is not None):
             raise ValueError("label_width argument must be an integer")
 
-        self.connections.append(Connection(src, target, label, label_width, style, stack, faded))
+        connection = Connection(src, target, label, label_width, style, stack, faded)
+        self.connections.append(connection)
+        return connection
 
     def add_process(self, systems, arrow=True):
         """
