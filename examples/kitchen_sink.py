@@ -13,7 +13,14 @@ from pyxdsm.XDSM import (
     RIGHT,
 )
 
-x = XDSM()
+x = XDSM(
+    auto_fade={
+        "inputs": "none",
+        "outputs": "none",
+        "connections": "none",
+        "processes": "connected",
+    }
+)
 
 x.add_system("opt", OPT, r"\text{Optimizer}")
 x.add_system("DOE", DOE, r"\text{DOE}")
