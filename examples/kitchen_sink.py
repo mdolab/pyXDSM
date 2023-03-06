@@ -15,10 +15,10 @@ from pyxdsm.XDSM import (
 
 x = XDSM(
     auto_fade={
-        "inputs": "none",
-        "outputs": "none",
-        "connections": "none",
-        "processes": "connected",
+        # "inputs": "none",
+        "outputs": "connected",
+        "connections": "outgoing",
+        # "processes": "none",
     }
 )
 
@@ -31,7 +31,7 @@ x.add_system("D1", FUNC, "D_1")
 x.add_system("D2", IFUNC, "D_2", faded=True)
 
 x.add_system("D3", IFUNC, "D_3")
-x.add_system("subopt", SUBOPT, "SubOpt")
+x.add_system("subopt", SUBOPT, "SubOpt", faded=True)
 x.add_system("G1", GROUP, "G_1")
 x.add_system("G2", IGROUP, "G_2")
 x.add_system("MM", METAMODEL, "MM")
