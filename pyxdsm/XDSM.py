@@ -132,6 +132,9 @@ class XDSM:
             - "all" : fade all blocks
             - "connected" : fade all components connected to faded blocks
             - "none" : do not auto-fade anything
+            For connections there are two additional options:
+            - "incoming" : Fade all connections that are incoming to faded blocks.
+            - "outgoing" : Fade all connections that are outgoing from faded blocks.
         """
         self.systems = []
         self.connections = []
@@ -356,9 +359,18 @@ class XDSM:
         sys_faded = {}
         for s in self.systems:
             sys_faded[s.node_name] = s.faded
-        if (self.auto_fade["connections"] == "all") or (
-            self.auto_fade["connections"] == "connected"
-            and ((src in sys_faded and sys_faded[src]) or (target in sys_faded and sys_faded[target]))
+
+        allFaded = self.auto_fade["connections"] == "all"
+        srcFaded = src in sys_faded and sys_faded[src]
+        targetFaded = target in sys_faded and sys_faded[target]
+        if (
+            allFaded
+            or (self.auto_fade["connections"] == "connected"
+            and (srcFaded or targetFaded))
+            or (self.auto_fade["connections"] == "incoming"
+            and targetFaded)
+            or (self.auto_fade["connections"] == "outgoing"
+            and srcFaded)
         ):
             faded = True
 
