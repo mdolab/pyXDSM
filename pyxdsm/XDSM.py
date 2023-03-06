@@ -165,7 +165,9 @@ class XDSM:
 
             self.auto_fade.update(auto_fade)
         for key in self.auto_fade.keys():
-            option_is_valid = self.auto_fade[key] in fade_options or (key == "connections" and self.auto_fade[key] in ["incoming", "outgoing"])
+            option_is_valid = self.auto_fade[key] in fade_options or (
+                key == "connections" and self.auto_fade[key] in ["incoming", "outgoing"]
+            )
             if not option_is_valid:
                 raise ValueError(
                     f"The supplied 'auto_fade' dictionary contains an invalid value: '{key}'. "
@@ -374,12 +376,9 @@ class XDSM:
         targetFaded = target in sys_faded and sys_faded[target]
         if (
             allFaded
-            or (self.auto_fade["connections"] == "connected"
-            and (srcFaded or targetFaded))
-            or (self.auto_fade["connections"] == "incoming"
-            and targetFaded)
-            or (self.auto_fade["connections"] == "outgoing"
-            and srcFaded)
+            or (self.auto_fade["connections"] == "connected" and (srcFaded or targetFaded))
+            or (self.auto_fade["connections"] == "incoming" and targetFaded)
+            or (self.auto_fade["connections"] == "outgoing" and srcFaded)
         ):
             faded = True
 
