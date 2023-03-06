@@ -612,7 +612,6 @@ class XDSM:
         return chain_str
 
     def _compose_optional_package_list(self):
-
         # Check for optional LaTeX packages
         optional_packages_list = self.optional_packages
         if self.use_sfmath:
