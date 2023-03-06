@@ -128,7 +128,7 @@ class XDSM:
         optional_latex_packages : string or list of strings, optional
             Additional latex packages to use when creating the pdf and tex versions of the diagram, by default None
         auto_fade : dictionary, optional
-            For each key "inputs", "outputs", "connections", and "processes", the value can be one of:
+            Controls the automatic fading of inputs, outputs, connections and processes based on the fading of diagonal blocks. For each key "inputs", "outputs", "connections", and "processes", the value can be one of:
             - "all" : fade all blocks
             - "connected" : fade all components connected to faded blocks
             - "none" : do not auto-fade anything
@@ -153,15 +153,24 @@ class XDSM:
                 self.optional_packages = optional_latex_packages
             else:
                 raise ValueError("optional_latex_packages must be a string or a list of strings")
-        if auto_fade is None:
-            auto_fade = {"inputs": "none", "outputs": "none", "connections": "none", "processes": "none"}
-        else:
-            if set(auto_fade.keys()) != {"inputs", "outputs", "connections", "processes"}:
+
+        self.auto_fade = {"inputs": "none", "outputs": "none", "connections": "none", "processes": "none"}
+        fade_options = ["all", "connected", "none"]
+        if auto_fade is not None:
+            if any([key not in self.auto_fade for key in auto_fade.keys()]):
                 raise ValueError(
-                    "The supplied 'auto_fade' dictionary does not contain all the expected keys. "
-                    + "Need to provide keys for 'inputs', 'outputs', 'connections', 'processes'."
+                    "The supplied 'auto_fade' dictionary contains keys that are not recognized. "
+                    + "valid keys are 'inputs', 'outputs', 'connections', 'processes'."
                 )
-        self.auto_fade = auto_fade
+
+            self.auto_fade.update(auto_fade)
+        for key in self.auto_fade.keys():
+            option_is_valid = self.auto_fade[key] in fade_options or (key == "connections" and self.auto_fade[key] in ["incoming", "outgoing"])
+            if not option_is_valid:
+                raise ValueError(
+                    f"The supplied 'auto_fade' dictionary contains an invalid value: '{key}'. "
+                    + "valid values are 'all', 'connected', 'none', 'incoming', 'outgoing'."
+                )
 
     def add_system(
         self,
