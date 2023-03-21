@@ -279,7 +279,6 @@ class TotalJacobian(object):
             self._connections[src, target] = CellData(text=text, color=color, highlight="diag")
 
     def _process_vars(self):
-
         if self._setup:
             return
 
@@ -397,7 +396,6 @@ class MatrixEquation(object):
         self._total_size += size
 
     def connect(self, src, target, text="", color=None, highlight=1):
-
         if isinstance(target, (list, tuple)):
             for t in target:
                 self._connections[src, t] = CellData(text=text, color=color, highlight=highlight)
@@ -430,7 +428,6 @@ class MatrixEquation(object):
         self._setup = True
 
     def jacobian(self, transpose=False):
-
         self._process_vars()
 
         tikz = []
@@ -478,7 +475,6 @@ class MatrixEquation(object):
         return lhs_tikz
 
     def vector(self, base_color="red", highlight=None):
-
         self._process_vars()
 
         tikz = []
@@ -487,7 +483,6 @@ class MatrixEquation(object):
             highlight = np.ones(self._n_vars)
 
         for i, h_light in enumerate(highlight):
-
             color = _color(base_color, h_light)
 
             row_size = self._ij_variables[i].size
@@ -509,7 +504,6 @@ class MatrixEquation(object):
         return vec_tikz
 
     def operator(self, opperator="="):
-
         self._process_vars()
 
         tikz = []
@@ -528,7 +522,6 @@ class MatrixEquation(object):
         return op_tikz
 
     def spacer(self):
-
         self._process_vars()
 
         tikz = []

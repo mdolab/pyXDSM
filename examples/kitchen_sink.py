@@ -13,7 +13,14 @@ from pyxdsm.XDSM import (
     RIGHT,
 )
 
-x = XDSM()
+x = XDSM(
+    auto_fade={
+        # "inputs": "none",
+        "outputs": "connected",
+        "connections": "outgoing",
+        # "processes": "none",
+    }
+)
 
 x.add_system("opt", OPT, r"\text{Optimizer}")
 x.add_system("DOE", DOE, r"\text{DOE}")
@@ -24,7 +31,7 @@ x.add_system("D1", FUNC, "D_1")
 x.add_system("D2", IFUNC, "D_2", faded=True)
 
 x.add_system("D3", IFUNC, "D_3")
-x.add_system("subopt", SUBOPT, "SubOpt")
+x.add_system("subopt", SUBOPT, "SubOpt", faded=True)
 x.add_system("G1", GROUP, "G_1")
 x.add_system("G2", IGROUP, "G_2")
 x.add_system("MM", METAMODEL, "MM")
@@ -44,9 +51,12 @@ x.connect("opt", "D1", ["x", "z", "y_2"], label_width=2)
 x.connect("opt", "D2", ["z", "y_1"])
 x.connect("opt", "D3", "z, y_1")
 x.connect("opt", "subopt", "z, y_1")
+x.connect("D3", "G1", "y_3")
 x.connect("subopt", "G1", "z_2")
 x.connect("subopt", "G2", "z_2")
 x.connect("subopt", "MM", "z_2")
+x.connect("subopt", "F", "f")
+x.connect("MM", "subopt", "f")
 x.connect("opt", "G2", "z")
 x.connect("opt", "F", "x, z")
 x.connect("opt", "F", "y_1, y_2")
