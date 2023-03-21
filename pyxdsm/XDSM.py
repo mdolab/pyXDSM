@@ -564,6 +564,9 @@ class XDSM:
             node_name = inp.node_name
             v_edges.append(edge_format_string.format(start=comp_name, end=node_name, style=style))
 
+        h_edges = sorted(h_edges, key=lambda s: "faded" in s)
+        v_edges = sorted(v_edges, key=lambda s: "faded" in s)
+
         paths_str = "% Horizontal edges\n" + "\n".join(h_edges) + "\n"
         paths_str += "% Vertical edges\n" + "\n".join(v_edges) + ";"
 
