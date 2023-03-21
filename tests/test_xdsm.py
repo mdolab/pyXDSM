@@ -65,7 +65,6 @@ class TestXDSM(unittest.TestCase):
             self.fail("Expected ValueError")
 
     def test_options(self):
-
         filename = "xdsm_test_options"
         spec_dir = filename + "_specs"
 
@@ -108,7 +107,6 @@ class TestXDSM(unittest.TestCase):
         self.assertTrue(os.path.isfile(os.path.join(spec_dir, "G_spec.json")))
 
     def test_stacked_system(self):
-
         x = XDSM()
 
         x.add_system("test", OPT, r"\text{test}", stack=True)

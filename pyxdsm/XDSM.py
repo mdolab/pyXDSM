@@ -114,10 +114,11 @@ System = namedtuple("System", "node_name style label stack faded label_width spe
 Input = namedtuple("Input", "node_name label label_width style stack faded")
 Output = namedtuple("Output", "node_name label label_width style stack faded side")
 Connection = namedtuple("Connection", "src target label label_width style stack faded")
+Process = namedtuple("Process", "systems arrow faded")
 
 
-class XDSM(object):
-    def __init__(self, use_sfmath=True, optional_latex_packages=None):
+class XDSM:
+    def __init__(self, use_sfmath=True, optional_latex_packages=None, auto_fade=None):
         """Initialize XDSM object
 
         Parameters
@@ -126,6 +127,14 @@ class XDSM(object):
             Whether to use the sfmath latex package, by default True
         optional_latex_packages : string or list of strings, optional
             Additional latex packages to use when creating the pdf and tex versions of the diagram, by default None
+        auto_fade : dictionary, optional
+            Controls the automatic fading of inputs, outputs, connections and processes based on the fading of diagonal blocks. For each key "inputs", "outputs", "connections", and "processes", the value can be one of:
+            - "all" : fade all blocks
+            - "connected" : fade all components connected to faded blocks
+            - "none" : do not auto-fade anything
+            For connections there are two additional options:
+            - "incoming" : Fade all connections that are incoming to faded blocks.
+            - "outgoing" : Fade all connections that are outgoing from faded blocks.
         """
         self.systems = []
         self.connections = []
@@ -133,7 +142,6 @@ class XDSM(object):
         self.right_outs = {}
         self.ins = {}
         self.processes = []
-        self.process_arrows = []
 
         self.use_sfmath = use_sfmath
         if optional_latex_packages is None:
@@ -146,6 +154,26 @@ class XDSM(object):
             else:
                 raise ValueError("optional_latex_packages must be a string or a list of strings")
 
+        self.auto_fade = {"inputs": "none", "outputs": "none", "connections": "none", "processes": "none"}
+        fade_options = ["all", "connected", "none"]
+        if auto_fade is not None:
+            if any([key not in self.auto_fade for key in auto_fade.keys()]):
+                raise ValueError(
+                    "The supplied 'auto_fade' dictionary contains keys that are not recognized. "
+                    + "valid keys are 'inputs', 'outputs', 'connections', 'processes'."
+                )
+
+            self.auto_fade.update(auto_fade)
+        for key in self.auto_fade.keys():
+            option_is_valid = self.auto_fade[key] in fade_options or (
+                key == "connections" and self.auto_fade[key] in ["incoming", "outgoing"]
+            )
+            if not option_is_valid:
+                raise ValueError(
+                    f"The supplied 'auto_fade' dictionary contains an invalid value: '{key}'. "
+                    + "valid values are 'all', 'connected', 'none', 'incoming', 'outgoing'."
+                )
+
     def add_system(
         self,
         node_name,
@@ -156,7 +184,7 @@ class XDSM(object):
         label_width=None,
         spec_name=None,
     ):
-        """
+        r"""
         Add a "system" block, which will be placed on the diagonal of the XDSM diagram.
 
         Parameters
@@ -198,7 +226,7 @@ class XDSM(object):
         self.systems.append(sys)
 
     def add_input(self, name, label, label_width=None, style="DataIO", stack=False, faded=False):
-        """
+        r"""
         Add an input, which will appear in the top row of the diagram.
 
         Parameters
@@ -229,10 +257,17 @@ class XDSM(object):
         faded : bool
             If true, the component will be faded, in order to highlight some other system.
         """
+        sys_faded = {}
+        for s in self.systems:
+            sys_faded[s.node_name] = s.faded
+        if (self.auto_fade["inputs"] == "all") or (
+            self.auto_fade["inputs"] == "connected" and name in sys_faded and sys_faded[name]
+        ):
+            faded = True
         self.ins[name] = Input("output_" + name, label, label_width, style, stack, faded)
 
     def add_output(self, name, label, label_width=None, style="DataIO", stack=False, faded=False, side="left"):
-        """
+        r"""
         Add an output, which will appear in the left or right-most column of the diagram.
 
         Parameters
@@ -267,6 +302,13 @@ class XDSM(object):
             Must be one of ``['left', 'right']``. This parameter controls whether the output
             is placed on the left-most column or the right-most column of the diagram.
         """
+        sys_faded = {}
+        for s in self.systems:
+            sys_faded[s.node_name] = s.faded
+        if (self.auto_fade["outputs"] == "all") or (
+            self.auto_fade["outputs"] == "connected" and name in sys_faded and sys_faded[name]
+        ):
+            faded = True
         if side == "left":
             self.left_outs[name] = Output("left_output_" + name, label, label_width, style, stack, faded, side)
         elif side == "right":
@@ -284,7 +326,7 @@ class XDSM(object):
         stack=False,
         faded=False,
     ):
-        """
+        r"""
         Connects two components with a data line, and adds a label to indicate
         the data being transferred.
 
@@ -325,9 +367,24 @@ class XDSM(object):
         if (not isinstance(label_width, int)) and (label_width is not None):
             raise ValueError("label_width argument must be an integer")
 
+        sys_faded = {}
+        for s in self.systems:
+            sys_faded[s.node_name] = s.faded
+
+        allFaded = self.auto_fade["connections"] == "all"
+        srcFaded = src in sys_faded and sys_faded[src]
+        targetFaded = target in sys_faded and sys_faded[target]
+        if (
+            allFaded
+            or (self.auto_fade["connections"] == "connected" and (srcFaded or targetFaded))
+            or (self.auto_fade["connections"] == "incoming" and targetFaded)
+            or (self.auto_fade["connections"] == "outgoing" and srcFaded)
+        ):
+            faded = True
+
         self.connections.append(Connection(src, target, label, label_width, style, stack, faded))
 
-    def add_process(self, systems, arrow=True):
+    def add_process(self, systems, arrow=True, faded=False):
         """
         Add a process line between a list of systems, to indicate process flow.
 
@@ -341,8 +398,17 @@ class XDSM(object):
             If true, arrows will be added to the process lines to indicate the direction
             of the process flow.
         """
-        self.processes.append(systems)
-        self.process_arrows.append(arrow)
+        sys_faded = {}
+        for s in self.systems:
+            sys_faded[s.node_name] = s.faded
+        if (self.auto_fade["processes"] == "all") or (
+            self.auto_fade["processes"] == "connected"
+            and any(
+                [sys_faded[s] for s in systems if s in sys_faded.keys()]
+            )  # sometimes a process may contain off-diagonal blocks
+        ):
+            faded = True
+        self.processes.append(Process(systems, arrow, faded))
 
     def _build_node_grid(self):
         size = len(self.systems)
@@ -498,6 +564,9 @@ class XDSM(object):
             node_name = inp.node_name
             v_edges.append(edge_format_string.format(start=comp_name, end=node_name, style=style))
 
+        h_edges = sorted(h_edges, key=lambda s: "faded" in s)
+        v_edges = sorted(v_edges, key=lambda s: "faded" in s)
+
         paths_str = "% Horizontal edges\n" + "\n".join(h_edges) + "\n"
         paths_str += "% Vertical edges\n" + "\n".join(v_edges) + ";"
 
@@ -514,10 +583,10 @@ class XDSM(object):
         #     node_name, style, label, stack = in_data
         chain_str = ""
 
-        for proc, arrow in zip(self.processes, self.process_arrows):
+        for proc in self.processes:
             chain_str += "{ [start chain=process]\n \\begin{pgfonlayer}{process} \n"
             start_tip = False
-            for i, sys in enumerate(proc):
+            for i, sys in enumerate(proc.systems):
                 if sys not in sys_names and sys not in output_names:
                     raise ValueError(
                         'process includes a system named "{}" but no system with that name exists.'.format(sys)
@@ -528,21 +597,23 @@ class XDSM(object):
                     chain_str += "\\chainin ({});\n".format(sys)
                 else:
                     if sys in output_names or (i == 1 and start_tip):
-                        if arrow:
-                            chain_str += "\\chainin ({}) [join=by ProcessTipA];\n".format(sys)
+                        if proc.arrow:
+                            style = "ProcessTipA"
                         else:
-                            chain_str += "\\chainin ({}) [join=by ProcessTip];\n".format(sys)
+                            style = "ProcessTip"
                     else:
-                        if arrow:
-                            chain_str += "\\chainin ({}) [join=by ProcessHVA];\n".format(sys)
+                        if proc.arrow:
+                            style = "ProcessHVA"
                         else:
-                            chain_str += "\\chainin ({}) [join=by ProcessHV];\n".format(sys)
+                            style = "ProcessHV"
+                    if proc.faded:
+                        style = "Faded" + style
+                    chain_str += "\\chainin ({}) [join=by {}];\n".format(sys, style)
             chain_str += "\\end{pgfonlayer}\n}"
 
         return chain_str
 
     def _compose_optional_package_list(self):
-
         # Check for optional LaTeX packages
         optional_packages_list = self.optional_packages
         if self.use_sfmath:

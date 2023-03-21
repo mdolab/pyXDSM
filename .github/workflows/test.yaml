@@ -29,6 +29,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
+          sudo apt update
           sudo apt-get install texlive-pictures texlive-latex-extra -y
           pip install -U pip wheel
           pip install testflo numpy${{ matrix.numpy-version }}
