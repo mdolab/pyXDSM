@@ -376,7 +376,7 @@ class XDSM:
         targetFaded = target in sys_faded and sys_faded[target]
         if (
             allFaded
-            or (self.auto_fade["connections"] == "connected" and (srcFaded or targetFaded))
+            or (self.auto_fade["connections"] == "connected" and (srcFaded and targetFaded))
             or (self.auto_fade["connections"] == "incoming" and targetFaded)
             or (self.auto_fade["connections"] == "outgoing" and srcFaded)
         ):
