@@ -113,7 +113,7 @@ def _label_to_spec(label, spec):
 System = namedtuple("System", "node_name style label stack faded label_width spec_name")
 Input = namedtuple("Input", "node_name label label_width style stack faded")
 Output = namedtuple("Output", "node_name label label_width style stack faded side")
-Connection = namedtuple("Connection", "src target label label_width style stack faded")
+Connection = namedtuple("Connection", "src target label label_width style stack faded src_faded target_faded")
 Process = namedtuple("Process", "systems arrow faded")
 
 
@@ -382,7 +382,7 @@ class XDSM:
         ):
             faded = True
 
-        self.connections.append(Connection(src, target, label, label_width, style, stack, faded))
+        self.connections.append(Connection(src, target, label, label_width, style, stack, faded, srcFaded, targetFaded))
 
     def add_process(self, systems, arrow=True, faded=False):
         """
@@ -536,12 +536,16 @@ class XDSM:
 
         edge_format_string = "({start}) edge [{style}] ({end})"
         for conn in self.connections:
-            style = "DataLine"
-            if conn.faded:
-                style += ",faded"
+            h_edge_style = "DataLine"
+            v_edge_style = "DataLine"
+            if conn.src_faded or conn.faded:
+                h_edge_style += ",faded"
+            if conn.target_faded or conn.faded:
+                v_edge_style += ",faded"
             od_node_name = "{}-{}".format(conn.src, conn.target)
-            h_edges.append(edge_format_string.format(start=conn.src, end=od_node_name, style=style))
-            v_edges.append(edge_format_string.format(start=od_node_name, end=conn.target, style=style))
+
+            h_edges.append(edge_format_string.format(start=conn.src, end=od_node_name, style=h_edge_style))
+            v_edges.append(edge_format_string.format(start=od_node_name, end=conn.target, style=v_edge_style))
 
         for comp_name, out in self.left_outs.items():
             style = "DataLine"
