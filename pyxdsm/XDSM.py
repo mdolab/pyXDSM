@@ -130,7 +130,7 @@ class XDSM:
         auto_fade : dictionary, optional
             Controls the automatic fading of inputs, outputs, connections and processes based on the fading of diagonal blocks. For each key "inputs", "outputs", "connections", and "processes", the value can be one of:
             - "all" : fade all blocks
-            - "connected" : fade all components connected to faded blocks
+            - "connected" : fade all components connected to faded blocks (both source and target must be faded for a conncection to be faded)
             - "none" : do not auto-fade anything
             For connections there are two additional options:
             - "incoming" : Fade all connections that are incoming to faded blocks.
