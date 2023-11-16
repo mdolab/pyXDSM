@@ -31,7 +31,7 @@ Block matrix equation
 ---------------------
 
 ``pyXDSM`` can also generate a figure of a block matrix equation.
-An example script is available `here <https://github.com/mdolab/pyXDSM/blob/master/examples/mtx_eqn.py>`_.
+An example script is available `here <https://github.com/mdolab/pyXDSM/blob/master/examples/mat_eqn.py>`_.
 
 .. image:: images/matrix_eqn.png
    :scale: 15
