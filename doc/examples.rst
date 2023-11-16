@@ -25,3 +25,13 @@ Here is an example that uses a whole bunch of the more advanced features in ``py
 
 It is mostly just a reference for all the customizations you can do.
 The code for this diagram is `provided here <https://github.com/mdolab/pyXDSM/blob/master/examples/kitchen_sink.py>`_
+
+
+Block matrix equation
+---------------------
+
+``pyXDSM`` can also generate a figure of a block matrix equation.
+An example script is available `here <https://github.com/mdolab/pyXDSM/blob/master/examples/mtx_eqn.py>`_.
+
+.. image:: images/matrix_eqn.png
+   :scale: 15

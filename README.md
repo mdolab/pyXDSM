@@ -14,9 +14,11 @@ Please see the [documentation](https://mdolab-pyxdsm.readthedocs-hosted.com) for
 To locally build the documentation, enter the `doc` folder and enter `make html` in the terminal. 
 You can then view the built documentation in the `_build` folder.
 
+### XDSM diagram
 ![XDSM of MDF](doc/images/mdf.png)
 
-
+### Block matrix equation
+![Block matrix equation](doc/images/matrix_eqn.png)
 
 ## Citation
 Please cite the [paper by Lambe and Martins](http://mdolab.engin.umich.edu/bibliography/Lambe2012a.html) when using XDSM.
