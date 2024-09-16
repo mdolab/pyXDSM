@@ -1,0 +1,122 @@
+
+%%% Preamble Requirements %%%
+% \usepackage{geometry}
+% \usepackage{amsfonts}
+% \usepackage{amsmath}
+% \usepackage{amssymb}
+% \usepackage{tikz}
+
+% Optional packages such as sfmath set through python interface
+% \usepackage{sfmath}
+
+% \usetikzlibrary{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}
+
+%%% End Preamble Requirements %%%
+
+\input{"/Users/prateekranjan/Documents/Github/pyXDSM/pyxdsm/diagram_styles"}
+\begin{tikzpicture}
+
+\matrix[MatrixSetup]{
+%Row 0
+&
+\node [Optimization] (adsb) {$\text{ADS-B}$};&
+\node [DataInter] (adsb-CIRIUM) {$\text{Flight Identifier}$};&
+\node [DataInter] (adsb-openap) {$\text{Mission parameters}$};&
+&
+&
+&
+\\
+%Row 1
+&
+&
+\node [Optimization] (CIRIUM) {$\text{CIRIUM}$};&
+&
+&
+&
+\node [DataInter] (CIRIUM-engine) {$\text{Engine variant}$};&
+\\
+%Row 2
+&
+&
+&
+\node [MDA] (openap) {$\text{OpenAP}$};&
+\node [DataInter] (openap-aero) {$\text{Mission parameters, mass fraction}$};&
+\node [DataInter] (openap-kin) {$\text{Mission parameters}$};&
+\node [DataInter] (openap-engine) {$\text{Mission parameters, mass fraction}$};&
+\\
+%Row 3
+&
+&
+&
+&
+\node [Function] (aero) {$\text{Aerodynamics}$};&
+&
+&
+\node [DataInter] (aero-traj) {$\text{Lift, Drag}$};\\
+%Row 4
+&
+&
+&
+&
+&
+\node [Function] (kin) {$\text{Kinematics}$};&
+&
+\node [DataInter] (kin-traj) {$\text{R.O.C, T.O. speed... }$};\\
+%Row 5
+&
+&
+&
+&
+&
+&
+\node [Function] (engine) {$\text{Engine}$};&
+\node [DataInter] (engine-traj) {$\text{Avaiable thrust}$};\\
+%Row 6
+\node [DataIO] (left_output_traj) {$\text{Fuel burn}$};&
+&
+&
+&
+&
+&
+&
+\node [Function] (traj) {$\text{Trajectory}$};\\
+%Row 7
+&
+&
+&
+&
+&
+&
+&
+\\
+};
+
+% XDSM process chains
+
+
+\begin{pgfonlayer}{data}
+\path
+% Horizontal edges
+(adsb) edge [DataLine] (adsb-CIRIUM)
+(adsb) edge [DataLine] (adsb-openap)
+(CIRIUM) edge [DataLine] (CIRIUM-engine)
+(openap) edge [DataLine] (openap-aero)
+(openap) edge [DataLine] (openap-kin)
+(openap) edge [DataLine] (openap-engine)
+(aero) edge [DataLine] (aero-traj)
+(kin) edge [DataLine] (kin-traj)
+(engine) edge [DataLine] (engine-traj)
+(traj) edge [DataLine] (left_output_traj)
+% Vertical edges
+(adsb-CIRIUM) edge [DataLine] (CIRIUM)
+(adsb-openap) edge [DataLine] (openap)
+(CIRIUM-engine) edge [DataLine] (engine)
+(openap-aero) edge [DataLine] (aero)
+(openap-kin) edge [DataLine] (kin)
+(openap-engine) edge [DataLine] (engine)
+(aero-traj) edge [DataLine] (traj)
+(kin-traj) edge [DataLine] (traj)
+(engine-traj) edge [DataLine] (traj);
+\end{pgfonlayer}
+
+\end{tikzpicture}

@@ -1,0 +1,171 @@
+
+%%% Preamble Requirements %%%
+% \usepackage{geometry}
+% \usepackage{amsfonts}
+% \usepackage{amsmath}
+% \usepackage{amssymb}
+% \usepackage{tikz}
+
+% Optional packages such as sfmath set through python interface
+% \usepackage{sfmath}
+
+% \usetikzlibrary{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}
+
+%%% End Preamble Requirements %%%
+
+\input{"/Users/prateekranjan/Documents/Github/pyXDSM/pyxdsm/diagram_styles"}
+\begin{tikzpicture}
+
+\matrix[MatrixSetup]{
+%Row 0
+\node [Optimization] (opt) {$\text{PDE SOLVER}$};&
+\node [DataInter] (opt-D1) {$\text{Initial conditions, domain}$};&
+\node [DataInter] (opt-D2) {$\text{Initial conditions, domain}$};&
+\node [DataInter] (opt-D3) {$\text{Initial conditions, domain}$};&
+&
+&
+&
+&
+&
+\\
+%Row 1
+&
+\node [MDA] (D1) {$\text{Poisson's}$};&
+&
+&
+\node [DataInter] (D1-F1) {$\text{input}$};&
+\node [DataInter] (D1-F2) {$\text{input}$};&
+&
+&
+&
+\\
+%Row 2
+&
+&
+\node [MDA] (D2) {$\text{Heat}$};&
+&
+&
+&
+\node [DataInter] (D2-F3) {$\text{input}$};&
+\node [DataInter] (D2-F4) {$\text{input}$};&
+&
+\\
+%Row 3
+&
+&
+&
+\node [MDA] (D3) {$\text{Wave}$};&
+&
+&
+&
+&
+\node [DataInter] (D3-F5) {$\text{input}$};&
+\node [DataInter] (D3-F6) {$\text{input}$};\\
+%Row 4
+&
+\node [DataInter] (F1-D1) {$\text{Plot solution}$};&
+&
+&
+\node [Function] (F1) {$\text{Gauss-Seidel}$};&
+&
+&
+&
+&
+\\
+%Row 5
+&
+\node [DataInter] (F2-D1) {$\text{Plot solution}$};&
+&
+&
+&
+\node [Function] (F2) {$\text{Jacobi}$};&
+&
+&
+&
+\\
+%Row 6
+&
+&
+\node [DataInter] (F3-D2) {$\text{Plot solution}$};&
+&
+&
+&
+\node [Function] (F3) {$\text{Explicit}$};&
+&
+&
+\\
+%Row 7
+&
+&
+\node [DataInter] (F4-D2) {$\text{Plot solution}$};&
+&
+&
+&
+&
+\node [Function] (F4) {$\text{Implicit}$};&
+&
+\\
+%Row 8
+&
+&
+&
+\node [DataInter] (F5-D3) {$\text{input}$};&
+&
+&
+&
+&
+\node [Function] (F5) {$\text{Explicit}$};&
+\\
+%Row 9
+&
+&
+&
+\node [DataInter] (F6-D3) {$\text{input}$};&
+&
+&
+&
+&
+&
+\node [Function] (F6) {$\text{Implicit}$};\\
+};
+
+% XDSM process chains
+
+
+\begin{pgfonlayer}{data}
+\path
+% Horizontal edges
+(opt) edge [DataLine] (opt-D1)
+(opt) edge [DataLine] (opt-D2)
+(opt) edge [DataLine] (opt-D3)
+(D1) edge [DataLine] (D1-F1)
+(D1) edge [DataLine] (D1-F2)
+(D2) edge [DataLine] (D2-F3)
+(D2) edge [DataLine] (D2-F4)
+(D3) edge [DataLine] (D3-F5)
+(D3) edge [DataLine] (D3-F6)
+(F1) edge [DataLine] (F1-D1)
+(F2) edge [DataLine] (F2-D1)
+(F3) edge [DataLine] (F3-D2)
+(F4) edge [DataLine] (F4-D2)
+(F5) edge [DataLine] (F5-D3)
+(F6) edge [DataLine] (F6-D3)
+% Vertical edges
+(opt-D1) edge [DataLine] (D1)
+(opt-D2) edge [DataLine] (D2)
+(opt-D3) edge [DataLine] (D3)
+(D1-F1) edge [DataLine] (F1)
+(D1-F2) edge [DataLine] (F2)
+(D2-F3) edge [DataLine] (F3)
+(D2-F4) edge [DataLine] (F4)
+(D3-F5) edge [DataLine] (F5)
+(D3-F6) edge [DataLine] (F6)
+(F1-D1) edge [DataLine] (D1)
+(F2-D1) edge [DataLine] (D1)
+(F3-D2) edge [DataLine] (D2)
+(F4-D2) edge [DataLine] (D2)
+(F5-D3) edge [DataLine] (D3)
+(F6-D3) edge [DataLine] (D3);
+\end{pgfonlayer}
+
+\end{tikzpicture}

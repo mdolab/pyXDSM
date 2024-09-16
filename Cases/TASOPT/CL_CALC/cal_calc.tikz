@@ -1,0 +1,106 @@
+
+%%% Preamble Requirements %%%
+% \usepackage{geometry}
+% \usepackage{amsfonts}
+% \usepackage{amsmath}
+% \usepackage{amssymb}
+% \usepackage{tikz}
+
+% Optional packages such as sfmath set through python interface
+% \usepackage{sfmath}
+
+% \usetikzlibrary{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}
+
+%%% End Preamble Requirements %%%
+
+\input{"/Users/prateekranjan/Documents/Github/pyXDSM/pyxdsm/diagram_styles"}
+\begin{tikzpicture}
+
+\matrix[MatrixSetup]{
+%Row 0
+&
+\node [Optimization] (solver) {$\text{TASOPT}$};&
+\node [DataInter] (solver-D1) {$Initial Design$};&
+\node [DataInter] (solver-D2) {$Ma$};&
+&
+&
+\node [DataInter] (solver-D5) {$a_{Re}, Re_{ref}$};\\
+%Row 1
+&
+&
+\node [MDA] (D1) {$Geometry$};&
+\node [DataInter] (D1-D2) {$\Lambda, c$};&
+\node [DataInter] (D1-D3) {$\Lambda, S, K_P, b, c_o, P(\eta), C(\eta)$};&
+&
+\node [DataInter] (D1-D5) {$t/c$};\\
+%Row 2
+&
+&
+&
+\node [MDA] (D2) {$Flow$};&
+&
+&
+\node [DataInter] (D2-D5) {$Ma_{\perp}, Re_c$};\\
+%Row 3
+&
+&
+&
+&
+\node [MDA] (D3) {$Aero$};&
+\node [DataInter] (D3-D4) {$C_L, C_{L_H}, \Lambda, S, K_P, v, c_o, P(\eta), C(\eta)$};&
+\\
+%Row 4
+&
+&
+&
+&
+&
+\node [Function] (D4) {$Lift$};&
+\node [DataInter] (D4-D5) {$c_l$};\\
+%Row 5
+\node [DataIO] (left_output_D5) {$c_{d_f}, c_{d_p}$};&
+&
+&
+&
+&
+&
+\node [Function] (D5) {$Drag$};\\
+%Row 6
+&
+&
+&
+&
+&
+&
+\\
+};
+
+% XDSM process chains
+
+
+\begin{pgfonlayer}{data}
+\path
+% Horizontal edges
+(solver) edge [DataLine] (solver-D1)
+(solver) edge [DataLine] (solver-D2)
+(solver) edge [DataLine] (solver-D5)
+(D1) edge [DataLine] (D1-D3)
+(D1) edge [DataLine] (D1-D5)
+(D1) edge [DataLine] (D1-D2)
+(D2) edge [DataLine] (D2-D5)
+(D3) edge [DataLine] (D3-D4)
+(D4) edge [DataLine] (D4-D5)
+(D5) edge [DataLine] (left_output_D5)
+% Vertical edges
+(solver-D1) edge [DataLine] (D1)
+(solver-D2) edge [DataLine] (D2)
+(solver-D5) edge [DataLine] (D5)
+(D1-D3) edge [DataLine] (D3)
+(D1-D5) edge [DataLine] (D5)
+(D1-D2) edge [DataLine] (D2)
+(D2-D5) edge [DataLine] (D5)
+(D3-D4) edge [DataLine] (D4)
+(D4-D5) edge [DataLine] (D5);
+\end{pgfonlayer}
+
+\end{tikzpicture}
