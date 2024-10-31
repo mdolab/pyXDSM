@@ -13,7 +13,7 @@
 
 %%% End Preamble Requirements %%%
 
-\input{"/Users/prateekranjan/Documents/Github/pyXDSM/pyxdsm/diagram_styles"}
+\input{"/home/prateek/Documents/Github/pyXDSM/pyxdsm/diagram_styles"}
 \begin{tikzpicture}
 
 \matrix[MatrixSetup]{
