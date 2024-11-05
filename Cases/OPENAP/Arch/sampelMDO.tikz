@@ -1,0 +1,107 @@
+
+%%% Preamble Requirements %%%
+% \usepackage{geometry}
+% \usepackage{amsfonts}
+% \usepackage{amsmath}
+% \usepackage{amssymb}
+% \usepackage{tikz}
+
+% Optional packages such as sfmath set through python interface
+% \usepackage{sfmath}
+
+% \usetikzlibrary{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}
+
+%%% End Preamble Requirements %%%
+
+\input{"/Users/prateekranjan/Documents/Github/pyXDSM/pyxdsm/diagram_styles"}
+\begin{tikzpicture}
+
+\matrix[MatrixSetup]{
+%Row 0
+\node [Optimization] (adsb) {$\text{ADS-B}$};&
+\node [DataInter] (adsb-CIRIUM) {$\text{Flight Identifier}$};&
+\node [DataInter] (adsb-openap) {$\text{Mission parameters}$};&
+&
+&
+&
+&
+\\
+%Row 1
+&
+\node [Optimization] (CIRIUM) {$\text{CIRIUM}$};&
+&
+&
+&
+&
+&
+\\
+%Row 2
+&
+&
+\node [MDA] (openap) {$\text{OpenAP}$};&
+&
+&
+&
+&
+\\
+%Row 3
+&
+&
+&
+\node [FLUID] (fluid) {$\text{FLUID}$};&
+&
+&
+&
+\\
+%Row 4
+&
+&
+&
+&
+\node [FluidFunction] (aero) {$\text{Aerodynamics}$};&
+&
+&
+\\
+%Row 5
+&
+&
+&
+&
+&
+\node [SolidFunction] (kin) {$\text{Kinematics}$};&
+&
+\\
+%Row 6
+&
+&
+&
+&
+&
+&
+\node [SOLID] (solid) {$\text{SOLID}$};&
+\\
+%Row 7
+&
+&
+&
+&
+&
+&
+&
+\node [PROPULSION] (propulsion) {$\text{PROPULSION}$};\\
+};
+
+% XDSM process chains
+
+
+\begin{pgfonlayer}{data}
+\path
+% Horizontal edges
+(adsb) edge [DataLine] (adsb-CIRIUM)
+(adsb) edge [DataLine] (adsb-openap)
+% Vertical edges
+(adsb-CIRIUM) edge [DataLine] (CIRIUM)
+(adsb-openap) edge [DataLine] (openap);
+\end{pgfonlayer}
+
+\end{tikzpicture}

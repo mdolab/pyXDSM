@@ -13,7 +13,7 @@
 
 %%% End Preamble Requirements %%%
 
-\input{"/home/prateek/Documents/Github/pyXDSM/pyxdsm/diagram_styles"}
+\input{"/Users/prateekranjan/Documents/Github/pyXDSM/pyxdsm/diagram_styles"}
 \begin{tikzpicture}
 
 \matrix[MatrixSetup]{
@@ -49,7 +49,7 @@
 &
 &
 &
-\node [Function] (aero) {$\text{Aerodynamics}$};&
+\node [Fluid Function] (aero) {$\text{Aerodynamics}$};&
 &
 &
 \node [DataInter] (aero-traj) {$\text{Lift, Drag}$};\\
@@ -59,7 +59,7 @@
 &
 &
 &
-\node [Function] (kin) {$\text{Kinematics}$};&
+\node [Fluid Function] (kin) {$\text{Kinematics}$};&
 &
 \node [DataInter] (kin-traj) {$\text{R.O.C, T.O. speed... }$};\\
 %Row 5
@@ -69,7 +69,7 @@
 &
 &
 &
-\node [Function] (engine) {$\text{Engine}$};&
+\node [Fluid Function] (engine) {$\text{Engine}$};&
 \node [DataInter] (engine-traj) {$\text{Avaiable thrust}$};\\
 %Row 6
 \node [DataIO] (left_output_traj) {$\text{Fuel burn}$};&
@@ -79,7 +79,7 @@
 &
 &
 &
-\node [Function] (traj) {$\text{Trajectory}$};\\
+\node [Fluid Function] (traj) {$\text{Trajectory}$};\\
 %Row 7
 &
 &

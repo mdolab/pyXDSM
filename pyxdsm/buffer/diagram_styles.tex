@@ -1,67 +1,50 @@
-% Define deep colors from Seaborn in LaTeX
-% Seaborn Deep Colors
-\definecolor{deepBlue}{HTML}{4C72B0}   % Replacing blue
-\definecolor{deepGreen}{HTML}{55A868}  % Replacing green
-\definecolor{deepRed}{HTML}{C44E52}    % Replacing red
-\definecolor{deepPurple}{HTML}{8172B2} % Replacing cyan
-\definecolor{deepYellow}{HTML}{CCB974} % Replacing yellow
-\definecolor{deepCyan}{HTML}{64B5CD}   % Replacing salmon
-\definecolor{deepGray}{HTML}{4C4C4C}       % Additional gray
-\definecolor{deepPink}{HTML}{D06666}       % Additional pink
-\definecolor{deepBrown}{HTML}{8D7B7B}      % Additional brown
-\definecolor{deepLavender}{HTML}{7A6F89}   % Additional lavender
+% Define all the styles used to produce XDSMs for MDO
+
+% Tableau 20 color palette, taken from
+% https://jrnold.github.io/ggthemes/reference/tableau_color_pal.html
+% we use the lighter variants here with 80% opacity
+% Blue
+\definecolor{red}{HTML}{A0CBE8}
+% Orange
+\definecolor{orange}{HTML}{FFBE7D}
+% Cyan
+\definecolor{cyan}{HTML}{86BCB6}
+% Green
+\definecolor{green}{HTML}{8CD17D}
+% Yellow
+\definecolor{yellow}{HTML}{F1CE63}
+% Salmon
+\definecolor{salmon}{HTML}{FF9D9A}
 
 \tikzstyle{every node}=[font=\sffamily,align=center]
 
-\newcommand{\fillOpacity}{90}
-\newcommand{\fillOpacityTwo}{30}
-\newcommand{\fillOpacityThree}{10}
+\newcommand{\fillOpacity}{80}
 
 % Component shapes
 \newcommand{\compShape}{rectangle}
 \newcommand{\groupShape}{chamfered rectangle}
-\newcommand{\funcShape}{chamfered rectangle}
 \newcommand{\procShape}{rounded rectangle}
 
-% Colors - updated with Seaborn deep colors
-\newcommand{\explicitColor}{deepGreen}
-\newcommand{\customColor}{deepYellow}
-\newcommand{\implicitColor}{deepCyan}
-\newcommand{\optimizationColor}{deepCyan}
-\newcommand{\fluidColor}{deepBlue}
-\newcommand{\solidColor}{deepRed}
-\newcommand{\propulsionColor}{deepYellow}
-\newcommand{\FuncFluidColor}{deepBlue}
-\newcommand{\FuncSolidColor}{deepRed}
+% Colors
+\newcommand{\explicitColor}{green}
+\newcommand{\customColor}{yellow}
+\newcommand{\implicitColor}{salmon}
+\newcommand{\optimizationColor}{red} % also used by DOE
 
-% Component types - updated styles with Seaborn deep colors
+% Component types
 \tikzstyle{Optimization} = [\procShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-
-\tikzstyle{MDA} = [\procShape,draw,fill=deepYellow!\fillOpacityTwo,inner sep=6pt,minimum height=1cm,text badly centered]
-
-\tikzstyle{FLUID} = [\procShape,draw,fill=deepBlue!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{SOLID} = [\procShape,draw,fill=deepRed!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{PROPULSION} = [\procShape,draw,fill=deepGreen!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-
+\tikzstyle{MDA} = [\procShape,draw,fill=orange!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 \tikzstyle{DOE} = [\procShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-
 \tikzstyle{SubOptimization} = [\groupShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-
 \tikzstyle{Group} = [\groupShape,draw,fill=\customColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 \tikzstyle{ImplicitGroup} = [\groupShape,draw,fill=\implicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-
-%% FLuid domain function
-\tikzstyle{FluidFunction} = [\funcShape,draw,fill=\FuncFluidColor!\fillOpacityTwo,inner sep=6pt,minimum height=1cm,text badly centered]
-
-%% Solid domain function
-\tikzstyle{SolidFunction} = [\funcShape,draw,fill=\FuncSolidColor!\fillOpacityTwo,inner sep=6pt,minimum height=1cm,text badly centered]
-
-
-\tikzstyle{Metamodel} = [\compShape,draw,fill=deepYellow!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{Function} = [\compShape,draw,fill=\explicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{ImplicitFunction} = [\compShape,draw,fill=\implicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{Metamodel} = [\compShape,draw,fill=yellow!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 
 %% A simple command to give the repeated structure look for components and data
 \tikzstyle{stack} = [double copy shadow={shadow xshift=.75ex, shadow yshift=-.75ex}]
-%% A simple command to fade components and data, e.g., demonstrating a sequence of steps in an animation
+%% A simple command to fade components and data, e.g. demonstrating a sequence of steps in an animation
 \tikzstyle{faded} = [draw=black!10,fill=white,text opacity=0.2]
 
 %% Simple fading commands for the lines
@@ -94,7 +77,8 @@
 \pgfdeclarelayer{process}
 \pgfsetlayers{data,process,main}
 
-% Commands to split component text over multiple lines or columns
+% A new command to split the component text over multiple lines
+
 \newcommand{\MultilineComponent}[2]
 {
 	\begin{minipage}{#1}
@@ -122,6 +106,7 @@
 	\end{minipage}
 }
 
+% A new command to split the component text over multiple columns
 \newcommand{\MultiColumnComponent}[5]
 {
 	\begin{minipage}{#1}

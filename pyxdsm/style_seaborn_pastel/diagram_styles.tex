@@ -1,63 +1,37 @@
-% Define deep colors from Seaborn in LaTeX
-% Seaborn Deep Colors
-\definecolor{deepBlue}{HTML}{4C72B0}   % Replacing blue
-\definecolor{deepGreen}{HTML}{55A868}  % Replacing green
-\definecolor{deepRed}{HTML}{C44E52}    % Replacing red
-\definecolor{deepPurple}{HTML}{8172B2} % Replacing cyan
-\definecolor{deepYellow}{HTML}{CCB974} % Replacing yellow
-\definecolor{deepCyan}{HTML}{64B5CD}   % Replacing salmon
-\definecolor{deepGray}{HTML}{4C4C4C}       % Additional gray
-\definecolor{deepPink}{HTML}{D06666}       % Additional pink
-\definecolor{deepBrown}{HTML}{8D7B7B}      % Additional brown
-\definecolor{deepLavender}{HTML}{7A6F89}   % Additional lavender
+% Define pastel colors from Seaborn in LaTeX
+% Seaborn Pastel Colors
+\definecolor{pastelGreen}{HTML}{a1dab4}   % Replacing green
+\definecolor{pastelBlue}{HTML}{41b6c4}    % Replacing blue
+\definecolor{pastelDarkBlue}{HTML}{2c7fb8} % Replacing red
+\definecolor{pastelYellow}{HTML}{ffffcc}   % Replacing yellow
+\definecolor{pastelMint}{HTML}{f7fcf0}     % Replacing cyan
+\definecolor{pastelPink}{HTML}{ff9dae}     % Replacing salmon
 
 \tikzstyle{every node}=[font=\sffamily,align=center]
 
-\newcommand{\fillOpacity}{90}
-\newcommand{\fillOpacityTwo}{30}
-\newcommand{\fillOpacityThree}{10}
+\newcommand{\fillOpacity}{80}
 
 % Component shapes
 \newcommand{\compShape}{rectangle}
 \newcommand{\groupShape}{chamfered rectangle}
-\newcommand{\funcShape}{chamfered rectangle}
 \newcommand{\procShape}{rounded rectangle}
 
-% Colors - updated with Seaborn deep colors
-\newcommand{\explicitColor}{deepGreen}
-\newcommand{\customColor}{deepYellow}
-\newcommand{\implicitColor}{deepCyan}
-\newcommand{\optimizationColor}{deepCyan}
-\newcommand{\fluidColor}{deepBlue}
-\newcommand{\solidColor}{deepRed}
-\newcommand{\propulsionColor}{deepYellow}
-\newcommand{\FuncFluidColor}{deepBlue}
-\newcommand{\FuncSolidColor}{deepRed}
+% Colors - updated with Seaborn pastel colors
+\newcommand{\explicitColor}{pastelGreen}
+\newcommand{\customColor}{pastelYellow}
+\newcommand{\implicitColor}{pastelPink}
+\newcommand{\optimizationColor}{pastelDarkBlue} % also used by DOE
 
-% Component types - updated styles with Seaborn deep colors
+% Component types - updated styles with Seaborn pastel colors
 \tikzstyle{Optimization} = [\procShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-
-\tikzstyle{MDA} = [\procShape,draw,fill=deepYellow!\fillOpacityTwo,inner sep=6pt,minimum height=1cm,text badly centered]
-
-\tikzstyle{FLUID} = [\procShape,draw,fill=deepBlue!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{SOLID} = [\procShape,draw,fill=deepRed!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{PROPULSION} = [\procShape,draw,fill=deepGreen!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-
+\tikzstyle{MDA} = [\procShape,draw,fill=pastelBlue!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 \tikzstyle{DOE} = [\procShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-
 \tikzstyle{SubOptimization} = [\groupShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-
 \tikzstyle{Group} = [\groupShape,draw,fill=\customColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 \tikzstyle{ImplicitGroup} = [\groupShape,draw,fill=\implicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-
-%% FLuid domain function
-\tikzstyle{FluidFunction} = [\funcShape,draw,fill=\FuncFluidColor!\fillOpacityTwo,inner sep=6pt,minimum height=1cm,text badly centered]
-
-%% Solid domain function
-\tikzstyle{SolidFunction} = [\funcShape,draw,fill=\FuncSolidColor!\fillOpacityTwo,inner sep=6pt,minimum height=1cm,text badly centered]
-
-
-\tikzstyle{Metamodel} = [\compShape,draw,fill=deepYellow!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{Function} = [\compShape,draw,fill=\explicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{ImplicitFunction} = [\compShape,draw,fill=\implicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+\tikzstyle{Metamodel} = [\compShape,draw,fill=pastelYellow!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 
 %% A simple command to give the repeated structure look for components and data
 \tikzstyle{stack} = [double copy shadow={shadow xshift=.75ex, shadow yshift=-.75ex}]
