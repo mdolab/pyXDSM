@@ -1,0 +1,89 @@
+
+%%% Preamble Requirements %%%
+% \usepackage{geometry}
+% \usepackage{amsfonts}
+% \usepackage{amsmath}
+% \usepackage{amssymb}
+% \usepackage{tikz}
+
+% Optional packages such as sfmath set through python interface
+% \usepackage{sfmath}
+
+% \usetikzlibrary{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}
+
+%%% End Preamble Requirements %%%
+
+\input{"/Users/prateekranjan/Documents/Github/pyXDSM/pyxdsm/diagram_styles"}
+\begin{tikzpicture}
+
+\matrix[MatrixSetup]{
+%Row 0
+\node [Optimization] (Optimizer) {$\text{Optimizer}$};&
+&
+&
+&
+&
+\\
+%Row 1
+&
+\node [MDA] (MDA) {$\text{MDA}$};&
+\node [DataInter] (MDA-Fluid) {$\mathcal{G}$};&
+\node [DataInter] (MDA-Solid) {$\mathcal{G}$};&
+&
+\\
+%Row 2
+&
+\node [DataInter] (Fluid-MDA) {$\mathcal{F}$};&
+\node [FLUID] (Fluid) {$\text{Fluid}$};&
+&
+\node [DataInter] (Fluid-fluid_sub_func) {$\text{x,y,z}$};&
+\\
+%Row 3
+&
+\node [DataInter] (Solid-MDA) {$\mathcal{S}$};&
+&
+\node [SOLID] (Solid) {$\text{Solid}$};&
+&
+\node [DataInter] (Solid-solid_sub_func) {$f_x, f_y, f_z$};\\
+%Row 4
+&
+&
+&
+\node [DataInter] (fluid_sub_func-Solid) {$f_x, f_y, f_z$};&
+\node [FluidFunction] (fluid_sub_func) {$\text{traction()}$};&
+\\
+%Row 5
+&
+&
+\node [DataInter] (solid_sub_func-Fluid) {$u_x, u_y, u_z$};&
+&
+&
+\node [SolidFunction] (solid_sub_func) {$\text{displacement()}$};\\
+};
+
+% XDSM process chains
+
+
+\begin{pgfonlayer}{data}
+\path
+% Horizontal edges
+(Fluid) edge [DataLine] (Fluid-fluid_sub_func)
+(fluid_sub_func) edge [DataLine] (fluid_sub_func-Solid)
+(Solid) edge [DataLine] (Solid-solid_sub_func)
+(solid_sub_func) edge [DataLine] (solid_sub_func-Fluid)
+(Solid) edge [DataLine] (Solid-MDA)
+(Fluid) edge [DataLine] (Fluid-MDA)
+(MDA) edge [DataLine] (MDA-Fluid)
+(MDA) edge [DataLine] (MDA-Solid)
+% Vertical edges
+(Fluid-fluid_sub_func) edge [DataLine] (fluid_sub_func)
+(fluid_sub_func-Solid) edge [DataLine] (Solid)
+(Solid-solid_sub_func) edge [DataLine] (solid_sub_func)
+(solid_sub_func-Fluid) edge [DataLine] (Fluid)
+(Solid-MDA) edge [DataLine] (MDA)
+(Fluid-MDA) edge [DataLine] (MDA)
+(MDA-Fluid) edge [DataLine] (Fluid)
+(MDA-Solid) edge [DataLine] (Solid);
+\end{pgfonlayer}
+
+\end{tikzpicture}

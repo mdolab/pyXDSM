@@ -1,6 +1,3 @@
-examples/*
-!examples/*.py
-
 *.so
 *.o
 *.pyc
