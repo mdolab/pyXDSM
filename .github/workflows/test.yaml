@@ -23,7 +23,7 @@ jobs:
         numpy-version: ["~=1.21.0", "~=1.26.0"]
         exclude:
         - python-version: 3.11
-          numpy-version: 1.21.0
+          numpy-version: "~=1.21.0"
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
