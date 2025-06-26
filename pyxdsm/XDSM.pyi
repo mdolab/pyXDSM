@@ -1,4 +1,4 @@
-from typing import Iterator, NamedTuple, Literal
+from typing import Iterator, NamedTuple, Literal, Sequence
 
 OPT: str
 SUBOPT: str
@@ -89,4 +89,36 @@ class XDSM:
         faded: bool = ...,
         label_width: int | None = ...,
         spec_name: str | None = ...,
+    ) -> None: ...
+    def connect(
+        self,
+        src: str,
+        target: str,
+        label: str | list[str] | tuple[str, ...],
+        label_width: int | None = None,
+        style: str = "DataInter",
+        stack: bool = False,
+        faded: bool = False,
+    ) -> None: ...
+    def add_process(
+        self,
+        systems: Sequence[str],
+        arrow: bool = True,
+        faded: bool = False,
+    ) -> None: ...
+    # def _build_node_grid(self) -> str: ...
+    # def _build_edges(self) -> str: ...
+    # def _build_process_chain(self) -> str: ...
+    # def _compose_optional_package_list(self) -> str: ...
+    def write(
+        self,
+        file_name: str,
+        build: bool = True,
+        cleanup: bool = True,
+        quiet: bool = False,
+        outdir: str = ".",
+    ) -> None: ...
+    def write_sys_specs(
+        self,
+        folder_name: str,
     ) -> None: ...
