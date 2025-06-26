@@ -90,6 +90,25 @@ class XDSM:
         label_width: int | None = ...,
         spec_name: str | None = ...,
     ) -> None: ...
+    def add_input(
+        self,
+        name: str,
+        label: str | list[str] | tuple[str, ...],
+        label_width: int | None = None,
+        style: str = "DataIO",
+        stack: bool = False,
+        faded: bool = False,
+    ) -> None: ...
+    def add_output(
+        self,
+        name: str,
+        label: str | list[str] | tuple[str, ...],
+        label_width: int | None = None,
+        style: str = "DataIO",
+        stack: bool = False,
+        faded: bool = False,
+        side: Literal["left", "right"] = "left",
+    ) -> None: ...
     def connect(
         self,
         src: str,
