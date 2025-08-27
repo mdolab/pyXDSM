@@ -17,7 +17,7 @@ Introduction
 What is XDSM?
 -------------
 
-The eXtended Design Structure Matrix (XDSM) is a graphical language for describing the movement of data and the execution sequence for a multidisciplinary optimization problem. 
+The eXtended Design Structure Matrix (XDSM) is a graphical language for describing the movement of data and the execution sequence for a multidisciplinary optimization problem.
 You can read the `paper by Lambe and Martins <http://mdolab.engin.umich.edu/bibliography/Lambe2012a.html>`_ for all the details.
 
 How to use it
@@ -64,4 +64,3 @@ The following is required to be in the preamble of the document:
    \usepackage{tikz}
 
    \usetikzlibrary{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}
-
