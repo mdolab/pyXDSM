@@ -403,11 +403,11 @@ class MatrixEquation(object):
             self._connections[src, target] = CellData(text=text, color=color, highlight=highlight)
 
     def text(self, src, target, text):
-        "don't connect the src and target, but put some text where a connection would be"
+        """Don't connect the src and target, but put some text where a connection would be"""
         self._text[src, target] = CellData(text=text, color=None, highlight=-1)
 
     def _process_vars(self):
-        """map all the data onto i,j grid"""
+        """Map all the data onto i,j grid"""
 
         if self._setup:
             return

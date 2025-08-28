@@ -9,11 +9,8 @@ on:
     branches: [main]
 
 jobs:
-  black:
-    uses: mdolab/.github/.github/workflows/black.yaml@main
-
-  flake8:
-    uses: mdolab/.github/.github/workflows/flake8.yaml@main
+  format-and-lint:
+    uses: mdolab/.github/.github/workflows/format-and-lint.yaml@main
 
   test:
     runs-on: ubuntu-latest
@@ -25,7 +22,7 @@ jobs:
         - python-version: 3.11
           numpy-version: "~=1.21.0"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
@@ -43,6 +40,6 @@ jobs:
 
   # --- publish to PyPI
   pypi:
-    needs: [test, flake8, black]
+    needs: [test, format-and-lint]
     uses: mdolab/.github/.github/workflows/pypi.yaml@main
     secrets: inherit

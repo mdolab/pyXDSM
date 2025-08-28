@@ -20,3 +20,5 @@ examples/*
 _build*
 *.egg-info
 *.vscode
+.pre-commit-config.yaml
+ruff.toml
