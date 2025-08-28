@@ -2,8 +2,8 @@
 
 Examples
 ========
-Here is a simple example. 
-There are some other more advanced things you can do as well. 
+Here is a simple example.
+There are some other more advanced things you can do as well.
 Check out the `examples folder <https://github.com/mdolab/pyXDSM/blob/master/examples>`_ for more complex scripts.
 
 .. literalinclude:: ../examples/mdf.py
@@ -18,7 +18,7 @@ This will output ``mdf.tex``, a standalone tex document that (by default) is als
 More complicated example
 ------------------------
 
-Here is an example that uses a whole bunch of the more advanced features in ``pyXDSM``. 
+Here is an example that uses a whole bunch of the more advanced features in ``pyXDSM``.
 
 .. image:: images/kitchen_sink.png
    :scale: 30

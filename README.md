@@ -11,7 +11,7 @@ This library is a thin wrapper that uses the TikZ library and LaTeX to build the
 
 Please see the [documentation](https://mdolab-pyxdsm.readthedocs-hosted.com) for installation details and API documentation.
 
-To locally build the documentation, enter the `doc` folder and enter `make html` in the terminal. 
+To locally build the documentation, enter the `doc` folder and enter `make html` in the terminal.
 You can then view the built documentation in the `_build` folder.
 
 ### XDSM diagram
@@ -33,4 +33,3 @@ Here is the bibtex entry for that paper:
     doi = {10.1007/s00158-012-0763-y},
     author = {Andrew B. Lambe and Joaquim R. R. A. Martins}
     }
-
