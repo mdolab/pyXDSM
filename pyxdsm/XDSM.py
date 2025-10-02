@@ -1,12 +1,19 @@
+"""
+pyXDSM with Pydantic models for validation and serialization
+"""
+
 from __future__ import print_function
 import os
 import numpy as np
 import json
 import subprocess
-from collections import namedtuple
+from typing import Literal, Optional, Tuple, List, Dict, Set, Union
+from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
+import plotly.graph_objects as go
 
 from pyxdsm import __version__ as pyxdsm_version
 
+# Constants
 OPT = "Optimization"
 SUBOPT = "SubOptimization"
 SOLVER = "MDA"
@@ -19,6 +26,20 @@ METAMODEL = "Metamodel"
 LEFT = "left"
 RIGHT = "right"
 
+# Type definitions - these match the TikZ styles in diagram_styles
+NodeType = Literal['Optimization', 'SubOptimization', 'MDA', 'DOE', 'ImplicitFunction', 
+                   'Function', 'Group', 'ImplicitGroup', 'Metamodel']
+ConnectionStyle = Literal['DataInter', 'DataIO']
+Side = Literal['left', 'right']
+AutoFadeOption = Literal['all', 'connected', 'none', 'incoming', 'outgoing']
+
+# Valid TikZ node styles (from diagram_styles.tikzstyles)
+VALID_NODE_STYLES = {
+    'Optimization', 'SubOptimization', 'MDA', 'DOE', 'ImplicitFunction',
+    'Function', 'Group', 'ImplicitGroup', 'Metamodel', 'DataInter', 'DataIO'
+}
+
+# LaTeX templates
 tikzpicture_template = r"""
 %%% Preamble Requirements %%%
 % \usepackage{{geometry}}
@@ -82,12 +103,12 @@ tex_template = r"""
 
 
 def chunk_label(label, n_chunks):
-    # looping till length l
     for i in range(0, len(label), n_chunks):
         yield label[i : i + n_chunks]
 
 
-def _parse_label(label, label_width=None):
+def _parse_label(label: Union[str, List[str], Tuple[str, ...]], label_width: Optional[int] = None) -> str:
+    """Parse label into LaTeX format."""
     if isinstance(label, (tuple, list)):
         if label_width is None:
             return r"$\begin{array}{c}" + r" \\ ".join(label) + r"\end{array}$"
@@ -100,572 +121,547 @@ def _parse_label(label, label_width=None):
         return r"${}$".format(label)
 
 
-def _label_to_spec(label, spec):
+def _label_to_spec(label: Union[str, List[str], Tuple[str, ...]], spec: Set[str]) -> None:
+    """Add label variables to spec set."""
     if isinstance(label, str):
-        label = [
-            label,
-        ]
+        label = [label]
     for var in label:
         if var:
             spec.add(var)
 
 
-System = namedtuple("System", "node_name style label stack faded label_width spec_name")
-Input = namedtuple("Input", "node_name label label_width style stack faded")
-Output = namedtuple("Output", "node_name label label_width style stack faded side")
-Connection = namedtuple("Connection", "src target label label_width style stack faded src_faded target_faded")
-Process = namedtuple("Process", "systems arrow faded")
-
-
-class XDSM:
-    def __init__(self, use_sfmath=True, optional_latex_packages=None, auto_fade=None):
-        """Initialize XDSM object
-
-        Parameters
-        ----------
-        use_sfmath : bool, optional
-            Whether to use the sfmath latex package, by default True
-        optional_latex_packages : string or list of strings, optional
-            Additional latex packages to use when creating the pdf and tex versions of the diagram, by default None
-        auto_fade : dictionary, optional
-            Controls the automatic fading of inputs, outputs, connections and processes based on the fading of diagonal blocks. For each key "inputs", "outputs", "connections", and "processes", the value can be one of:
-            - "all" : fade all blocks
-            - "connected" : fade all components connected to faded blocks (both source and target must be faded for a conncection to be faded)
-            - "none" : do not auto-fade anything
-            For connections there are two additional options:
-            - "incoming" : Fade all connections that are incoming to faded blocks.
-            - "outgoing" : Fade all connections that are outgoing from faded blocks.
-        """
-        self.systems = []
-        self.connections = []
-        self.left_outs = {}
-        self.right_outs = {}
-        self.ins = {}
-        self.processes = []
-
-        self.use_sfmath = use_sfmath
-        if optional_latex_packages is None:
-            self.optional_packages = []
-        else:
-            if isinstance(optional_latex_packages, str):
-                self.optional_packages = [optional_latex_packages]
-            elif isinstance(optional_latex_packages, list):
-                self.optional_packages = optional_latex_packages
-            else:
-                raise ValueError("optional_latex_packages must be a string or a list of strings")
-
-        self.auto_fade = {"inputs": "none", "outputs": "none", "connections": "none", "processes": "none"}
-        fade_options = ["all", "connected", "none"]
-        if auto_fade is not None:
-            if any([key not in self.auto_fade for key in auto_fade.keys()]):
-                raise ValueError(
-                    "The supplied 'auto_fade' dictionary contains keys that are not recognized. "
-                    + "valid keys are 'inputs', 'outputs', 'connections', 'processes'."
-                )
-
-            self.auto_fade.update(auto_fade)
-        for key in self.auto_fade.keys():
-            option_is_valid = self.auto_fade[key] in fade_options or (
-                key == "connections" and self.auto_fade[key] in ["incoming", "outgoing"]
+class SystemNode(BaseModel):
+    """System node on the diagonal of XDSM diagram."""
+    
+    node_name: str = Field(..., description="Unique name for the system")
+    style: str = Field(..., description="Type/style of the system")
+    label: Union[str, List[str], Tuple[str, ...]] = Field(..., description="Display label")
+    stack: bool = Field(default=False, description="Display as stacked rectangles")
+    faded: bool = Field(default=False, description="Fade the component")
+    label_width: Optional[int] = Field(default=None, description="Number of items per line")
+    spec_name: Optional[str] = Field(default=None, description="Name for spec file")
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    @field_validator('node_name')
+    @classmethod
+    def validate_node_name(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Node name cannot be empty")
+        return v.strip()
+    
+    @field_validator('style')
+    @classmethod
+    def validate_style(cls, v: str) -> str:
+        """Validate that style is a known TikZ style."""
+        if v not in VALID_NODE_STYLES:
+            raise ValueError(
+                f"Style '{v}' is not a valid TikZ style. "
+                f"Valid styles are: {', '.join(sorted(VALID_NODE_STYLES))}"
             )
-            if not option_is_valid:
-                raise ValueError(
-                    f"The supplied 'auto_fade' dictionary contains an invalid value: '{key}'. "
-                    + "valid values are 'all', 'connected', 'none', 'incoming', 'outgoing'."
-                )
+        return v
+    
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.spec_name is None:
+            self.spec_name = self.node_name
 
-    def add_system(
-        self,
-        node_name,
-        style,
-        label,
-        stack=False,
-        faded=False,
-        label_width=None,
-        spec_name=None,
-    ):
-        r"""
-        Add a "system" block, which will be placed on the diagonal of the XDSM diagram.
+
+class InputNode(BaseModel):
+    """Input node at top of XDSM diagram."""
+    
+    node_name: str = Field(..., description="Internal node name")
+    label: Union[str, List[str], Tuple[str, ...]] = Field(..., description="Display label")
+    label_width: Optional[int] = Field(default=None, description="Number of items per line")
+    style: str = Field(default="DataIO", description="Node style")
+    stack: bool = Field(default=False, description="Display as stacked rectangles")
+    faded: bool = Field(default=False, description="Fade the component")
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+
+class OutputNode(BaseModel):
+    """Output node on left or right side of XDSM diagram."""
+    
+    node_name: str = Field(..., description="Internal node name")
+    label: Union[str, List[str], Tuple[str, ...]] = Field(..., description="Display label")
+    label_width: Optional[int] = Field(default=None, description="Number of items per line")
+    style: str = Field(default="DataIO", description="Node style")
+    stack: bool = Field(default=False, description="Display as stacked rectangles")
+    faded: bool = Field(default=False, description="Fade the component")
+    side: Side = Field(..., description="Which side (left or right)")
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    @field_validator('side')
+    @classmethod
+    def validate_side(cls, v: str) -> str:
+        if v not in ['left', 'right']:
+            raise ValueError("Side must be 'left' or 'right'")
+        return v
+
+
+class ConnectionEdge(BaseModel):
+    """Connection between two nodes."""
+    
+    src: str = Field(..., description="Source node name")
+    target: str = Field(..., description="Target node name")
+    label: Union[str, List[str], Tuple[str, ...]] = Field(..., description="Connection label")
+    label_width: Optional[int] = Field(default=None, description="Number of items per line")
+    style: str = Field(default="DataInter", description="Connection style")
+    stack: bool = Field(default=False, description="Display as stacked")
+    faded: bool = Field(default=False, description="Fade the connection")
+    src_faded: bool = Field(default=False, description="Source node is faded")
+    target_faded: bool = Field(default=False, description="Target node is faded")
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    @field_validator('label_width')
+    @classmethod
+    def validate_label_width(cls, v: Optional[int]) -> Optional[int]:
+        if v is not None and not isinstance(v, int):
+            raise ValueError("label_width must be an integer")
+        return v
+    
+    @model_validator(mode='after')
+    def validate_no_self_connection(self):
+        if self.src == self.target:
+            raise ValueError("Cannot connect component to itself")
+        return self
+
+
+class ProcessChain(BaseModel):
+    """Process flow chain between systems."""
+    
+    systems: List[str] = Field(..., description="List of system names in order")
+    arrow: bool = Field(default=True, description="Show arrows on process lines")
+    faded: bool = Field(default=False, description="Fade the process chain")
+    
+    @field_validator('systems')
+    @classmethod
+    def validate_systems(cls, v: List[str]) -> List[str]:
+        if len(v) < 2:
+            raise ValueError("Process chain must contain at least 2 systems")
+        return v
+
+
+class AutoFadeConfig(BaseModel):
+    """Configuration for automatic fading of components."""
+    
+    inputs: AutoFadeOption = Field(default='none', description="Auto-fade inputs")
+    outputs: AutoFadeOption = Field(default='none', description="Auto-fade outputs")
+    connections: AutoFadeOption = Field(default='none', description="Auto-fade connections")
+    processes: AutoFadeOption = Field(default='none', description="Auto-fade processes")
+    
+    @field_validator('inputs', 'outputs', 'processes')
+    @classmethod
+    def validate_basic_options(cls, v: str) -> str:
+        valid = ['all', 'connected', 'none']
+        if v not in valid:
+            raise ValueError(f"Must be one of {valid}")
+        return v
+    
+    @field_validator('connections')
+    @classmethod
+    def validate_connection_options(cls, v: str) -> str:
+        valid = ['all', 'connected', 'none', 'incoming', 'outgoing']
+        if v not in valid:
+            raise ValueError(f"Must be one of {valid}")
+        return v
+
+
+class XDSM(BaseModel):
+    """
+    XDSM diagram specification and renderer using Pydantic validation.
+    """
+    
+    systems: List[SystemNode] = Field(default_factory=list, description="System nodes")
+    connections: List[ConnectionEdge] = Field(default_factory=list, description="Connections")
+    ins: Dict[str, InputNode] = Field(default_factory=dict, description="Input nodes")
+    left_outs: Dict[str, OutputNode] = Field(default_factory=dict, description="Left output nodes")
+    right_outs: Dict[str, OutputNode] = Field(default_factory=dict, description="Right output nodes")
+    processes: List[ProcessChain] = Field(default_factory=list, description="Process chains")
+    
+    use_sfmath: bool = Field(default=True, description="Use sfmath LaTeX package")
+    optional_packages: List[str] = Field(default_factory=list, description="Additional LaTeX packages")
+    auto_fade: AutoFadeConfig = Field(default_factory=AutoFadeConfig, description="Auto-fade configuration")
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    def __init__(self, use_sfmath: bool = True, 
+                 optional_latex_packages: Optional[Union[str, List[str]]] = None,
+                 auto_fade: Optional[Dict[str, str]] = None,
+                 **data):
+        """
+        Initialize XDSM object.
 
         Parameters
         ----------
-        node_name : str
-            The unique name given to this component
-
-        style : str
-            The type of the component
-
-        label : str or list/tuple of strings
-            The label to appear on the diagram. There are two options for this:
-            - a single string
-            - a list or tuple of strings, which is used for line breaking
-            In either case, they should probably be enclosed in \text{} declarations to make sure
-            the font is upright.
-
-        stack : bool
-            If true, the system will be displayed as several stacked rectangles,
-            indicating the component is executed in parallel.
-
-        faded : bool
-            If true, the component will be faded, in order to highlight some other system.
-
-        label_width : int or None
-            If not None, AND if ``label`` is given as either a tuple or list, then this parameter
-            controls how many items in the tuple/list will be displayed per line.
-            If None, the label will be printed one item per line if given as a tuple or list,
-            otherwise the string will be printed on a single line.
-
-        spec_name : str
-            The spec name used for the spec file.
-
+        use_sfmath : bool
+            Whether to use the sfmath latex package
+        optional_latex_packages : str or list of strings
+            Additional latex packages for PDF/TEX generation
+        auto_fade : dict
+            Auto-fade configuration with keys: inputs, outputs, connections, processes
         """
-        if spec_name is None:
-            spec_name = node_name
-
-        sys = System(node_name, style, label, stack, faded, label_width, spec_name)
-        self.systems.append(sys)
-
-    def add_input(self, name, label, label_width=None, style="DataIO", stack=False, faded=False):
-        r"""
-        Add an input, which will appear in the top row of the diagram.
-
-        Parameters
-        ----------
-        name : str
-            The unique name given to this component
-
-        label : str or list/tuple of strings
-            The label to appear on the diagram. There are two options for this:
-            - a single string
-            - a list or tuple of strings, which is used for line breaking
-            In either case, they should probably be enclosed in \text{} declarations to make sure
-            the font is upright.
-
-        label_width : int or None
-            If not None, AND if ``label`` is given as either a tuple or list, then this parameter
-            controls how many items in the tuple/list will be displayed per line.
-            If None, the label will be printed one item per line if given as a tuple or list,
-            otherwise the string will be printed on a single line.
-
-        style : str
-            The style given to this component. Can be one of ['DataInter', 'DataIO']
-
-        stack : bool
-            If true, the system will be displayed as several stacked rectangles,
-            indicating the component is executed in parallel.
-
-        faded : bool
-            If true, the component will be faded, in order to highlight some other system.
-        """
-        sys_faded = {}
-        for s in self.systems:
-            sys_faded[s.node_name] = s.faded
-        if (self.auto_fade["inputs"] == "all") or (
-            self.auto_fade["inputs"] == "connected" and name in sys_faded and sys_faded[name]
-        ):
+        # Only process if these aren't already in data (from deserialization)
+        if 'optional_packages' not in data:
+            # Process optional packages
+            packages = []
+            if optional_latex_packages is not None:
+                if isinstance(optional_latex_packages, str):
+                    packages = [optional_latex_packages]
+                elif isinstance(optional_latex_packages, list):
+                    packages = optional_latex_packages
+                else:
+                    raise ValueError("optional_latex_packages must be a string or list of strings")
+            data['optional_packages'] = packages
+        
+        if 'auto_fade' not in data:
+            # Process auto_fade
+            fade_config = AutoFadeConfig()
+            if auto_fade is not None:
+                fade_config = AutoFadeConfig(**auto_fade)
+            data['auto_fade'] = fade_config
+        
+        if 'use_sfmath' not in data:
+            data['use_sfmath'] = use_sfmath
+        
+        super().__init__(**data)
+    
+    @model_validator(mode='after')
+    def validate_unique_system_names(self):
+        """Ensure all system names are unique."""
+        names = [sys.node_name for sys in self.systems]
+        duplicates = [n for n in names if names.count(n) > 1]
+        if duplicates:
+            raise ValueError(f"Duplicate system names: {set(duplicates)}")
+        return self
+    
+    def add_system(self, node_name: str, style: str, label: Union[str, List[str], Tuple[str, ...]],
+                   stack: bool = False, faded: bool = False, label_width: Optional[int] = None,
+                   spec_name: Optional[str] = None) -> None:
+        """Add a system block on the diagonal."""
+        system = SystemNode(
+            node_name=node_name,
+            style=style,
+            label=label,
+            stack=stack,
+            faded=faded,
+            label_width=label_width,
+            spec_name=spec_name
+        )
+        self.systems.append(system)
+    
+    def add_input(self, name: str, label: Union[str, List[str], Tuple[str, ...]],
+                  label_width: Optional[int] = None, style: str = "DataIO",
+                  stack: bool = False, faded: bool = False) -> None:
+        """Add an input node at the top."""
+        sys_faded = {s.node_name: s.faded for s in self.systems}
+        
+        if (self.auto_fade.inputs == "all") or \
+           (self.auto_fade.inputs == "connected" and name in sys_faded and sys_faded[name]):
             faded = True
-        self.ins[name] = Input("output_" + name, label, label_width, style, stack, faded)
-
-    def add_output(self, name, label, label_width=None, style="DataIO", stack=False, faded=False, side="left"):
-        r"""
-        Add an output, which will appear in the left or right-most column of the diagram.
-
-        Parameters
-        ----------
-        name : str
-            The unique name given to this component
-
-        label : str or list/tuple of strings
-            The label to appear on the diagram. There are two options for this:
-            - a single string
-            - a list or tuple of strings, which is used for line breaking
-            In either case, they should probably be enclosed in \text{} declarations to make sure
-            the font is upright.
-
-        label_width : int or None
-            If not None, AND if ``label`` is given as either a tuple or list, then this parameter
-            controls how many items in the tuple/list will be displayed per line.
-            If None, the label will be printed one item per line if given as a tuple or list,
-            otherwise the string will be printed on a single line.
-
-        style : str
-            The style given to this component. Can be one of ``['DataInter', 'DataIO']``
-
-        stack : bool
-            If true, the system will be displayed as several stacked rectangles,
-            indicating the component is executed in parallel.
-
-        faded : bool
-            If true, the component will be faded, in order to highlight some other system.
-
-        side : str
-            Must be one of ``['left', 'right']``. This parameter controls whether the output
-            is placed on the left-most column or the right-most column of the diagram.
-        """
-        sys_faded = {}
-        for s in self.systems:
-            sys_faded[s.node_name] = s.faded
-        if (self.auto_fade["outputs"] == "all") or (
-            self.auto_fade["outputs"] == "connected" and name in sys_faded and sys_faded[name]
-        ):
+        
+        self.ins[name] = InputNode(
+            node_name="output_" + name,
+            label=label,
+            label_width=label_width,
+            style=style,
+            stack=stack,
+            faded=faded
+        )
+    
+    def add_output(self, name: str, label: Union[str, List[str], Tuple[str, ...]],
+                   label_width: Optional[int] = None, style: str = "DataIO",
+                   stack: bool = False, faded: bool = False, side: str = "left") -> None:
+        """Add an output node on the left or right side."""
+        sys_faded = {s.node_name: s.faded for s in self.systems}
+        
+        if (self.auto_fade.outputs == "all") or \
+           (self.auto_fade.outputs == "connected" and name in sys_faded and sys_faded[name]):
             faded = True
+        
+        output = OutputNode(
+            node_name=f"{side}_output_{name}",
+            label=label,
+            label_width=label_width,
+            style=style,
+            stack=stack,
+            faded=faded,
+            side=side
+        )
+        
         if side == "left":
-            self.left_outs[name] = Output("left_output_" + name, label, label_width, style, stack, faded, side)
+            self.left_outs[name] = output
         elif side == "right":
-            self.right_outs[name] = Output("right_output_" + name, label, label_width, style, stack, faded, side)
+            self.right_outs[name] = output
         else:
-            raise ValueError("The option 'side' must be given as either 'left' or 'right'!")
-
-    def connect(
-        self,
-        src,
-        target,
-        label,
-        label_width=None,
-        style="DataInter",
-        stack=False,
-        faded=False,
-    ):
-        r"""
-        Connects two components with a data line, and adds a label to indicate
-        the data being transferred.
-
-        Parameters
-        ----------
-        src : str
-            The name of the source component.
-
-        target : str
-            The name of the target component.
-
-        label : str or list/tuple of strings
-            The label to appear on the diagram. There are two options for this:
-            - a single string
-            - a list or tuple of strings, which is used for line breaking
-            In either case, they should probably be enclosed in \text{} declarations to make sure
-            the font is upright.
-
-        label_width : int or None
-            If not None, AND if ``label`` is given as either a tuple or list, then this parameter
-            controls how many items in the tuple/list will be displayed per line.
-            If None, the label will be printed one item per line if given as a tuple or list,
-            otherwise the string will be printed on a single line.
-
-        style : str
-            The style given to this component. Can be one of ``['DataInter', 'DataIO']``
-
-        stack : bool
-            If true, the system will be displayed as several stacked rectangles,
-            indicating the component is executed in parallel.
-
-        faded : bool
-            If true, the component will be faded, in order to highlight some other system.
-        """
-        if src == target:
-            raise ValueError("Can not connect component to itself")
-
-        if (not isinstance(label_width, int)) and (label_width is not None):
-            raise ValueError("label_width argument must be an integer")
-
-        sys_faded = {}
-        for s in self.systems:
-            sys_faded[s.node_name] = s.faded
-
-        allFaded = self.auto_fade["connections"] == "all"
-        srcFaded = src in sys_faded and sys_faded[src]
-        targetFaded = target in sys_faded and sys_faded[target]
-        if (
-            allFaded
-            or (self.auto_fade["connections"] == "connected" and (srcFaded and targetFaded))
-            or (self.auto_fade["connections"] == "incoming" and targetFaded)
-            or (self.auto_fade["connections"] == "outgoing" and srcFaded)
-        ):
+            raise ValueError("Side must be 'left' or 'right'")
+    
+    def connect(self, src: str, target: str, label: Union[str, List[str], Tuple[str, ...]],
+                label_width: Optional[int] = None, style: str = "DataInter",
+                stack: bool = False, faded: bool = False) -> None:
+        """Connect two components with a data line."""
+        sys_faded = {s.node_name: s.faded for s in self.systems}
+        
+        src_faded = src in sys_faded and sys_faded[src]
+        target_faded = target in sys_faded and sys_faded[target]
+        
+        all_faded = self.auto_fade.connections == "all"
+        if (all_faded or
+            (self.auto_fade.connections == "connected" and src_faded and target_faded) or
+            (self.auto_fade.connections == "incoming" and target_faded) or
+            (self.auto_fade.connections == "outgoing" and src_faded)):
             faded = True
-
-        self.connections.append(Connection(src, target, label, label_width, style, stack, faded, srcFaded, targetFaded))
-
-    def add_process(self, systems, arrow=True, faded=False):
-        """
-        Add a process line between a list of systems, to indicate process flow.
-
-        Parameters
-        ----------
-        systems : list
-            The names of the components, in the order in which they should be connected.
-            For a complete cycle, repeat the first component as the last component.
-
-        arrow : bool
-            If true, arrows will be added to the process lines to indicate the direction
-            of the process flow.
-        """
-        sys_faded = {}
-        for s in self.systems:
-            sys_faded[s.node_name] = s.faded
-        if (self.auto_fade["processes"] == "all") or (
-            self.auto_fade["processes"] == "connected"
-            and any(
-                [sys_faded[s] for s in systems if s in sys_faded.keys()]
-            )  # sometimes a process may contain off-diagonal blocks
-        ):
+        
+        connection = ConnectionEdge(
+            src=src,
+            target=target,
+            label=label,
+            label_width=label_width,
+            style=style,
+            stack=stack,
+            faded=faded,
+            src_faded=src_faded,
+            target_faded=target_faded
+        )
+        self.connections.append(connection)
+    
+    def add_process(self, systems: List[str], arrow: bool = True, faded: bool = False) -> None:
+        """Add a process line between systems."""
+        sys_faded = {s.node_name: s.faded for s in self.systems}
+        
+        if (self.auto_fade.processes == "all") or \
+           (self.auto_fade.processes == "connected" and 
+            any([sys_faded.get(s, False) for s in systems])):
             faded = True
-        self.processes.append(Process(systems, arrow, faded))
-
-    def _build_node_grid(self):
+        
+        process = ProcessChain(systems=systems, arrow=arrow, faded=faded)
+        self.processes.append(process)
+    
+    def _build_node_grid(self) -> str:
+        """Build the TikZ node grid."""
         size = len(self.systems)
-
         comps_rows = np.arange(size)
         comps_cols = np.arange(size)
-
+        
         if self.ins:
             size += 1
-            # move all comps down one row
             comps_rows += 1
-
+        
         if self.left_outs:
             size += 1
-            # shift all comps to the right by one, to make room for inputs
             comps_cols += 1
-
+        
         if self.right_outs:
             size += 1
-            # don't need to shift anything in this case
-
-        # build a map between comp node_names and row idx for ordering calculations
+        
         row_idx_map = {}
         col_idx_map = {}
-
+        
         node_str = r"\node [{style}] ({node_name}) {{{node_label}}};"
-
         grid = np.empty((size, size), dtype=object)
         grid[:] = ""
-
-        # add all the components on the diagonal
+        
+        # Add diagonal systems
         for i_row, j_col, comp in zip(comps_rows, comps_cols, self.systems):
             style = comp.style
             if comp.stack:
                 style += ",stack"
             if comp.faded:
                 style += ",faded"
-
+            
             label = _parse_label(comp.label, comp.label_width)
             node = node_str.format(style=style, node_name=comp.node_name, node_label=label)
             grid[i_row, j_col] = node
-
+            
             row_idx_map[comp.node_name] = i_row
             col_idx_map[comp.node_name] = j_col
-
-        # add all the off diagonal nodes from components
+        
+        # Add off-diagonal connection nodes
         for conn in self.connections:
-            # src, target, style, label, stack, faded, label_width
             src_row = row_idx_map[conn.src]
             target_col = col_idx_map[conn.target]
-
-            loc = (src_row, target_col)
-
+            
             style = conn.style
             if conn.stack:
                 style += ",stack"
             if conn.faded:
                 style += ",faded"
-
+            
             label = _parse_label(conn.label, conn.label_width)
-
-            node_name = "{}-{}".format(conn.src, conn.target)
-
+            node_name = f"{conn.src}-{conn.target}"
             node = node_str.format(style=style, node_name=node_name, node_label=label)
-
-            grid[loc] = node
-
-        # add the nodes for left outputs
+            
+            grid[src_row, target_col] = node
+        
+        # Add left outputs
         for comp_name, out in self.left_outs.items():
             style = out.style
             if out.stack:
                 style += ",stack"
             if out.faded:
                 style += ",faded"
-
+            
             i_row = row_idx_map[comp_name]
-            loc = (i_row, 0)
-
             label = _parse_label(out.label, out.label_width)
             node = node_str.format(style=style, node_name=out.node_name, node_label=label)
-
-            grid[loc] = node
-
-        # add the nodes for right outputs
+            grid[i_row, 0] = node
+        
+        # Add right outputs
         for comp_name, out in self.right_outs.items():
             style = out.style
             if out.stack:
                 style += ",stack"
             if out.faded:
                 style += ",faded"
-
+            
             i_row = row_idx_map[comp_name]
-            loc = (i_row, -1)
             label = _parse_label(out.label, out.label_width)
             node = node_str.format(style=style, node_name=out.node_name, node_label=label)
-
-            grid[loc] = node
-
-        # add the inputs to the top of the grid
+            grid[i_row, -1] = node
+        
+        # Add inputs
         for comp_name, inp in self.ins.items():
-            # node_name, style, label, stack = in_data
             style = inp.style
             if inp.stack:
                 style += ",stack"
             if inp.faded:
                 style += ",faded"
-
+            
             j_col = col_idx_map[comp_name]
-            loc = (0, j_col)
-            label = _parse_label(inp.label, label_width=inp.label_width)
+            label = _parse_label(inp.label, inp.label_width)
             node = node_str.format(style=style, node_name=inp.node_name, node_label=label)
-
-            grid[loc] = node
-
-        # mash the grid data into a string
+            grid[0, j_col] = node
+        
+        # Convert grid to string
         rows_str = ""
         for i, row in enumerate(grid):
-            rows_str += "%Row {}\n".format(i) + "&\n".join(row) + r"\\" + "\n"
-
+            rows_str += f"%Row {i}\n" + "&\n".join(row) + r"\\" + "\n"
+        
         return rows_str
-
-    def _build_edges(self):
+    
+    def _build_edges(self) -> str:
+        """Build the TikZ edge definitions."""
         h_edges = []
         v_edges = []
-
-        edge_format_string = "({start}) edge [{style}] ({end})"
+        
+        edge_format = "({start}) edge [{style}] ({end})"
+        
         for conn in self.connections:
-            h_edge_style = "DataLine"
-            v_edge_style = "DataLine"
+            h_style = "DataLine"
+            v_style = "DataLine"
+            
             if conn.src_faded or conn.faded:
-                h_edge_style += ",faded"
+                h_style += ",faded"
             if conn.target_faded or conn.faded:
-                v_edge_style += ",faded"
-            od_node_name = "{}-{}".format(conn.src, conn.target)
-
-            h_edges.append(edge_format_string.format(start=conn.src, end=od_node_name, style=h_edge_style))
-            v_edges.append(edge_format_string.format(start=od_node_name, end=conn.target, style=v_edge_style))
-
+                v_style += ",faded"
+            
+            od_node = f"{conn.src}-{conn.target}"
+            h_edges.append(edge_format.format(start=conn.src, end=od_node, style=h_style))
+            v_edges.append(edge_format.format(start=od_node, end=conn.target, style=v_style))
+        
         for comp_name, out in self.left_outs.items():
             style = "DataLine"
             if out.faded:
                 style += ",faded"
-            node_name = out.node_name
-            h_edges.append(edge_format_string.format(start=comp_name, end=node_name, style=style))
-
+            h_edges.append(edge_format.format(start=comp_name, end=out.node_name, style=style))
+        
         for comp_name, out in self.right_outs.items():
             style = "DataLine"
             if out.faded:
                 style += ",faded"
-            node_name = out.node_name
-            h_edges.append(edge_format_string.format(start=comp_name, end=node_name, style=style))
-
+            h_edges.append(edge_format.format(start=comp_name, end=out.node_name, style=style))
+        
         for comp_name, inp in self.ins.items():
             style = "DataLine"
             if inp.faded:
                 style += ",faded"
-            node_name = inp.node_name
-            v_edges.append(edge_format_string.format(start=comp_name, end=node_name, style=style))
-
+            v_edges.append(edge_format.format(start=comp_name, end=inp.node_name, style=style))
+        
         h_edges = sorted(h_edges, key=lambda s: "faded" in s)
         v_edges = sorted(v_edges, key=lambda s: "faded" in s)
-
+        
         paths_str = "% Horizontal edges\n" + "\n".join(h_edges) + "\n"
         paths_str += "% Vertical edges\n" + "\n".join(v_edges) + ";"
-
+        
         return paths_str
-
-    def _build_process_chain(self):
+    
+    def _build_process_chain(self) -> str:
+        """Build the TikZ process chain definitions."""
         sys_names = [s.node_name for s in self.systems]
         output_names = (
-            [data[0] for _, data in self.ins.items()]
-            + [data[0] for _, data in self.left_outs.items()]
-            + [data[0] for _, data in self.right_outs.items()]
+            [inp.node_name for inp in self.ins.values()] +
+            [out.node_name for out in self.left_outs.values()] +
+            [out.node_name for out in self.right_outs.values()]
         )
-        # comp_name, in_data in self.ins.items():
-        #     node_name, style, label, stack = in_data
+        
         chain_str = ""
-
+        
         for proc in self.processes:
             chain_str += "{ [start chain=process]\n \\begin{pgfonlayer}{process} \n"
             start_tip = False
+            
             for i, sys in enumerate(proc.systems):
                 if sys not in sys_names and sys not in output_names:
-                    raise ValueError(
-                        'process includes a system named "{}" but no system with that name exists.'.format(sys)
-                    )
+                    raise ValueError(f'Process includes system "{sys}" but no such system exists')
+                
                 if sys in output_names and i == 0:
                     start_tip = True
+                
                 if i == 0:
-                    chain_str += "\\chainin ({});\n".format(sys)
+                    chain_str += f"\\chainin ({sys});\n"
                 else:
                     if sys in output_names or (i == 1 and start_tip):
-                        if proc.arrow:
-                            style = "ProcessTipA"
-                        else:
-                            style = "ProcessTip"
+                        style = "ProcessTipA" if proc.arrow else "ProcessTip"
                     else:
-                        if proc.arrow:
-                            style = "ProcessHVA"
-                        else:
-                            style = "ProcessHV"
+                        style = "ProcessHVA" if proc.arrow else "ProcessHV"
+                    
                     if proc.faded:
                         style = "Faded" + style
-                    chain_str += "\\chainin ({}) [join=by {}];\n".format(sys, style)
+                    
+                    chain_str += f"\\chainin ({sys}) [join=by {style}];\n"
+            
             chain_str += "\\end{pgfonlayer}\n}"
-
+        
         return chain_str
-
-    def _compose_optional_package_list(self):
-        # Check for optional LaTeX packages
-        optional_packages_list = self.optional_packages
+    
+    def _compose_optional_package_list(self) -> str:
+        """Compose the optional LaTeX package list."""
+        packages = self.optional_packages.copy()
         if self.use_sfmath:
-            optional_packages_list.append("sfmath")
-
-        # Join all packages into one string separated by comma
-        optional_packages_str = ",".join(optional_packages_list)
-
-        return optional_packages_str
-
-    def write(self, file_name, build=True, cleanup=True, quiet=False, outdir="."):
+            packages.append("sfmath")
+        return ",".join(packages)
+    
+    def write(self, file_name: str, build: bool = True, cleanup: bool = True,
+              quiet: bool = False, outdir: str = ".") -> None:
         """
-        Write output files for the XDSM diagram.  This produces the following:
-
-            - {file_name}.tikz
-                A file containing the TikZ definition of the XDSM diagram.
-            - {file_name}.tex
-                A standalone document wrapped around an include of the TikZ file which can
-                be compiled to a pdf.
-            - {file_name}.pdf
-                An optional compiled version of the standalone tex file.
+        Write output files for the XDSM diagram.
 
         Parameters
         ----------
         file_name : str
-            The prefix to be used for the output files
+            Prefix for output files
         build : bool
-            Flag that determines whether the standalone PDF of the XDSM will be compiled.
-            Default is True.
+            Whether to compile the PDF
         cleanup : bool
-            Flag that determines if pdflatex build files will be deleted after build is complete
+            Whether to delete build files after compilation
         quiet : bool
-            Set to True to suppress output from pdflatex.
+            Suppress pdflatex output
         outdir : str
-            Path to an existing directory in which to place output files. If a relative
-            path is given, it is interpreted relative to the current working directory.
+            Output directory path
         """
         nodes = self._build_node_grid()
         edges = self._build_edges()
         process = self._build_process_chain()
-
+        
         module_path = os.path.dirname(__file__)
         diagram_styles_path = os.path.join(module_path, "diagram_styles")
-        # Hack for Windows. MiKTeX needs Linux style paths.
         diagram_styles_path = diagram_styles_path.replace("\\", "/")
-
+        
         optional_packages_str = self._compose_optional_package_list()
-
+        
         tikzpicture_str = tikzpicture_template.format(
             nodes=nodes,
             edges=edges,
@@ -673,11 +669,11 @@ class XDSM:
             diagram_styles_path=diagram_styles_path,
             optional_packages=optional_packages_str,
         )
-
+        
         base_output_fp = os.path.join(outdir, file_name)
         with open(base_output_fp + ".tikz", "w") as f:
             f.write(tikzpicture_str)
-
+        
         tex_str = tex_template.format(
             nodes=nodes,
             edges=edges,
@@ -686,73 +682,61 @@ class XDSM:
             optional_packages=optional_packages_str,
             version=pyxdsm_version,
         )
-
+        
         with open(base_output_fp + ".tex", "w") as f:
             f.write(tex_str)
-
+        
         if build:
             command = [
                 "pdflatex",
                 "-halt-on-error",
                 "-interaction=nonstopmode",
-                "-output-directory={}".format(outdir),
+                f"-output-directory={outdir}",
             ]
             if quiet:
                 command += ["-interaction=batchmode", "-halt-on-error"]
             command += [f"{file_name}.tex"]
             subprocess.run(command, check=True)
+            
             if cleanup:
                 for ext in ["aux", "fdb_latexmk", "fls", "log"]:
-                    f_name = "{}.{}".format(base_output_fp, ext)
+                    f_name = f"{base_output_fp}.{ext}"
                     if os.path.exists(f_name):
                         os.remove(f_name)
-
-    def write_sys_specs(self, folder_name):
+    
+    def write_sys_specs(self, folder_name: str) -> None:
         """
-        Write I/O spec json files for systems to specified folder
-
-        An I/O spec of a system is the collection of all variables going into and out of it.
-        That includes any variables being passed between systems, as well as all inputs and outputs.
-        This information is useful for comparing implementations (such as components and groups in OpenMDAO)
-        to the XDSM diagrams.
-
-        The json spec files can be used to write testing utilities that compare the inputs/outputs of an implementation
-        to the XDSM, and thus allow you to verify that your codes match the XDSM diagram precisely.
-        This technique is especially useful when large engineering teams are collaborating on
-        model development. It allows them to use the XDSM as a shared contract between team members
-        so everyone can be sure that their codes will sync up.
+        Write I/O spec JSON files for systems.
 
         Parameters
         ----------
-        folder_name: str
-            name of the folder, which will be created if it doesn't exist, to put spec files into
+        folder_name : str
+            Folder to write spec files into
         """
-
-        # find un-connected to each system by looking at Inputs
         specs = {}
         for sys in self.systems:
             specs[sys.node_name] = {"inputs": set(), "outputs": set()}
-
+        
+        # Add inputs from Input nodes
         for sys_name, inp in self.ins.items():
             _label_to_spec(inp.label, specs[sys_name]["inputs"])
-
-        # find connected inputs/outputs to each system by looking at Connections
+        
+        # Add inputs/outputs from Connections
         for conn in self.connections:
             _label_to_spec(conn.label, specs[conn.target]["inputs"])
-
             _label_to_spec(conn.label, specs[conn.src]["outputs"])
-
-        # find unconnected outputs to each system by looking at Outputs
+        
+        # Add outputs from Output nodes
         for sys_name, out in self.left_outs.items():
             _label_to_spec(out.label, specs[sys_name]["outputs"])
         for sys_name, out in self.right_outs.items():
             _label_to_spec(out.label, specs[sys_name]["outputs"])
-
+        
         if not os.path.isdir(folder_name):
             os.mkdir(folder_name)
-
+        
         for sys in self.systems:
-            if sys.spec_name is not False:
+            if sys.spec_name is not False and sys.spec_name is not None:
                 path = os.path.join(folder_name, sys.spec_name + ".json")
                 with open(path, "w") as f:
                     spec = specs[sys.node_name]
@@ -760,3 +744,69 @@ class XDSM:
                     spec["outputs"] = list(spec["outputs"])
                     json_str = json.dumps(spec, indent=2)
                     f.write(json_str)
+    
+    def to_dict(self) -> dict:
+        """Export XDSM specification to dictionary."""
+        return self.model_dump()
+    
+    def to_json(self, filename: Optional[str] = None) -> str:
+        """Export XDSM specification to JSON."""
+        json_str = self.model_dump_json(indent=2)
+        if filename:
+            with open(filename, 'w') as f:
+                f.write(json_str)
+        return json_str
+    
+    @classmethod
+    def from_dict(cls, data: dict) -> 'XDSM':
+        """Load XDSM from dictionary."""
+        return cls.model_validate(data)
+    
+    @classmethod
+    def from_json(cls, filename: str) -> 'XDSM':
+        """Load XDSM from JSON file."""
+        with open(filename, 'r') as f:
+            data = json.load(f)
+        return cls.model_validate(data)
+
+
+# Example usage
+if __name__ == "__main__":
+    # Create XDSM with validation
+    xdsm = XDSM(use_sfmath=True, auto_fade={'connections': 'connected'})
+    
+    # Add systems - note: use the proper style constants
+    xdsm.add_system('opt', OPT, r'\text{Optimizer}')
+    xdsm.add_system('d1', FUNC, r'\text{Discipline 1}')  # Changed to FUNC which is valid
+    xdsm.add_system('d2', FUNC, r'\text{Discipline 2}')
+    xdsm.add_system('func', FUNC, r'\text{Objective}')
+    
+    # Add connections
+    xdsm.connect('opt', 'd1', r'x_1')
+    xdsm.connect('opt', 'd2', r'x_2')
+    xdsm.connect('d1', 'd2', r'y_1')
+    xdsm.connect('d2', 'd1', r'y_2')
+    xdsm.connect('d1', 'func', r'f_1')
+    xdsm.connect('d2', 'func', r'f_2')
+    xdsm.connect('func', 'opt', r'F')
+    
+    # Add process
+    xdsm.add_process(['opt', 'd1', 'd2', 'func', 'opt'])
+    
+    # Export to JSON
+    xdsm.to_json('xdsm_spec.json')
+    
+    # Write LaTeX files
+    xdsm.write('example_xdsm', build=True)
+    
+    # Load from JSON
+    xdsm_loaded = XDSM.from_json('xdsm_spec.json')
+    print("Successfully loaded XDSM from JSON")
+    
+    # # Validate example - this will raise an error
+    # try:
+    #     bad_xdsm = XDSM()
+    #     bad_xdsm.add_system('sys1', OPT, 'System 1')
+    #     bad_xdsm.connect('sys1', 'sys1', 'Invalid')  # Self-connection error
+    # except ValueError as e:
+    #     print(f"Validation caught error: {e}")
