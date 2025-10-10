@@ -6,12 +6,11 @@ from __future__ import print_function
 import os
 import numpy as np
 import json
-import subprocess
 from typing import Literal, Optional, Tuple, List, Dict, Set, Union
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 import plotly.graph_objects as go
 
-from pyxdsm import __version__ as pyxdsm_version
+from pyxdsm.xdsm_latex_writer import XDSMLatexWriter
 
 # Constants
 OPT = "Optimization"
@@ -38,96 +37,6 @@ VALID_NODE_STYLES = {
     'Optimization', 'SubOptimization', 'MDA', 'DOE', 'ImplicitFunction',
     'Function', 'Group', 'ImplicitGroup', 'Metamodel', 'DataInter', 'DataIO'
 }
-
-# LaTeX templates
-tikzpicture_template = r"""
-%%% Preamble Requirements %%%
-% \usepackage{{geometry}}
-% \usepackage{{amsfonts}}
-% \usepackage{{amsmath}}
-% \usepackage{{amssymb}}
-% \usepackage{{tikz}}
-
-% Optional packages such as sfmath set through python interface
-% \usepackage{{{optional_packages}}}
-
-% \usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}}
-
-%%% End Preamble Requirements %%%
-
-\input{{"{diagram_styles_path}"}}
-\begin{{tikzpicture}}
-
-\matrix[MatrixSetup]{{
-{nodes}}};
-
-% XDSM process chains
-{process}
-
-\begin{{pgfonlayer}}{{data}}
-\path
-{edges}
-\end{{pgfonlayer}}
-
-\end{{tikzpicture}}
-"""
-
-tex_template = r"""
-% XDSM diagram created with pyXDSM {version}.
-\documentclass{{article}}
-\usepackage{{geometry}}
-\usepackage{{amsfonts}}
-\usepackage{{amsmath}}
-\usepackage{{amssymb}}
-\usepackage{{tikz}}
-
-% Optional packages such as sfmath set through python interface
-\usepackage{{{optional_packages}}}
-
-% Define the set of TikZ packages to be included in the architecture diagram document
-\usetikzlibrary{{arrows,chains,positioning,scopes,shapes.geometric,shapes.misc,shadows}}
-
-
-% Set the border around all of the architecture diagrams to be tight to the diagrams themselves
-% (i.e. no longer need to tinker with page size parameters)
-\usepackage[active,tightpage]{{preview}}
-\PreviewEnvironment{{tikzpicture}}
-\setlength{{\PreviewBorder}}{{5pt}}
-
-\begin{{document}}
-
-\input{{"{tikzpicture_path}"}}
-
-\end{{document}}
-"""
-
-
-def chunk_label(label, n_chunks):
-    for i in range(0, len(label), n_chunks):
-        yield label[i : i + n_chunks]
-
-
-def _parse_label(label: Union[str, List[str], Tuple[str, ...]], label_width: Optional[int] = None) -> str:
-    """Parse label into LaTeX format."""
-    if isinstance(label, (tuple, list)):
-        if label_width is None:
-            return r"$\begin{array}{c}" + r" \\ ".join(label) + r"\end{array}$"
-        else:
-            labels = []
-            for chunk in chunk_label(label, label_width):
-                labels.append(", ".join(chunk))
-            return r"$\begin{array}{c}" + r" \\ ".join(labels) + r"\end{array}$"
-    else:
-        return r"${}$".format(label)
-
-
-def _label_to_spec(label: Union[str, List[str], Tuple[str, ...]], spec: Set[str]) -> None:
-    """Add label variables to spec set."""
-    if isinstance(label, str):
-        label = [label]
-    for var in label:
-        if var:
-            spec.add(var)
 
 
 class SystemNode(BaseModel):
@@ -232,11 +141,11 @@ class ConnectionEdge(BaseModel):
 
 class ProcessChain(BaseModel):
     """Process flow chain between systems."""
-    
+
     systems: List[str] = Field(..., description="List of system names in order")
     arrow: bool = Field(default=True, description="Show arrows on process lines")
     faded: bool = Field(default=False, description="Fade the process chain")
-    
+
     @field_validator('systems')
     @classmethod
     def validate_systems(cls, v: List[str]) -> List[str]:
@@ -277,11 +186,10 @@ class XDSM(BaseModel):
     
     systems: List[SystemNode] = Field(default_factory=list, description="System nodes")
     connections: List[ConnectionEdge] = Field(default_factory=list, description="Connections")
-    ins: Dict[str, InputNode] = Field(default_factory=dict, description="Input nodes")
-    left_outs: Dict[str, OutputNode] = Field(default_factory=dict, description="Left output nodes")
-    right_outs: Dict[str, OutputNode] = Field(default_factory=dict, description="Right output nodes")
+    inputs: Dict[str, InputNode] = Field(default_factory=dict, description="Input nodes")
+    outputs: Dict[str, OutputNode] = Field(default_factory=dict, description="Left output nodes")
     processes: List[ProcessChain] = Field(default_factory=list, description="Process chains")
-    
+
     use_sfmath: bool = Field(default=True, description="Use sfmath LaTeX package")
     optional_packages: List[str] = Field(default_factory=list, description="Additional LaTeX packages")
     auto_fade: AutoFadeConfig = Field(default_factory=AutoFadeConfig, description="Auto-fade configuration")
@@ -328,7 +236,28 @@ class XDSM(BaseModel):
             data['use_sfmath'] = use_sfmath
         
         super().__init__(**data)
-    
+
+    @model_validator(mode='before')
+    @classmethod
+    def set_defaults_for_missing_fields(cls, data):
+        """Ensure missing or null collection fields get empty defaults."""
+        if not isinstance(data, dict):
+            return data
+
+        # Set empty defaults for missing or null collection fields
+        if 'inputs' not in data or data.get('inputs') is None:
+            data['inputs'] = {}
+        if 'outputs' not in data or data.get('outputs') is None:
+            data['outputs'] = {}
+        if 'systems' not in data or data.get('systems') is None:
+            data['systems'] = []
+        if 'connections' not in data or data.get('connections') is None:
+            data['connections'] = []
+        if 'processes' not in data or data.get('processes') is None:
+            data['processes'] = []
+
+        return data
+
     @model_validator(mode='after')
     def validate_unique_system_names(self):
         """Ensure all system names are unique."""
@@ -363,7 +292,7 @@ class XDSM(BaseModel):
            (self.auto_fade.inputs == "connected" and name in sys_faded and sys_faded[name]):
             faded = True
         
-        self.ins[name] = InputNode(
+        self.inputs[name] = InputNode(
             node_name="output_" + name,
             label=label,
             label_width=label_width,
@@ -392,12 +321,7 @@ class XDSM(BaseModel):
             side=side
         )
         
-        if side == "left":
-            self.left_outs[name] = output
-        elif side == "right":
-            self.right_outs[name] = output
-        else:
-            raise ValueError("Side must be 'left' or 'right'")
+        self.outputs[name] = output
     
     def connect(self, src: str, target: str, label: Union[str, List[str], Tuple[str, ...]],
                 label_width: Optional[int] = None, style: str = "DataInter",
@@ -431,213 +355,19 @@ class XDSM(BaseModel):
     def add_process(self, systems: List[str], arrow: bool = True, faded: bool = False) -> None:
         """Add a process line between systems."""
         sys_faded = {s.node_name: s.faded for s in self.systems}
-        
+
         if (self.auto_fade.processes == "all") or \
-           (self.auto_fade.processes == "connected" and 
+           (self.auto_fade.processes == "connected" and
             any([sys_faded.get(s, False) for s in systems])):
             faded = True
-        
+
         process = ProcessChain(systems=systems, arrow=arrow, faded=faded)
         self.processes.append(process)
-    
-    def _build_node_grid(self) -> str:
-        """Build the TikZ node grid."""
-        size = len(self.systems)
-        comps_rows = np.arange(size)
-        comps_cols = np.arange(size)
-        
-        if self.ins:
-            size += 1
-            comps_rows += 1
-        
-        if self.left_outs:
-            size += 1
-            comps_cols += 1
-        
-        if self.right_outs:
-            size += 1
-        
-        row_idx_map = {}
-        col_idx_map = {}
-        
-        node_str = r"\node [{style}] ({node_name}) {{{node_label}}};"
-        grid = np.empty((size, size), dtype=object)
-        grid[:] = ""
-        
-        # Add diagonal systems
-        for i_row, j_col, comp in zip(comps_rows, comps_cols, self.systems):
-            style = comp.style
-            if comp.stack:
-                style += ",stack"
-            if comp.faded:
-                style += ",faded"
-            
-            label = _parse_label(comp.label, comp.label_width)
-            node = node_str.format(style=style, node_name=comp.node_name, node_label=label)
-            grid[i_row, j_col] = node
-            
-            row_idx_map[comp.node_name] = i_row
-            col_idx_map[comp.node_name] = j_col
-        
-        # Add off-diagonal connection nodes
-        for conn in self.connections:
-            src_row = row_idx_map[conn.src]
-            target_col = col_idx_map[conn.target]
-            
-            style = conn.style
-            if conn.stack:
-                style += ",stack"
-            if conn.faded:
-                style += ",faded"
-            
-            label = _parse_label(conn.label, conn.label_width)
-            node_name = f"{conn.src}-{conn.target}"
-            node = node_str.format(style=style, node_name=node_name, node_label=label)
-            
-            grid[src_row, target_col] = node
-        
-        # Add left outputs
-        for comp_name, out in self.left_outs.items():
-            style = out.style
-            if out.stack:
-                style += ",stack"
-            if out.faded:
-                style += ",faded"
-            
-            i_row = row_idx_map[comp_name]
-            label = _parse_label(out.label, out.label_width)
-            node = node_str.format(style=style, node_name=out.node_name, node_label=label)
-            grid[i_row, 0] = node
-        
-        # Add right outputs
-        for comp_name, out in self.right_outs.items():
-            style = out.style
-            if out.stack:
-                style += ",stack"
-            if out.faded:
-                style += ",faded"
-            
-            i_row = row_idx_map[comp_name]
-            label = _parse_label(out.label, out.label_width)
-            node = node_str.format(style=style, node_name=out.node_name, node_label=label)
-            grid[i_row, -1] = node
-        
-        # Add inputs
-        for comp_name, inp in self.ins.items():
-            style = inp.style
-            if inp.stack:
-                style += ",stack"
-            if inp.faded:
-                style += ",faded"
-            
-            j_col = col_idx_map[comp_name]
-            label = _parse_label(inp.label, inp.label_width)
-            node = node_str.format(style=style, node_name=inp.node_name, node_label=label)
-            grid[0, j_col] = node
-        
-        # Convert grid to string
-        rows_str = ""
-        for i, row in enumerate(grid):
-            rows_str += f"%Row {i}\n" + "&\n".join(row) + r"\\" + "\n"
-        
-        return rows_str
-    
-    def _build_edges(self) -> str:
-        """Build the TikZ edge definitions."""
-        h_edges = []
-        v_edges = []
-        
-        edge_format = "({start}) edge [{style}] ({end})"
-        
-        for conn in self.connections:
-            h_style = "DataLine"
-            v_style = "DataLine"
-            
-            if conn.src_faded or conn.faded:
-                h_style += ",faded"
-            if conn.target_faded or conn.faded:
-                v_style += ",faded"
-            
-            od_node = f"{conn.src}-{conn.target}"
-            h_edges.append(edge_format.format(start=conn.src, end=od_node, style=h_style))
-            v_edges.append(edge_format.format(start=od_node, end=conn.target, style=v_style))
-        
-        for comp_name, out in self.left_outs.items():
-            style = "DataLine"
-            if out.faded:
-                style += ",faded"
-            h_edges.append(edge_format.format(start=comp_name, end=out.node_name, style=style))
-        
-        for comp_name, out in self.right_outs.items():
-            style = "DataLine"
-            if out.faded:
-                style += ",faded"
-            h_edges.append(edge_format.format(start=comp_name, end=out.node_name, style=style))
-        
-        for comp_name, inp in self.ins.items():
-            style = "DataLine"
-            if inp.faded:
-                style += ",faded"
-            v_edges.append(edge_format.format(start=comp_name, end=inp.node_name, style=style))
-        
-        h_edges = sorted(h_edges, key=lambda s: "faded" in s)
-        v_edges = sorted(v_edges, key=lambda s: "faded" in s)
-        
-        paths_str = "% Horizontal edges\n" + "\n".join(h_edges) + "\n"
-        paths_str += "% Vertical edges\n" + "\n".join(v_edges) + ";"
-        
-        return paths_str
-    
-    def _build_process_chain(self) -> str:
-        """Build the TikZ process chain definitions."""
-        sys_names = [s.node_name for s in self.systems]
-        output_names = (
-            [inp.node_name for inp in self.ins.values()] +
-            [out.node_name for out in self.left_outs.values()] +
-            [out.node_name for out in self.right_outs.values()]
-        )
-        
-        chain_str = ""
-        
-        for proc in self.processes:
-            chain_str += "{ [start chain=process]\n \\begin{pgfonlayer}{process} \n"
-            start_tip = False
-            
-            for i, sys in enumerate(proc.systems):
-                if sys not in sys_names and sys not in output_names:
-                    raise ValueError(f'Process includes system "{sys}" but no such system exists')
-                
-                if sys in output_names and i == 0:
-                    start_tip = True
-                
-                if i == 0:
-                    chain_str += f"\\chainin ({sys});\n"
-                else:
-                    if sys in output_names or (i == 1 and start_tip):
-                        style = "ProcessTipA" if proc.arrow else "ProcessTip"
-                    else:
-                        style = "ProcessHVA" if proc.arrow else "ProcessHV"
-                    
-                    if proc.faded:
-                        style = "Faded" + style
-                    
-                    chain_str += f"\\chainin ({sys}) [join=by {style}];\n"
-            
-            chain_str += "\\end{pgfonlayer}\n}"
-        
-        return chain_str
-    
-    def _compose_optional_package_list(self) -> str:
-        """Compose the optional LaTeX package list."""
-        packages = self.optional_packages.copy()
-        if self.use_sfmath:
-            packages.append("sfmath")
-        return ",".join(packages)
-    
+
     def write(self, file_name: str, build: bool = True, cleanup: bool = True,
               quiet: bool = False, outdir: str = ".") -> None:
         """
-        Write output files for the XDSM diagram.
+        Write output files for the XDSM diagram (delegates to XDSMLatexWriter).
 
         Parameters
         ----------
@@ -652,58 +382,49 @@ class XDSM(BaseModel):
         outdir : str
             Output directory path
         """
-        nodes = self._build_node_grid()
-        edges = self._build_edges()
-        process = self._build_process_chain()
-        
-        module_path = os.path.dirname(__file__)
-        diagram_styles_path = os.path.join(module_path, "diagram_styles")
-        diagram_styles_path = diagram_styles_path.replace("\\", "/")
-        
-        optional_packages_str = self._compose_optional_package_list()
-        
-        tikzpicture_str = tikzpicture_template.format(
-            nodes=nodes,
-            edges=edges,
-            process=process,
-            diagram_styles_path=diagram_styles_path,
-            optional_packages=optional_packages_str,
-        )
-        
-        base_output_fp = os.path.join(outdir, file_name)
-        with open(base_output_fp + ".tikz", "w") as f:
-            f.write(tikzpicture_str)
-        
-        tex_str = tex_template.format(
-            nodes=nodes,
-            edges=edges,
-            tikzpicture_path=file_name + ".tikz",
-            diagram_styles_path=diagram_styles_path,
-            optional_packages=optional_packages_str,
-            version=pyxdsm_version,
-        )
-        
-        with open(base_output_fp + ".tex", "w") as f:
-            f.write(tex_str)
-        
-        if build:
-            command = [
-                "pdflatex",
-                "-halt-on-error",
-                "-interaction=nonstopmode",
-                f"-output-directory={outdir}",
-            ]
-            if quiet:
-                command += ["-interaction=batchmode", "-halt-on-error"]
-            command += [f"{file_name}.tex"]
-            subprocess.run(command, check=True)
-            
-            if cleanup:
-                for ext in ["aux", "fdb_latexmk", "fls", "log"]:
-                    f_name = f"{base_output_fp}.{ext}"
-                    if os.path.exists(f_name):
-                        os.remove(f_name)
+        XDSMLatexWriter.write(self, file_name, build, cleanup, quiet, outdir)
     
+    def to_latex(self, file_name: str, build: bool = True, cleanup: bool = True,
+                 quiet: bool = False, outdir: str = ".") -> None:
+        """
+        Export XDSM diagram to LaTeX/TikZ format.
+        
+        Alias for write() method for clarity when exporting to LaTeX.
+
+        Parameters
+        ----------
+        file_name : str
+            Prefix for output files
+        build : bool
+            Whether to compile the PDF
+        cleanup : bool
+            Whether to delete build files after compilation
+        quiet : bool
+            Suppress pdflatex output
+        outdir : str
+            Output directory path
+        """
+        XDSMLatexWriter.write(self, file_name, build, cleanup, quiet, outdir)
+
+    def write_html(self, file_name: str, title: str = "XDSM Diagram",
+                   show_browser: bool = False) -> None:
+        """
+        Export XDSM diagram to HTML with TikZ rendered in browser using TikZJax.
+        This produces output identical to the LaTeX/PDF version but viewable in a browser.
+        
+        Parameters
+        ----------
+        file_name : str
+            Output HTML file name (with or without .html extension)
+        title : str
+            Title for the diagram
+        show_browser : bool
+            Whether to open the HTML file in browser after creation
+        """
+        from pyxdsm.xdsm_tikzjax_writer import XDSMTikZJaxWriter
+        XDSMTikZJaxWriter.write(self, file_name, title, show_browser)
+    
+
     def write_sys_specs(self, folder_name: str) -> None:
         """
         Write I/O spec JSON files for systems.
@@ -713,12 +434,20 @@ class XDSM(BaseModel):
         folder_name : str
             Folder to write spec files into
         """
+        def _label_to_spec(label: Union[str, List[str], Tuple[str, ...]], spec: Set[str]) -> None:
+            """Add label variables to spec set."""
+            if isinstance(label, str):
+                label = [label]
+            for var in label:
+                if var:
+                    spec.add(var)
+
         specs = {}
         for sys in self.systems:
             specs[sys.node_name] = {"inputs": set(), "outputs": set()}
         
         # Add inputs from Input nodes
-        for sys_name, inp in self.ins.items():
+        for sys_name, inp in self.inputs.items():
             _label_to_spec(inp.label, specs[sys_name]["inputs"])
         
         # Add inputs/outputs from Connections
@@ -727,9 +456,7 @@ class XDSM(BaseModel):
             _label_to_spec(conn.label, specs[conn.src]["outputs"])
         
         # Add outputs from Output nodes
-        for sys_name, out in self.left_outs.items():
-            _label_to_spec(out.label, specs[sys_name]["outputs"])
-        for sys_name, out in self.right_outs.items():
+        for sys_name, out in self.outputs.items():
             _label_to_spec(out.label, specs[sys_name]["outputs"])
         
         if not os.path.isdir(folder_name):
@@ -798,15 +525,16 @@ if __name__ == "__main__":
     
     # Write LaTeX files
     xdsm.write('example_xdsm', build=True)
+    xdsm.write_html('example_xdsm')
     
     # Load from JSON
     xdsm_loaded = XDSM.from_json('xdsm_spec.json')
     print("Successfully loaded XDSM from JSON")
     
-    # # Validate example - this will raise an error
-    # try:
-    #     bad_xdsm = XDSM()
-    #     bad_xdsm.add_system('sys1', OPT, 'System 1')
-    #     bad_xdsm.connect('sys1', 'sys1', 'Invalid')  # Self-connection error
-    # except ValueError as e:
-    #     print(f"Validation caught error: {e}")
+    # Validate example - this will raise an error
+    try:
+        bad_xdsm = XDSM()
+        bad_xdsm.add_system('sys1', OPT, 'System 1')
+        bad_xdsm.connect('sys1', 'sys1', 'Invalid')  # Self-connection error
+    except ValueError as e:
+        print(f"Validation caught error: {e}")

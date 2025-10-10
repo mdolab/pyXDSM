@@ -1,7 +1,8 @@
 import os
 import subprocess
-from collections import namedtuple
+from typing import Optional, Dict, List, Union, Tuple
 import numpy as np
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 # color pallette link: http://paletton.com/#uid=72Q1j0kllllkS5tKC9H96KClOKC
@@ -208,9 +209,35 @@ base_file_end = r"""
 \end{document}"""
 
 
-Variable = namedtuple("Variable", field_names=["size", "idx", "text", "color"])
+class Variable(BaseModel):
+    """Variable in matrix equation."""
 
-CellData = namedtuple("CellData", field_names=["text", "color", "highlight"])
+    size: int = Field(..., description="Size/dimension of the variable")
+    idx: int = Field(..., description="Index in the matrix")
+    text: str = Field(default="", description="Display text/label")
+    color: Optional[str] = Field(default=None, description="Color for the variable")
+
+    @field_validator('size')
+    @classmethod
+    def validate_size(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("Variable size must be at least 1")
+        return v
+
+    @field_validator('idx')
+    @classmethod
+    def validate_idx(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("Variable index must be non-negative")
+        return v
+
+
+class CellData(BaseModel):
+    """Data for a cell in matrix equation."""
+
+    text: str = Field(default="", description="Cell text/label")
+    color: Optional[str] = Field(default=None, description="Cell color")
+    highlight: Union[int, str] = Field(default=1, description="Highlight level or type")
 
 
 def _color(base_color, h_light):
@@ -247,49 +274,52 @@ def _write_tikz(tikz, out_file, build=True, cleanup=True):
                     os.remove(f_name)
 
 
-class TotalJacobian(object):
-    def __init__(self):
-        self._variables = {}
-        self._j_inputs = {}
-        self._n_inputs = 0
+class TotalJacobian(BaseModel):
+    """Total Jacobian matrix representation."""
 
-        self._i_outputs = {}
-        self._n_outputs = 0
+    variables: Dict[str, Variable] = Field(default_factory=dict)
+    j_inputs: Dict[int, Variable] = Field(default_factory=dict)
+    n_inputs: int = Field(default=0)
 
-        self._connections = {}
-        self._ij_connections = {}
+    i_outputs: Dict[int, Variable] = Field(default_factory=dict)
+    n_outputs: int = Field(default=0)
 
-        self._setup = False
+    connections: Dict[Tuple[str, str], CellData] = Field(default_factory=dict)
+    ij_connections: Dict[Tuple[int, int], CellData] = Field(default_factory=dict)
+
+    setup: bool = Field(default=False)
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def add_input(self, name, size=1, text=""):
-        self._variables[name] = Variable(size=size, idx=self._n_inputs, text=text, color=None)
-        self._j_inputs[self._n_inputs] = self._variables[name]
-        self._n_inputs += 1
+        self.variables[name] = Variable(size=size, idx=self.n_inputs, text=text, color=None)
+        self.j_inputs[self.n_inputs] = self.variables[name]
+        self.n_inputs += 1
 
     def add_output(self, name, size=1, text=""):
-        self._variables[name] = Variable(size=size, idx=self._n_outputs, text=text, color=None)
-        self._i_outputs[self._n_outputs] = self._variables[name]
-        self._n_outputs += 1
+        self.variables[name] = Variable(size=size, idx=self.n_outputs, text=text, color=None)
+        self.i_outputs[self.n_outputs] = self.variables[name]
+        self.n_outputs += 1
 
     def connect(self, src, target, text="", color="tableau0"):
         if isinstance(target, (list, tuple)):
             for t in target:
-                self._connections[src, t] = CellData(text=text, color=color, highlight="diag")
+                self.connections[src, t] = CellData(text=text, color=color, highlight="diag")
         else:
-            self._connections[src, target] = CellData(text=text, color=color, highlight="diag")
+            self.connections[src, target] = CellData(text=text, color=color, highlight="diag")
 
     def _process_vars(self):
-        if self._setup:
+        if self.setup:
             return
 
         # deal with connections
-        for (src, target), cell_data in self._connections.items():
-            i_src = self._variables[src].idx
-            j_target = self._variables[target].idx
+        for (src, target), cell_data in self.connections.items():
+            i_src = self.variables[src].idx
+            j_target = self.variables[target].idx
 
-            self._ij_connections[i_src, j_target] = cell_data
+            self.ij_connections[i_src, j_target] = cell_data
 
-        self._setup = True
+        self.setup = True
 
     def write(self, out_file=None, build=True, cleanup=True):
         """
@@ -323,16 +353,16 @@ class TotalJacobian(object):
         tikz.append(r"  \blockcol{")
         tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\" % (1, 1, ""))
         tikz.append(r"  }")
-        for j in range(self._n_inputs):
-            var = self._j_inputs[j]
+        for j in range(self.n_inputs):
+            var = self.j_inputs[j]
             col_size = var.size
             tikz.append(r"  \blockcol{")
             tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\" % (col_size, 1, var.text))
             tikz.append(r"  }")
         tikz.append(r"}")
 
-        for i in range(self._n_outputs):
-            output = self._i_outputs[i]
+        for i in range(self.n_outputs):
+            output = self.i_outputs[i]
             row_size = output.size
 
             tikz.append(r"\blockrow{")
@@ -342,12 +372,12 @@ class TotalJacobian(object):
             tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\" % (1, row_size, output.text))
             tikz.append(r"  }")
 
-            for j in range(self._n_inputs):
-                var = self._j_inputs[j]
+            for j in range(self.n_inputs):
+                var = self.j_inputs[j]
                 col_size = var.size
                 tikz.append(r"  \blockcol{")
-                if (j, i) in self._ij_connections:
-                    cell_data = self._ij_connections[(j, i)]
+                if (j, i) in self.ij_connections:
+                    cell_data = self.ij_connections[(j, i)]
                     conn_color = "T{}".format(var.color)
                     if cell_data.color is not None:
                         conn_color = _color(cell_data.color, cell_data.highlight)
@@ -366,78 +396,81 @@ class TotalJacobian(object):
         _write_tikz(jac_tikz, out_file, build, cleanup)
 
 
-class MatrixEquation(object):
-    def __init__(self):
-        self._variables = {}
-        self._ij_variables = {}
+class MatrixEquation(BaseModel):
+    """Matrix equation representation."""
 
-        self._n_vars = 0
+    variables: Dict[str, Variable] = Field(default_factory=dict)
+    ij_variables: Dict[int, Variable] = Field(default_factory=dict)
 
-        self._connections = {}
-        self._ij_connections = {}
+    n_vars: int = Field(default=0)
 
-        self._text = {}
-        self._ij_text = {}
+    connections: Dict[Tuple[str, str], CellData] = Field(default_factory=dict)
+    ij_connections: Dict[Tuple[int, int], CellData] = Field(default_factory=dict)
 
-        self._total_size = 0
+    text_data: Dict[Tuple[str, str], CellData] = Field(default_factory=dict)
+    ij_text: Dict[Tuple[int, int], CellData] = Field(default_factory=dict)
 
-        self._setup = False
+    total_size: int = Field(default=0)
 
-        self._terms = []
+    setup: bool = Field(default=False)
+
+    terms: List[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def clear_terms(self):
-        self._terms = []
+        self.terms = []
 
     def add_variable(self, name, size=1, text="", color="blue"):
-        self._variables[name] = Variable(size=size, idx=self._n_vars, text=text, color=color)
-        self._ij_variables[self._n_vars] = self._variables[name]
-        self._n_vars += 1
+        self.variables[name] = Variable(size=size, idx=self.n_vars, text=text, color=color)
+        self.ij_variables[self.n_vars] = self.variables[name]
+        self.n_vars += 1
 
-        self._total_size += size
+        self.total_size += size
 
     def connect(self, src, target, text="", color=None, highlight=1):
         if isinstance(target, (list, tuple)):
             for t in target:
-                self._connections[src, t] = CellData(text=text, color=color, highlight=highlight)
+                self.connections[src, t] = CellData(text=text, color=color, highlight=highlight)
         else:
-            self._connections[src, target] = CellData(text=text, color=color, highlight=highlight)
+            self.connections[src, target] = CellData(text=text, color=color, highlight=highlight)
 
     def text(self, src, target, text):
         """Don't connect the src and target, but put some text where a connection would be"""
-        self._text[src, target] = CellData(text=text, color=None, highlight=-1)
+        self.text_data[src, target] = CellData(text=text, color=None, highlight=-1)
 
     def _process_vars(self):
         """Map all the data onto i,j grid"""
 
-        if self._setup:
+        if self.setup:
             return
 
         # deal with connections
-        for (src, target), cell_data in self._connections.items():
-            i_src = self._variables[src].idx
-            i_target = self._variables[target].idx
+        for (src, target), cell_data in self.connections.items():
+            i_src = self.variables[src].idx
+            i_target = self.variables[target].idx
 
-            self._ij_connections[i_src, i_target] = cell_data
+            self.ij_connections[i_src, i_target] = cell_data
 
-        for (src, target), cell_data in self._text.items():
-            i_src = self._variables[src].idx
-            j_target = self._variables[target].idx
+        for (src, target), cell_data in self.text_data.items():
+            i_src = self.variables[src].idx
+            j_target = self.variables[target].idx
 
-            self._ij_text[i_src, j_target] = cell_data
+            self.ij_text[i_src, j_target] = cell_data
 
-        self._setup = True
+        self.setup = True
 
     def jacobian(self, transpose=False):
         self._process_vars()
 
         tikz = []
 
-        for i in range(self._n_vars):
+        for i in range(self.n_vars):
             tikz.append(r"\blockrow{")
 
-            row_size = self._ij_variables[i].size
-            for j in range(self._n_vars):
-                var = self._ij_variables[j]
+            row_size = self.ij_variables[i].size
+            for j in range(self.n_vars):
+                var = self.ij_variables[j]
                 col_size = var.size
                 tikz.append(r"  \blockcol{")
 
@@ -451,8 +484,8 @@ class MatrixEquation(object):
                         r"    \blockmat{%s*\comp}{%s*\comp}{%s}{draw=white,fill=D%s}{}\\"
                         % (col_size, row_size, var.text, var.color)
                     )
-                elif location in self._ij_connections:
-                    cell_data = self._ij_connections[location]
+                elif location in self.ij_connections:
+                    cell_data = self.ij_connections[location]
                     conn_color = "T{}".format(var.color)
                     if cell_data.color is not None:
                         conn_color = _color(cell_data.color, cell_data.highlight)
@@ -460,8 +493,8 @@ class MatrixEquation(object):
                         r"    \blockmat{%s*\comp}{%s*\comp}{%s}{draw=white,fill=%s}{}\\"
                         % (col_size, row_size, cell_data.text, conn_color)
                     )
-                elif location in self._ij_text:
-                    cell_data = self._ij_text[location]
+                elif location in self.ij_text:
+                    cell_data = self.ij_text[location]
                     tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{%s}\\" % (col_size, row_size, cell_data.text))
                 else:
                     tikz.append(r"    \blockempty{%s*\comp}{%s*\comp}{}\\" % (col_size, row_size))
@@ -471,7 +504,7 @@ class MatrixEquation(object):
 
         lhs_tikz = "\n".join(tikz)
 
-        self._terms.append(lhs_tikz)
+        self.terms.append(lhs_tikz)
         return lhs_tikz
 
     def vector(self, base_color="red", highlight=None):
@@ -480,12 +513,12 @@ class MatrixEquation(object):
         tikz = []
 
         if highlight is None:
-            highlight = np.ones(self._n_vars)
+            highlight = np.ones(self.n_vars)
 
         for i, h_light in enumerate(highlight):
             color = _color(base_color, h_light)
 
-            row_size = self._ij_variables[i].size
+            row_size = self.ij_variables[i].size
 
             tikz.append(r"\blockrow{\blockcol{")
             if h_light == "diag":
@@ -500,7 +533,7 @@ class MatrixEquation(object):
 
         vec_tikz = "\n".join(tikz)
 
-        self._terms.append(vec_tikz)
+        self.terms.append(vec_tikz)
         return vec_tikz
 
     def operator(self, opperator="="):
@@ -508,7 +541,7 @@ class MatrixEquation(object):
 
         tikz = []
 
-        padding_size = (self._total_size - 1) / 2
+        padding_size = (self.total_size - 1) / 2
 
         tikz.append(r"\blockrow{")
         tikz.append(r"  \blockempty{\mwid}{%s*\comp}{} \\" % (padding_size))
@@ -518,7 +551,7 @@ class MatrixEquation(object):
 
         op_tikz = "\n".join(tikz)
 
-        self._terms.append(op_tikz)
+        self.terms.append(op_tikz)
         return op_tikz
 
     def spacer(self):
@@ -526,8 +559,8 @@ class MatrixEquation(object):
 
         tikz = []
 
-        for i in range(self._n_vars):
-            row_size = self._ij_variables[i].size
+        for i in range(self.n_vars):
+            row_size = self.ij_variables[i].size
 
             tikz.append(r"\blockrow{\blockcol{")
             tikz.append(r"  \blockmat{.25*\mwid}{%s*\comp}{}{draw=white,fill=white}{}\\" % (row_size))
@@ -535,7 +568,7 @@ class MatrixEquation(object):
 
         spacer_tikz = "\n".join(tikz)
 
-        self._terms.append(spacer_tikz)
+        self.terms.append(spacer_tikz)
         return spacer_tikz
 
     def write(self, out_file=None, build=True, cleanup=True):
@@ -563,7 +596,7 @@ class MatrixEquation(object):
         tikz = []
         tikz.append(r"\blockrow{")
 
-        for term in self._terms:
+        for term in self.terms:
             tikz.append(r"\blockcol{")
             tikz.append(term)
             tikz.append(r"}")
