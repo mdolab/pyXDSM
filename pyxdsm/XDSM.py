@@ -452,11 +452,7 @@ class XDSM(BaseModel):
                     spec["outputs"] = list(spec["outputs"])
                     json_str = json.dumps(spec, indent=2)
                     f.write(json_str)
-    
-    def to_dict(self) -> dict:
-        """Export XDSM specification to dictionary."""
-        return self.model_dump()
-    
+       
     def to_json(self, filename: Optional[str] = None) -> str:
         """Export XDSM specification to JSON."""
         json_str = self.model_dump_json(indent=2)
@@ -464,12 +460,7 @@ class XDSM(BaseModel):
             with open(filename, 'w') as f:
                 f.write(json_str)
         return json_str
-    
-    @classmethod
-    def from_dict(cls, data: dict) -> 'XDSM':
-        """Load XDSM from dictionary."""
-        return cls.model_validate(data)
-    
+
     @classmethod
     def from_json(cls, filename: str) -> 'XDSM':
         """Load XDSM from JSON file."""

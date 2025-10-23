@@ -19,6 +19,37 @@ This example uses the `.to_json` method to serialize the XDSM to a JSON file:
 
 .. literalinclude:: ../examples/mdf.json
 
+This can be loaded programmatically using the static :meth:`~pyxdsm.XDSM.XDSM.from_json` method.
+Alternatively a command-line tool can be used to write the JSON to a PDF, a tikz file, or another JSON file.
+
+Command-line Usage
+------------------
+
+The JSON file can be used directly from the command line:
+
+.. code-block:: bash
+
+   python -m pyxdsm mdf.json -o mdf.pdf
+
+This generates a PDF from the JSON specification. Other output formats are also supported:
+
+.. code-block:: bash
+
+   # Generate only TikZ (no PDF compilation)
+   python -m pyxdsm mdf.json -o mdf.tikz
+
+   # Export to a different JSON file
+   python -m pyxdsm mdf.json -o output.json
+
+   # Generate PDF with default name (mdf.pdf)
+   python -m pyxdsm mdf.json
+
+For more options, use the ``--help`` flag:
+
+.. code-block:: bash
+
+   python -m pyxdsm --help
+
 
 More complicated example
 ------------------------

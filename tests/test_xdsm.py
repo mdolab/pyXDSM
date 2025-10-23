@@ -325,6 +325,55 @@ class TestXDSM(unittest.TestCase):
         # no files outside the subdirs
         self.assertFalse(any(os.path.isfile(fp) for fp in os.listdir(self.tempdir)))
 
+    def test_serialize_deserialize(self):
+        filename = "xdsm_test_ser_deser"
+
+        # Change `use_sfmath` to False to use computer modern
+        x = XDSM(use_sfmath=False)
+
+        x.add_system("opt", OPT, r"\text{Optimizer}")
+        x.add_system("solver", SOLVER, r"\text{Newton}")
+        x.add_system("D1", FUNC, "D_1", label_width=2)
+        x.add_system("D2", FUNC, "D_2", stack=False)
+        x.add_system("F", FUNC, "F", faded=True)
+        x.add_system("G", FUNC, "G", spec_name="G_spec")
+
+        x.connect("opt", "D1", "x, z")
+        x.connect("opt", "D2", "z")
+        x.connect("opt", "F", "x, z")
+        x.connect("solver", "D1", "y_2")
+        x.connect("solver", "D2", "y_1")
+        x.connect("D1", "solver", r"\mathcal{R}(y_1)")
+        x.connect("solver", "F", "y_1, y_2")
+        x.connect("D2", "solver", r"\mathcal{R}(y_2)")
+        x.connect("solver", "G", "y_1, y_2")
+
+        x.connect("F", "opt", "f")
+        x.connect("G", "opt", "g")
+
+        x.add_output("opt", "x^*, z^*", side=RIGHT)
+        x.add_output("D1", "y_1^*", side=LEFT, stack=True)
+        x.add_output("D2", "y_2^*", side=LEFT)
+        x.add_output("F", "f^*", side=LEFT)
+        x.add_output("G", "g^*")
+
+        # Save to JSON file
+        json_file = filename + ".json"
+        x.to_json(json_file)
+
+        # Verify JSON file was created
+        self.assertTrue(os.path.isfile(json_file))
+
+        # Load from JSON file
+        x_loaded = XDSM.from_json(json_file)
+
+        # Verify the loaded XDSM is equivalent to the original
+        # Compare the model_dump() output (which gives us the full state)
+        original_dict = x.model_dump()
+        loaded_dict = x_loaded.model_dump()
+
+        self.assertEqual(original_dict, loaded_dict)
+
 
 if __name__ == "__main__":
     unittest.main()
