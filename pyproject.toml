@@ -1,0 +1,91 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyXDSM"
+dynamic = ["version"]
+description = "Python script to generate PDF XDSM diagrams using TikZ and LaTeX"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Apache License Version 2.0"}
+keywords = ["optimization", "multidisciplinary", "multi-disciplinary", "analysis", "n2", "xdsm"]
+authors = [
+    {name = "MDO Lab", email = ""},
+]
+maintainers = [
+    {name = "MDO Lab", email = ""},
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+
+dependencies = [
+    "numpy>=1.21",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov",
+    "ruff",
+]
+docs = [
+    "sphinx",
+    "sphinx-mdolab-theme",
+    "numpydoc",
+    "sphinxcontrib-autodoc-pydantic>=2.0",
+]
+all = ["pyXDSM[dev,docs]"]
+
+[project.urls]
+Homepage = "https://github.com/mdolab/pyXDSM"
+Documentation = "https://mdolab-pyxdsm.readthedocs-hosted.com"
+Repository = "https://github.com/mdolab/pyXDSM"
+Issues = "https://github.com/mdolab/pyXDSM/issues"
+
+[tool.setuptools]
+packages = ["pyxdsm"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pyxdsm.__version__"}
+
+[tool.setuptools.package-data]
+pyxdsm = ["*.tex"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

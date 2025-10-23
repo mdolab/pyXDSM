@@ -15,6 +15,11 @@ This will output ``mdf.tex``, a standalone tex document that (by default) is als
    :scale: 30
 
 
+This example uses the `.to_json` method to serialize the XDSM to a JSON file:
+
+.. literalinclude:: ../examples/mdf.json
+
+
 More complicated example
 ------------------------
 

@@ -29,3 +29,5 @@ x.add_output("D2", "y_2^*", side=LEFT)
 x.add_output("F", "f^*", side=LEFT)
 x.add_output("G", "g^*", side=LEFT)
 x.write("mdf")
+
+x.to_json("mdf.json")

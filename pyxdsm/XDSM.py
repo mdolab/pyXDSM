@@ -54,14 +54,14 @@ class SystemNode(BaseModel):
     
     @field_validator('node_name')
     @classmethod
-    def validate_node_name(cls, v: str) -> str:
+    def _validate_node_name(cls, v: str) -> str:
         if not v or not v.strip():
             raise ValueError("Node name cannot be empty")
         return v.strip()
     
     @field_validator('style')
     @classmethod
-    def validate_style(cls, v: str) -> str:
+    def _validate_style(cls, v: str) -> str:
         """Validate that style is a known TikZ style."""
         if v not in VALID_NODE_STYLES:
             raise ValueError(
@@ -104,7 +104,7 @@ class OutputNode(BaseModel):
     
     @field_validator('side')
     @classmethod
-    def validate_side(cls, v: str) -> str:
+    def _validate_side(cls, v: str) -> str:
         if v not in ['left', 'right']:
             raise ValueError("Side must be 'left' or 'right'")
         return v
@@ -127,13 +127,13 @@ class ConnectionEdge(BaseModel):
     
     @field_validator('label_width')
     @classmethod
-    def validate_label_width(cls, v: Optional[int]) -> Optional[int]:
+    def _validate_label_width(cls, v: Optional[int]) -> Optional[int]:
         if v is not None and not isinstance(v, int):
             raise ValueError("label_width must be an integer")
         return v
     
     @model_validator(mode='after')
-    def validate_no_self_connection(self):
+    def _validate_no_self_connection(self):
         if self.src == self.target:
             raise ValueError("Cannot connect component to itself")
         return self
@@ -148,7 +148,7 @@ class ProcessChain(BaseModel):
 
     @field_validator('systems')
     @classmethod
-    def validate_systems(cls, v: List[str]) -> List[str]:
+    def _validate_systems(cls, v: List[str]) -> List[str]:
         if len(v) < 2:
             raise ValueError("Process chain must contain at least 2 systems")
         return v
@@ -164,7 +164,7 @@ class AutoFadeConfig(BaseModel):
     
     @field_validator('inputs', 'outputs', 'processes')
     @classmethod
-    def validate_basic_options(cls, v: str) -> str:
+    def _validate_basic_options(cls, v: str) -> str:
         valid = ['all', 'connected', 'none']
         if v not in valid:
             raise ValueError(f"Must be one of {valid}")
@@ -172,7 +172,7 @@ class AutoFadeConfig(BaseModel):
     
     @field_validator('connections')
     @classmethod
-    def validate_connection_options(cls, v: str) -> str:
+    def _validate_connection_options(cls, v: str) -> str:
         valid = ['all', 'connected', 'none', 'incoming', 'outgoing']
         if v not in valid:
             raise ValueError(f"Must be one of {valid}")
@@ -239,7 +239,7 @@ class XDSM(BaseModel):
 
     @model_validator(mode='before')
     @classmethod
-    def set_defaults_for_missing_fields(cls, data):
+    def _set_defaults_for_missing_fields(cls, data):
         """Ensure missing or null collection fields get empty defaults."""
         if not isinstance(data, dict):
             return data
@@ -259,7 +259,7 @@ class XDSM(BaseModel):
         return data
 
     @model_validator(mode='after')
-    def validate_unique_system_names(self):
+    def _validate_unique_system_names(self):
         """Ensure all system names are unique."""
         names = [sys.node_name for sys in self.systems]
         duplicates = [n for n in names if names.count(n) > 1]

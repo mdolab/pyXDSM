@@ -1,0 +1,238 @@
+{
+  "systems": [
+    {
+      "node_name": "opt",
+      "style": "Optimization",
+      "label": "\\text{Optimizer}",
+      "stack": false,
+      "faded": false,
+      "label_width": null,
+      "spec_name": "opt"
+    },
+    {
+      "node_name": "solver",
+      "style": "MDA",
+      "label": "\\text{Newton}",
+      "stack": false,
+      "faded": false,
+      "label_width": null,
+      "spec_name": "solver"
+    },
+    {
+      "node_name": "D1",
+      "style": "Function",
+      "label": "D_1",
+      "stack": false,
+      "faded": false,
+      "label_width": null,
+      "spec_name": "D1"
+    },
+    {
+      "node_name": "D2",
+      "style": "Function",
+      "label": "D_2",
+      "stack": false,
+      "faded": false,
+      "label_width": null,
+      "spec_name": "D2"
+    },
+    {
+      "node_name": "F",
+      "style": "Function",
+      "label": "F",
+      "stack": false,
+      "faded": false,
+      "label_width": null,
+      "spec_name": "F"
+    },
+    {
+      "node_name": "G",
+      "style": "Function",
+      "label": "G",
+      "stack": false,
+      "faded": false,
+      "label_width": null,
+      "spec_name": "G"
+    }
+  ],
+  "connections": [
+    {
+      "src": "opt",
+      "target": "D1",
+      "label": "x, z",
+      "label_width": null,
+      "style": "DataInter",
+      "stack": false,
+      "faded": false,
+      "src_faded": false,
+      "target_faded": false
+    },
+    {
+      "src": "opt",
+      "target": "D2",
+      "label": "z",
+      "label_width": null,
+      "style": "DataInter",
+      "stack": false,
+      "faded": false,
+      "src_faded": false,
+      "target_faded": false
+    },
+    {
+      "src": "opt",
+      "target": "F",
+      "label": "x, z",
+      "label_width": null,
+      "style": "DataInter",
+      "stack": false,
+      "faded": false,
+      "src_faded": false,
+      "target_faded": false
+    },
+    {
+      "src": "solver",
+      "target": "D1",
+      "label": "y_2",
+      "label_width": null,
+      "style": "DataInter",
+      "stack": false,
+      "faded": false,
+      "src_faded": false,
+      "target_faded": false
+    },
+    {
+      "src": "solver",
+      "target": "D2",
+      "label": "y_1",
+      "label_width": null,
+      "style": "DataInter",
+      "stack": false,
+      "faded": false,
+      "src_faded": false,
+      "target_faded": false
+    },
+    {
+      "src": "D1",
+      "target": "solver",
+      "label": "\\mathcal{R}(y_1)",
+      "label_width": null,
+      "style": "DataInter",
+      "stack": false,
+      "faded": false,
+      "src_faded": false,
+      "target_faded": false
+    },
+    {
+      "src": "solver",
+      "target": "F",
+      "label": "y_1, y_2",
+      "label_width": null,
+      "style": "DataInter",
+      "stack": false,
+      "faded": false,
+      "src_faded": false,
+      "target_faded": false
+    },
+    {
+      "src": "D2",
+      "target": "solver",
+      "label": "\\mathcal{R}(y_2)",
+      "label_width": null,
+      "style": "DataInter",
+      "stack": false,
+      "faded": false,
+      "src_faded": false,
+      "target_faded": false
+    },
+    {
+      "src": "solver",
+      "target": "G",
+      "label": "y_1, y_2",
+      "label_width": null,
+      "style": "DataInter",
+      "stack": false,
+      "faded": false,
+      "src_faded": false,
+      "target_faded": false
+    },
+    {
+      "src": "F",
+      "target": "opt",
+      "label": "f",
+      "label_width": null,
+      "style": "DataInter",
+      "stack": false,
+      "faded": false,
+      "src_faded": false,
+      "target_faded": false
+    },
+    {
+      "src": "G",
+      "target": "opt",
+      "label": "g",
+      "label_width": null,
+      "style": "DataInter",
+      "stack": false,
+      "faded": false,
+      "src_faded": false,
+      "target_faded": false
+    }
+  ],
+  "inputs": {},
+  "outputs": {
+    "opt": {
+      "node_name": "left_output_opt",
+      "label": "x^*, z^*",
+      "label_width": null,
+      "style": "DataIO",
+      "stack": false,
+      "faded": false,
+      "side": "left"
+    },
+    "D1": {
+      "node_name": "left_output_D1",
+      "label": "y_1^*",
+      "label_width": null,
+      "style": "DataIO",
+      "stack": false,
+      "faded": false,
+      "side": "left"
+    },
+    "D2": {
+      "node_name": "left_output_D2",
+      "label": "y_2^*",
+      "label_width": null,
+      "style": "DataIO",
+      "stack": false,
+      "faded": false,
+      "side": "left"
+    },
+    "F": {
+      "node_name": "left_output_F",
+      "label": "f^*",
+      "label_width": null,
+      "style": "DataIO",
+      "stack": false,
+      "faded": false,
+      "side": "left"
+    },
+    "G": {
+      "node_name": "left_output_G",
+      "label": "g^*",
+      "label_width": null,
+      "style": "DataIO",
+      "stack": false,
+      "faded": false,
+      "side": "left"
+    }
+  },
+  "processes": [],
+  "use_sfmath": true,
+  "optional_packages": [],
+  "auto_fade": {
+    "inputs": "none",
+    "outputs": "none",
+    "connections": "none",
+    "processes": "none"
+  }
+}
