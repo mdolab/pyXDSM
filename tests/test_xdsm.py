@@ -4,7 +4,7 @@ import shutil
 import tempfile
 import subprocess
 from pyxdsm.XDSM import XDSM, OPT, FUNC, SOLVER, LEFT, RIGHT
-from numpy.distutils.exec_command import find_executable
+
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -44,7 +44,7 @@ class TestXDSM(unittest.TestCase):
             self.assertTrue(os.path.isfile(f + ".tikz"))
             self.assertTrue(os.path.isfile(f + ".tex"))
             # look for the pdflatex executable
-            pdflatex = find_executable("pdflatex") is not None
+            pdflatex = shutil.which("pdflatex") is not None
             # if no pdflatex, then do not assert that the pdf was compiled
             self.assertTrue(not pdflatex or os.path.isfile(f + ".pdf"))
         subprocess.run(["python", "mat_eqn.py"], check=True)
@@ -53,16 +53,20 @@ class TestXDSM(unittest.TestCase):
         os.chdir(self.tempdir)
 
     def test_connect(self):
+        from pydantic import ValidationError
+
         x = XDSM(use_sfmath=False)
         x.add_system("D1", FUNC, "D_1", label_width=2)
         x.add_system("D2", FUNC, "D_2", stack=False)
 
-        try:
+        # Pydantic raises ValidationError when validation fails
+        with self.assertRaises(ValidationError) as context:
             x.connect("D1", "D2", r"\mathcal{R}(y_1)", "foobar")
-        except ValueError as err:
-            self.assertEquals(str(err), "label_width argument must be an integer")
-        else:
-            self.fail("Expected ValueError")
+
+        # Check that the error is about label_width
+        error_msg = str(context.exception)
+        self.assertIn("label_width", error_msg)
+        self.assertIn("Input should be a valid integer", error_msg)
 
     def test_options(self):
         filename = "xdsm_test_options"
