@@ -406,25 +406,6 @@ class XDSM(BaseModel):
         """
         XDSMLatexWriter.write(self, file_name, build, cleanup, quiet, outdir)
 
-    def write_html(self, file_name: str, title: str = "XDSM Diagram",
-                   show_browser: bool = False) -> None:
-        """
-        Export XDSM diagram to HTML with TikZ rendered in browser using TikZJax.
-        This produces output identical to the LaTeX/PDF version but viewable in a browser.
-        
-        Parameters
-        ----------
-        file_name : str
-            Output HTML file name (with or without .html extension)
-        title : str
-            Title for the diagram
-        show_browser : bool
-            Whether to open the HTML file in browser after creation
-        """
-        from pyxdsm.xdsm_tikzjax_writer import XDSMTikZJaxWriter
-        XDSMTikZJaxWriter.write(self, file_name, title, show_browser)
-    
-
     def write_sys_specs(self, folder_name: str) -> None:
         """
         Write I/O spec JSON files for systems.
@@ -525,8 +506,7 @@ if __name__ == "__main__":
     
     # Write LaTeX files
     xdsm.write('example_xdsm', build=True)
-    xdsm.write_html('example_xdsm')
-    
+
     # Load from JSON
     xdsm_loaded = XDSM.from_json('xdsm_spec.json')
     print("Successfully loaded XDSM from JSON")
