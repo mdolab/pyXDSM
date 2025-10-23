@@ -11,10 +11,10 @@ requires-python = ">=3.8"
 license = {text = "Apache License Version 2.0"}
 keywords = ["optimization", "multidisciplinary", "multi-disciplinary", "analysis", "n2", "xdsm"]
 authors = [
-    {name = "MDO Lab", email = ""},
+    {name = "MDO Lab"},
 ]
 maintainers = [
-    {name = "MDO Lab", email = ""},
+    {name = "MDO Lab"},
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -83,7 +83,9 @@ select = [
     "UP",  # pyupgrade
 ]
 ignore = [
-    "E501",  # line too long (handled by formatter)
+    "E501",   # line too long (handled by formatter)
+    "UP031",  # use format specifiers instead of percent format
+    "UP032",  # use f-string instead of format call
 ]
 
 [tool.ruff.format]

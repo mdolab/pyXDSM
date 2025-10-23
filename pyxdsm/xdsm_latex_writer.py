@@ -1,14 +1,14 @@
 import os
 import re
 import subprocess
-
-from typing import Optional, Tuple, List, Union
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 import numpy as np
 
 from pyxdsm import __version__ as pyxdsm_version
-from pyxdsm.util import chunk_label
 
+if TYPE_CHECKING:
+    from pyxdsm.XDSM import XDSM
 
 # LaTeX templates
 tikzpicture_template = r"""
@@ -72,6 +72,12 @@ tex_template = r"""
 \end{{document}}
 """
 
+
+def _chunk_label(label, n_chunks):
+    for i in range(0, len(label), n_chunks):
+        yield label[i : i + n_chunks]
+
+
 def _sanitize_tikz_name(name: str) -> str:
     """
     Sanitize a node name to be TikZ-compatible.
@@ -105,43 +111,43 @@ def _parse_label(label: Union[str, List[str], Tuple[str, ...]], label_width: Opt
             return r"$\begin{array}{c}" + r" \\ ".join(label) + r"\end{array}$"
         else:
             labels = []
-            for chunk in chunk_label(label, label_width):
+            for chunk in _chunk_label(label, label_width):
                 labels.append(", ".join(chunk))
             return r"$\begin{array}{c}" + r" \\ ".join(labels) + r"\end{array}$"
     else:
-        return r"${}$".format(label)
+        return rf"${label}$"
 
 
 class XDSMLatexWriter:
     """
     Writer class for generating LaTeX/TikZ output from XDSM diagrams.
     """
-    
+
     @staticmethod
     def _build_node_grid(xdsm: 'XDSM') -> str:
         """Build the TikZ node grid."""
         size = len(xdsm.systems)
         comps_rows = np.arange(size)
         comps_cols = np.arange(size)
-        
+
         if xdsm.inputs:
             size += 1
             comps_rows += 1
-        
+
         if any(out.side == "left" for out in xdsm.outputs.values()):
             size += 1
             comps_cols += 1
-        
+
         if any(out.side == "right" for out in xdsm.outputs.values()):
             size += 1
-        
+
         row_idx_map = {}
         col_idx_map = {}
-        
+
         node_str = r"\node [{style}] ({node_name}) {{{node_label}}};"
         grid = np.empty((size, size), dtype=object)
         grid[:] = ""
-        
+
         # Add diagonal systems
         for i_row, j_col, comp in zip(comps_rows, comps_cols, xdsm.systems):
             style = comp.style
@@ -157,7 +163,7 @@ class XDSMLatexWriter:
 
             row_idx_map[comp.node_name] = i_row
             col_idx_map[comp.node_name] = j_col
-        
+
         # Add off-diagonal connection nodes
         for conn in xdsm.connections:
             src_row = row_idx_map[conn.src]
@@ -174,7 +180,7 @@ class XDSMLatexWriter:
             node = node_str.format(style=style, node_name=node_name, node_label=label)
 
             grid[src_row, target_col] = node
-        
+
         # Add left outputs
         for comp_name, out in xdsm.outputs.items():
             if out.side != "left":
@@ -190,7 +196,7 @@ class XDSMLatexWriter:
             sanitized_name = _sanitize_tikz_name(out.node_name)
             node = node_str.format(style=style, node_name=sanitized_name, node_label=label)
             grid[i_row, 0] = node
-        
+
         # Add right outputs
         for comp_name, out in xdsm.outputs.items():
             if out.side != "right":
@@ -206,7 +212,7 @@ class XDSMLatexWriter:
             sanitized_name = _sanitize_tikz_name(out.node_name)
             node = node_str.format(style=style, node_name=sanitized_name, node_label=label)
             grid[i_row, -1] = node
-        
+
         # Add inputs
         for comp_name, inp in xdsm.inputs.items():
             style = inp.style
@@ -220,22 +226,22 @@ class XDSMLatexWriter:
             sanitized_name = _sanitize_tikz_name(inp.node_name)
             node = node_str.format(style=style, node_name=sanitized_name, node_label=label)
             grid[0, j_col] = node
-        
+
         # Convert grid to string
         rows_str = ""
         for i, row in enumerate(grid):
             rows_str += f"%Row {i}\n" + "&\n".join(row) + r"\\" + "\n"
-        
+
         return rows_str
-    
+
     @staticmethod
     def _build_edges(xdsm: 'XDSM') -> str:
         """Build the TikZ edge definitions."""
         h_edges = []
         v_edges = []
-        
+
         edge_format = "({start}) edge [{style}] ({end})"
-        
+
         for conn in xdsm.connections:
             h_style = "DataLine"
             v_style = "DataLine"
@@ -278,15 +284,15 @@ class XDSMLatexWriter:
             comp_sanitized = _sanitize_tikz_name(comp_name)
             inp_sanitized = _sanitize_tikz_name(inp.node_name)
             v_edges.append(edge_format.format(start=comp_sanitized, end=inp_sanitized, style=style))
-        
+
         h_edges = sorted(h_edges, key=lambda s: "faded" in s)
         v_edges = sorted(v_edges, key=lambda s: "faded" in s)
-        
+
         paths_str = "% Horizontal edges\n" + "\n".join(h_edges) + "\n"
         paths_str += "% Vertical edges\n" + "\n".join(v_edges) + ";"
-        
+
         return paths_str
-    
+
     @staticmethod
     def _build_process_chain(xdsm: 'XDSM') -> str:
         """Build the TikZ process chain definitions."""
@@ -337,7 +343,7 @@ class XDSMLatexWriter:
         if xdsm.use_sfmath:
             packages.append("sfmath")
         return ",".join(packages)
-    
+
     @staticmethod
     def write(xdsm: 'XDSM', file_name: str, build: bool = True, cleanup: bool = True,
               quiet: bool = False, outdir: str = ".") -> None:
@@ -376,11 +382,11 @@ class XDSMLatexWriter:
             diagram_styles_path=diagram_styles_path,
             optional_packages=optional_packages_str,
         )
-        
+
         base_output_fp = os.path.join(outdir, file_name)
         with open(base_output_fp + ".tikz", "w") as f:
             f.write(tikzpicture_str)
-        
+
         tex_str = tex_template.format(
             nodes=nodes,
             edges=edges,
@@ -389,10 +395,10 @@ class XDSMLatexWriter:
             optional_packages=optional_packages_str,
             version=pyxdsm_version,
         )
-        
+
         with open(base_output_fp + ".tex", "w") as f:
             f.write(tex_str)
-        
+
         if build:
             command = [
                 "pdflatex",
@@ -404,7 +410,7 @@ class XDSMLatexWriter:
                 command += ["-interaction=batchmode", "-halt-on-error"]
             command += [f"{file_name}.tex"]
             subprocess.run(command, check=True)
-            
+
             if cleanup:
                 for ext in ["aux", "fdb_latexmk", "fls", "log"]:
                     f_name = f"{base_output_fp}.{ext}"

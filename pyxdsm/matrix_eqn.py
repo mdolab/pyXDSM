@@ -1,9 +1,9 @@
 import os
 import subprocess
-from typing import Optional, Dict, List, Union, Tuple
-import numpy as np
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from typing import Dict, List, Optional, Tuple, Union
 
+import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # color pallette link: http://paletton.com/#uid=72Q1j0kllllkS5tKC9H96KClOKC
 
