@@ -88,7 +88,3 @@ x.add_process(["output_opt", "opt", "left_output_opt"])
 x.write("kitchen_sink", cleanup=False)
 x.write_sys_specs("sink_specs")
 x.to_json("kitchen_sink.json")
-
-x2 = XDSM.from_json("kitchen_sink.json")
-x2.write("kitchen_sink2", cleanup=True)
-

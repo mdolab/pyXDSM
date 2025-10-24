@@ -52,6 +52,28 @@ class TestXDSM(unittest.TestCase):
         # change back to previous directory
         os.chdir(self.tempdir)
 
+    def test_examples_json(self):
+        """
+        This test just builds the three examples, and assert that the output files exist.
+        Unlike the other tests, this one requires LaTeX to be available.
+        """
+        # we first copy the examples to the temp dir
+        shutil.copytree(os.path.join(basedir, "../examples"), os.path.join(self.tempdir, "examples_json"))
+        os.chdir(os.path.join(self.tempdir, "examples_json"))
+
+        filenames = ["kitchen_sink", "mdf"]
+        for f in filenames:
+            subprocess.run(["python", "-m", "pyxdsm", f"{f}.json"], check=True)
+            self.assertTrue(os.path.isfile(f + ".tikz"))
+            self.assertTrue(os.path.isfile(f + ".tex"))
+            # look for the pdflatex executable
+            pdflatex = shutil.which("pdflatex") is not None
+            # if no pdflatex, then do not assert that the pdf was compiled
+            self.assertTrue(not pdflatex or os.path.isfile(f + ".pdf"))
+
+        # change back to previous directory
+        os.chdir(self.tempdir)
+
     def test_connect(self):
         from pydantic import ValidationError
 

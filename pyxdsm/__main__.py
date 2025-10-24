@@ -12,7 +12,7 @@ from .XDSM import XDSM
 
 
 def main():
-    """Main entry point for the pyXDSM CLI."""
+    """Main entry point for the pyxdsm CLI."""
     parser = argparse.ArgumentParser(
         description="Generate XDSM diagrams from JSON specification files",
         prog="python -m pyxdsm"
@@ -27,26 +27,20 @@ def main():
     parser.add_argument(
         "-o", "--output",
         type=str,
-        required=True,
-        help="Output file path (e.g., output.pdf or output.tikz)"
+        required=False,
+        default=None,
+        help="Output file path (e.g., output.pdf or output.tikz). If not provided, defaults to input filename with .pdf extension"
     )
 
     parser.add_argument(
-        "--cleanup",
+        "-c", "--cleanup",
         action="store_true",
         default=True,
         help="Clean up auxiliary files after PDF build (default: True)"
     )
 
     parser.add_argument(
-        "--no-cleanup",
-        action="store_false",
-        dest="cleanup",
-        help="Keep auxiliary files after PDF build"
-    )
-
-    parser.add_argument(
-        "--quiet",
+        "-q", "--quiet",
         action="store_true",
         default=False,
         help="Suppress pdflatex output"
@@ -64,35 +58,32 @@ def main():
         print(f"Error loading JSON: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Parse output path
-    output_path = Path(args.output)
+    if args.output is None:
+        input_path = Path(args.input)
+        output_path = input_path.with_suffix('.pdf')
+    else:
+        output_path = Path(args.output)
+
     outdir = str(output_path.parent) if output_path.parent != Path(".") else "."
     file_name = output_path.stem
     extension = output_path.suffix.lower()
 
-    # Determine build flag based on output extension
-    if extension == ".pdf":
-        build = True
-    elif extension == ".tikz":
-        build = False
+    if extension.lower() == ".json":
+        xdsm.to_json(output_path)
+        print(f"Successfully generated {output_path}")
     else:
-        print(f"Warning: Unknown extension '{extension}'. Defaulting to PDF build.",
-              file=sys.stderr)
-        build = True
-
-    # Build the diagram
-    try:
+        if extension.lower() not in (".pdf", ".tikz"):
+            print(f"Warning: Unknown output extension '{extension}'. Defaulting to PDF build.",
+                  file=sys.stderr)
+            extension = ".pdf"
         xdsm.write(
             file_name=file_name,
-            build=build,
+            build=extension.lower() == ".pdf",
             cleanup=args.cleanup,
             quiet=args.quiet,
             outdir=outdir
         )
         print(f"Successfully generated {args.output}")
-    except Exception as e:
-        print(f"Error generating output: {e}", file=sys.stderr)
-        sys.exit(1)
 
 
 if __name__ == "__main__":
