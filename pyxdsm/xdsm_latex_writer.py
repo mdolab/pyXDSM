@@ -96,11 +96,11 @@ def _sanitize_tikz_name(name: str) -> str:
         Sanitized name safe for use as TikZ node identifier
     """
     # Replace periods with underscores
-    sanitized = name.replace('.', '_')
+    sanitized = name.replace(".", "_")
     # Replace spaces with underscores
-    sanitized = sanitized.replace(' ', '_')
+    sanitized = sanitized.replace(" ", "_")
     # Replace other problematic characters with underscores
-    sanitized = re.sub(r'[^\w\-]', '_', sanitized)
+    sanitized = re.sub(r"[^\w\-]", "_", sanitized)
     return sanitized
 
 
@@ -124,7 +124,7 @@ class XDSMLatexWriter:
     """
 
     @staticmethod
-    def _build_node_grid(xdsm: 'XDSM') -> str:
+    def _build_node_grid(xdsm: "XDSM") -> str:
         """Build the TikZ node grid."""
         size = len(xdsm.systems)
         comps_rows = np.arange(size)
@@ -235,7 +235,7 @@ class XDSMLatexWriter:
         return rows_str
 
     @staticmethod
-    def _build_edges(xdsm: 'XDSM') -> str:
+    def _build_edges(xdsm: "XDSM") -> str:
         """Build the TikZ edge definitions."""
         h_edges = []
         v_edges = []
@@ -294,13 +294,12 @@ class XDSMLatexWriter:
         return paths_str
 
     @staticmethod
-    def _build_process_chain(xdsm: 'XDSM') -> str:
+    def _build_process_chain(xdsm: "XDSM") -> str:
         """Build the TikZ process chain definitions."""
         sys_names = [s.node_name for s in xdsm.systems]
-        output_names = (
-            [inp.node_name for inp in xdsm.inputs.values()] +
-            [out.node_name for out in xdsm.outputs.values()]
-        )
+        output_names = [inp.node_name for inp in xdsm.inputs.values()] + [
+            out.node_name for out in xdsm.outputs.values()
+        ]
 
         chain_str = ""
 
@@ -337,7 +336,7 @@ class XDSMLatexWriter:
         return chain_str
 
     @staticmethod
-    def _compose_optional_package_list(xdsm: 'XDSM') -> str:
+    def _compose_optional_package_list(xdsm: "XDSM") -> str:
         """Compose the optional LaTeX package list."""
         packages = xdsm.optional_packages.copy()
         if xdsm.use_sfmath:
@@ -345,8 +344,9 @@ class XDSMLatexWriter:
         return ",".join(packages)
 
     @staticmethod
-    def write(xdsm: 'XDSM', file_name: str, build: bool = True, cleanup: bool = True,
-              quiet: bool = False, outdir: str = ".") -> None:
+    def write(
+        xdsm: "XDSM", file_name: str, build: bool = True, cleanup: bool = True, quiet: bool = False, outdir: str = "."
+    ) -> None:
         """
         Write output files for the XDSM diagram.
 

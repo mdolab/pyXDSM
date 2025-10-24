@@ -217,14 +217,14 @@ class Variable(BaseModel):
     text: str = Field(default="", description="Display text/label")
     color: Optional[str] = Field(default=None, description="Color for the variable")
 
-    @field_validator('size')
+    @field_validator("size")
     @classmethod
     def validate_size(cls, v: int) -> int:
         if v < 1:
             raise ValueError("Variable size must be at least 1")
         return v
 
-    @field_validator('idx')
+    @field_validator("idx")
     @classmethod
     def validate_idx(cls, v: int) -> int:
         if v < 0:
