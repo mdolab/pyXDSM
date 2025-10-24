@@ -1,16 +1,16 @@
 from pyxdsm.XDSM import (
-    XDSM,
-    OPT,
-    SUBOPT,
-    SOLVER,
     DOE,
-    IFUNC,
     FUNC,
     GROUP,
+    IFUNC,
     IGROUP,
-    METAMODEL,
     LEFT,
+    METAMODEL,
+    OPT,
     RIGHT,
+    SOLVER,
+    SUBOPT,
+    XDSM,
 )
 
 x = XDSM(

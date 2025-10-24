@@ -1,10 +1,10 @@
-import unittest
 import os
 import shutil
-import tempfile
 import subprocess
-from pyxdsm.XDSM import XDSM, OPT, FUNC, SOLVER, LEFT, RIGHT
+import tempfile
+import unittest
 
+from pyxdsm.XDSM import FUNC, LEFT, OPT, RIGHT, SOLVER, XDSM
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -141,7 +141,7 @@ class TestXDSM(unittest.TestCase):
         x.write(file_name)
 
         tikz_file = file_name + ".tikz"
-        with open(tikz_file, "r") as f:
+        with open(tikz_file) as f:
             tikz = f.read()
 
         self.assertIn(r"\node [Optimization,stack]", tikz)
@@ -305,7 +305,7 @@ class TestXDSM(unittest.TestCase):
         sample_lines = sample_txt.split("\n")
         sample_lines = filter_lines(sample_lines)
 
-        with open(tikz_file, "r") as f:
+        with open(tikz_file) as f:
             new_lines = filter_lines(f.readlines())
 
         sample_no_match = []  # Sample text

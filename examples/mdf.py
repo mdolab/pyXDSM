@@ -1,4 +1,4 @@
-from pyxdsm.XDSM import XDSM, OPT, SOLVER, FUNC, LEFT
+from pyxdsm.XDSM import FUNC, LEFT, OPT, SOLVER, XDSM
 
 # Change `use_sfmath` to False to use computer modern
 x = XDSM(use_sfmath=True)
