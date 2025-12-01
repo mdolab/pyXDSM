@@ -1,8 +1,8 @@
 import os
 import subprocess
 from collections import namedtuple
-import numpy as np
 
+import numpy as np
 
 # color pallette link: http://paletton.com/#uid=72Q1j0kllllkS5tKC9H96KClOKC
 
@@ -247,7 +247,7 @@ def _write_tikz(tikz, out_file, build=True, cleanup=True):
                     os.remove(f_name)
 
 
-class TotalJacobian(object):
+class TotalJacobian:
     def __init__(self):
         self._variables = {}
         self._j_inputs = {}
@@ -366,7 +366,7 @@ class TotalJacobian(object):
         _write_tikz(jac_tikz, out_file, build, cleanup)
 
 
-class MatrixEquation(object):
+class MatrixEquation:
     def __init__(self):
         self._variables = {}
         self._ij_variables = {}
