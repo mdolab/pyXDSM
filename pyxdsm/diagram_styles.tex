@@ -3,8 +3,9 @@
 % Tableau 20 color palette, taken from
 % https://jrnold.github.io/ggthemes/reference/tableau_color_pal.html
 % we use the lighter variants here with 80% opacity
+
 % Blue
-\definecolor{red}{HTML}{A0CBE8}
+\definecolor{blue}{HTML}{A0CBE8}
 % Orange
 \definecolor{orange}{HTML}{FFBE7D}
 % Cyan
@@ -15,20 +16,24 @@
 \definecolor{yellow}{HTML}{F1CE63}
 % Salmon
 \definecolor{salmon}{HTML}{FF9D9A}
+% Purple
+\definecolor{purple}{HTML}{B07AA1}
 
 \tikzstyle{every node}=[font=\sffamily,align=center]
 
-\newcommand{\fillOpacity}{80}
+\newcommand{\lineOpacity}{100}
+\newcommand{\fillOpacity}{40}
+
+% Colors
+\newcommand{\explicitColor}{green}
+\newcommand{\implicitColor}{blue}
+\newcommand{\optimizationColor}{blue} % also used by DOE
+\newcommand{\dataColor}{purple}
 
 % Component shapes
 \newcommand{\compShape}{rectangle}
 \newcommand{\groupShape}{chamfered rectangle}
 \newcommand{\procShape}{rounded rectangle}
-
-% Colors
-\newcommand{\explicitColor}{green}
-\newcommand{\implicitColor}{salmon}
-\newcommand{\optimizationColor}{red} % also used by DOE
 
 % Component types
 \tikzstyle{Optimization} = [\procShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
@@ -37,12 +42,18 @@
 \tikzstyle{SubOptimization} = [\groupShape,draw,fill=\optimizationColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 \tikzstyle{Group} = [\groupShape,draw,fill=\explicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 \tikzstyle{ImplicitGroup} = [\groupShape,draw,fill=\implicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{Function} = [\compShape,draw,fill=\explicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
-\tikzstyle{ImplicitFunction} = [\compShape,draw,fill=\implicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+% \tikzstyle{Function} = [\compShape,draw,fill=\explicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+% \tikzstyle{ImplicitFunction} = [\compShape,draw,fill=\implicitColor!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
 \tikzstyle{Metamodel} = [\compShape,draw,fill=yellow!\fillOpacity,inner sep=6pt,minimum height=1cm,text badly centered]
+
+% --------- Overridden component types --------------
+\tikzstyle{Function} = [\compShape, rounded corners=2mm, draw=\explicitColor!\lineOpacity, fill=\explicitColor!\fillOpacity, line width=1.5pt, inner sep=6pt, text badly centered]
+\tikzstyle{ImplicitFunction} = [\compShape, rounded corners=2mm, draw=\implicitColor!\lineOpacity, fill=\implicitColor!\fillOpacity, line width=1.5pt, inner sep=6pt, text badly centered]
+% --------- Overridden component types --------------
 
 %% A simple command to give the repeated structure look for components and data
 \tikzstyle{stack} = [double copy shadow={shadow xshift=.75ex, shadow yshift=-.75ex}]
+
 %% A simple command to fade components and data, e.g. demonstrating a sequence of steps in an animation
 \tikzstyle{faded} = [draw=black!10,fill=white,text opacity=0.2]
 
@@ -54,11 +65,17 @@
 \newcommand{\dataRightAngle}{105}
 \newcommand{\dataLeftAngle}{75}
 
-\tikzstyle{DataInter} = [trapezium,trapezium left angle=\dataLeftAngle,trapezium right angle=\dataRightAngle,draw,fill=black!10]
-\tikzstyle{DataIO} = [trapezium,trapezium left angle=\dataLeftAngle,trapezium right angle=\dataRightAngle,draw,fill=white]
+% Data components
+% \tikzstyle{DataInter} = [trapezium,trapezium left angle=\dataLeftAngle,trapezium right angle=\dataRightAngle,draw,fill=black!10]
+% \tikzstyle{DataIO} = [trapezium,trapezium left angle=\dataLeftAngle,trapezium right angle=\dataRightAngle,draw,fill=white]
+
+% ----- Modified data types ----------
+\tikzstyle{DataInter} = [draw=black!60, line width=1.5pt, trapezium, trapezium left angle=\dataLeftAngle, trapezium right angle=\dataRightAngle,draw, fill=black!10]
+\tikzstyle{DataIO} = [draw=\dataColor, line width=1.5pt, trapezium, trapezium left angle=\dataLeftAngle, trapezium right angle=\dataRightAngle, draw, fill=\dataColor!\fillOpacity]
+% ----- Modified data types ----------
 
 % Edges
-\tikzstyle{DataLine} = [color=black!40,line width=5pt,line cap=rect]
+% \tikzstyle{DataLine} = [color=black!40,line width=5pt,line cap=rect]
 \tikzstyle{ProcessHV} = [-,line width=1pt,to path={-| (\tikztotarget)}]
 \tikzstyle{ProcessHVA} = [->,line width=1pt,to path={-| (\tikztotarget)}]
 \tikzstyle{ProcessTip} = [-,line width=1pt]
@@ -70,6 +87,10 @@
 
 % Matrix options
 \tikzstyle{MatrixSetup} = [row sep=3mm, column sep=2mm]
+
+% -------- Modified edge  --------
+\tikzstyle{DataLine} = [color=black!40, line width=3pt, line cap=rect]
+% -------- Modified edge  --------
 
 % Declare a background layer for showing node connections
 \pgfdeclarelayer{data}
