@@ -218,17 +218,22 @@ class XDSM(BaseModel):
         auto_fade: Optional[Dict[str, str]] = None,
         **data,
     ):
-        """
-        Initialize XDSM object.
+        """Initialize XDSM object
 
         Parameters
         ----------
-        use_sfmath : bool
-            Whether to use the sfmath latex package
-        optional_latex_packages : str or list of strings
-            Additional latex packages for PDF/TEX generation
-        auto_fade : dict
-            Auto-fade configuration with keys: inputs, outputs, connections, processes
+        use_sfmath : bool, optional
+            Whether to use the sfmath latex package, by default True
+        optional_latex_packages : string or list of strings, optional
+            Additional latex packages to use when creating the pdf and tex versions of the diagram, by default None
+        auto_fade : dictionary, optional
+            Controls the automatic fading of inputs, outputs, connections and processes based on the fading of diagonal blocks. For each key "inputs", "outputs", "connections", and "processes", the value can be one of:
+            - "all" : fade all blocks
+            - "connected" : fade all components connected to faded blocks (both source and target must be faded for a conncection to be faded)
+            - "none" : do not auto-fade anything
+            For connections there are two additional options:
+            - "incoming" : Fade all connections that are incoming to faded blocks.
+            - "outgoing" : Fade all connections that are outgoing from faded blocks.
         """
         # Only process if these aren't already in data (from deserialization)
         if "optional_packages" not in data:
@@ -295,7 +300,41 @@ class XDSM(BaseModel):
         label_width: Optional[int] = None,
         spec_name: Optional[str] = None,
     ) -> None:
-        """Add a system block on the diagonal."""
+        r"""
+        Add a "system" block, which will be placed on the diagonal of the XDSM diagram.
+
+        Parameters
+        ----------
+        node_name : str
+            The unique name given to this component
+
+        style : str
+            The type of the component
+
+        label : str or list/tuple of strings
+            The label to appear on the diagram. There are two options for this:
+            - a single string
+            - a list or tuple of strings, which is used for line breaking
+            In either case, they should probably be enclosed in \text{} declarations to make sure
+            the font is upright.
+
+        stack : bool
+            If true, the system will be displayed as several stacked rectangles,
+            indicating the component is executed in parallel.
+
+        faded : bool
+            If true, the component will be faded, in order to highlight some other system.
+
+        label_width : int or None
+            If not None, AND if ``label`` is given as either a tuple or list, then this parameter
+            controls how many items in the tuple/list will be displayed per line.
+            If None, the label will be printed one item per line if given as a tuple or list,
+            otherwise the string will be printed on a single line.
+
+        spec_name : str
+            The spec name used for the spec file.
+
+        """
         system = SystemNode(
             node_name=node_name,
             style=style,
@@ -316,7 +355,37 @@ class XDSM(BaseModel):
         stack: bool = False,
         faded: bool = False,
     ) -> None:
-        """Add an input node at the top."""
+        r"""
+        Add an input, which will appear in the top row of the diagram.
+
+        Parameters
+        ----------
+        name : str
+            The unique name given to this component
+
+        label : str or list/tuple of strings
+            The label to appear on the diagram. There are two options for this:
+            - a single string
+            - a list or tuple of strings, which is used for line breaking
+            In either case, they should probably be enclosed in \text{} declarations to make sure
+            the font is upright.
+
+        label_width : int or None
+            If not None, AND if ``label`` is given as either a tuple or list, then this parameter
+            controls how many items in the tuple/list will be displayed per line.
+            If None, the label will be printed one item per line if given as a tuple or list,
+            otherwise the string will be printed on a single line.
+
+        style : str
+            The style given to this component. Can be one of ['DataInter', 'DataIO']
+
+        stack : bool
+            If true, the system will be displayed as several stacked rectangles,
+            indicating the component is executed in parallel.
+
+        faded : bool
+            If true, the component will be faded, in order to highlight some other system.
+        """
         sys_faded = {s.node_name: s.faded for s in self.systems}
 
         if (self.auto_fade.inputs == "all") or (
@@ -338,7 +407,41 @@ class XDSM(BaseModel):
         faded: bool = False,
         side: str = "left",
     ) -> None:
-        """Add an output node on the left or right side."""
+        r"""
+        Add an output, which will appear in the left or right-most column of the diagram.
+
+        Parameters
+        ----------
+        name : str
+            The unique name given to this component
+
+        label : str or list/tuple of strings
+            The label to appear on the diagram. There are two options for this:
+            - a single string
+            - a list or tuple of strings, which is used for line breaking
+            In either case, they should probably be enclosed in \text{} declarations to make sure
+            the font is upright.
+
+        label_width : int or None
+            If not None, AND if ``label`` is given as either a tuple or list, then this parameter
+            controls how many items in the tuple/list will be displayed per line.
+            If None, the label will be printed one item per line if given as a tuple or list,
+            otherwise the string will be printed on a single line.
+
+        style : str
+            The style given to this component. Can be one of ``['DataInter', 'DataIO']``
+
+        stack : bool
+            If true, the system will be displayed as several stacked rectangles,
+            indicating the component is executed in parallel.
+
+        faded : bool
+            If true, the component will be faded, in order to highlight some other system.
+
+        side : str
+            Must be one of ``['left', 'right']``. This parameter controls whether the output
+            is placed on the left-most column or the right-most column of the diagram.
+        """
         sys_faded = {s.node_name: s.faded for s in self.systems}
 
         if (self.auto_fade.outputs == "all") or (
@@ -368,7 +471,41 @@ class XDSM(BaseModel):
         stack: bool = False,
         faded: bool = False,
     ) -> None:
-        """Connect two components with a data line."""
+        r"""
+        Connects two components with a data line, and adds a label to indicate
+        the data being transferred.
+
+        Parameters
+        ----------
+        src : str
+            The name of the source component.
+
+        target : str
+            The name of the target component.
+
+        label : str or list/tuple of strings
+            The label to appear on the diagram. There are two options for this:
+            - a single string
+            - a list or tuple of strings, which is used for line breaking
+            In either case, they should probably be enclosed in \text{} declarations to make sure
+            the font is upright.
+
+        label_width : int or None
+            If not None, AND if ``label`` is given as either a tuple or list, then this parameter
+            controls how many items in the tuple/list will be displayed per line.
+            If None, the label will be printed one item per line if given as a tuple or list,
+            otherwise the string will be printed on a single line.
+
+        style : str
+            The style given to this component. Can be one of ``['DataInter', 'DataIO']``
+
+        stack : bool
+            If true, the system will be displayed as several stacked rectangles,
+            indicating the component is executed in parallel.
+
+        faded : bool
+            If true, the component will be faded, in order to highlight some other system.
+        """
         sys_faded = {s.node_name: s.faded for s in self.systems}
 
         src_faded = src in sys_faded and sys_faded[src]
@@ -397,7 +534,19 @@ class XDSM(BaseModel):
         self.connections.append(connection)
 
     def add_process(self, systems: List[str], arrow: bool = True, faded: bool = False) -> None:
-        """Add a process line between systems."""
+        """
+        Add a process line between a list of systems, to indicate process flow.
+
+        Parameters
+        ----------
+        systems : list
+            The names of the components, in the order in which they should be connected.
+            For a complete cycle, repeat the first component as the last component.
+
+        arrow : bool
+            If true, arrows will be added to the process lines to indicate the direction
+            of the process flow.
+        """
         sys_faded = {s.node_name: s.faded for s in self.systems}
 
         if (self.auto_fade.processes == "all") or (
@@ -454,12 +603,23 @@ class XDSM(BaseModel):
 
     def write_sys_specs(self, folder_name: str) -> None:
         """
-        Write I/O spec JSON files for systems.
+        Write I/O spec json files for systems to specified folder
+
+        An I/O spec of a system is the collection of all variables going into and out of it.
+        That includes any variables being passed between systems, as well as all inputs and outputs.
+        This information is useful for comparing implementations (such as components and groups in OpenMDAO)
+        to the XDSM diagrams.
+
+        The json spec files can be used to write testing utilities that compare the inputs/outputs of an implementation
+        to the XDSM, and thus allow you to verify that your codes match the XDSM diagram precisely.
+        This technique is especially useful when large engineering teams are collaborating on
+        model development. It allows them to use the XDSM as a shared contract between team members
+        so everyone can be sure that their codes will sync up.
 
         Parameters
         ----------
-        folder_name : str
-            Folder to write spec files into
+        folder_name: str
+            name of the folder, which will be created if it doesn't exist, to put spec files into
         """
 
         def _label_to_spec(label: Union[str, List[str], Tuple[str, ...]], spec: Set[str]) -> None:

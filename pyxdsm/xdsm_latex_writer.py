@@ -338,9 +338,13 @@ class XDSMLatexWriter:
     @staticmethod
     def _compose_optional_package_list(xdsm: "XDSM") -> str:
         """Compose the optional LaTeX package list."""
+        # Check for optional LaTeX packages
         packages = xdsm.optional_packages.copy()
+
         if xdsm.use_sfmath:
             packages.append("sfmath")
+
+        # Join all packages into one string separated by comma
         return ",".join(packages)
 
     @staticmethod
@@ -348,7 +352,17 @@ class XDSMLatexWriter:
         xdsm: "XDSM", file_name: str, build: bool = True, cleanup: bool = True, quiet: bool = False, outdir: str = "."
     ) -> None:
         """
-        Write output files for the XDSM diagram.
+        Write latex output files for the XDSM diagram.
+
+        This produces the following:
+
+            - {file_name}.tikz
+                A file containing the TikZ definition of the XDSM diagram.
+            - {file_name}.tex
+                A standalone document wrapped around an include of the TikZ file which can
+                be compiled to a pdf.
+            - {file_name}.pdf
+                An optional compiled version of the standalone tex file.
 
         Parameters
         ----------
