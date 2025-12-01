@@ -505,7 +505,7 @@ class XDSM(BaseModel):
         json_str = self.model_dump_json(indent=2)
         if filename:
             with open(filename, "w") as f:
-                f.write(json_str)
+                f.write(f"{json_str}\n")
         return json_str
 
     @classmethod

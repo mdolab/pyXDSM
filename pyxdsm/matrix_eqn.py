@@ -1,9 +1,8 @@
 import os
 import subprocess
-from typing import Any, Optional, Union
-
+from collections import namedtuple
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, field_validator
+
 
 # color pallette link: http://paletton.com/#uid=72Q1j0kllllkS5tKC9H96KClOKC
 
@@ -209,35 +208,9 @@ base_file_end = r"""
 \end{document}"""
 
 
-class Variable(BaseModel):
-    """Variable in matrix equation."""
+Variable = namedtuple("Variable", field_names=["size", "idx", "text", "color"])
 
-    size: int = Field(..., description="Size/dimension of the variable")
-    idx: int = Field(..., description="Index in the matrix")
-    text: str = Field(default="", description="Display text/label")
-    color: Optional[str] = Field(default=None, description="Color for the variable")
-
-    @field_validator("size")
-    @classmethod
-    def validate_size(cls, v: int) -> int:
-        if v < 1:
-            raise ValueError("Variable size must be at least 1")
-        return v
-
-    @field_validator("idx")
-    @classmethod
-    def validate_idx(cls, v: int) -> int:
-        if v < 0:
-            raise ValueError("Variable index must be non-negative")
-        return v
-
-
-class CellData(BaseModel):
-    """Data for a cell in matrix equation."""
-
-    text: str = Field(default="", description="Cell text/label")
-    color: Optional[str] = Field(default=None, description="Cell color")
-    highlight: Union[int, str] = Field(default=1, description="Highlight level or type")
+CellData = namedtuple("CellData", field_names=["text", "color", "highlight"])
 
 
 def _color(base_color, h_light):
@@ -274,60 +247,43 @@ def _write_tikz(tikz, out_file, build=True, cleanup=True):
                     os.remove(f_name)
 
 
-class TotalJacobian(BaseModel):
-    """Total Jacobian matrix representation."""
+class TotalJacobian(object):
+    def __init__(self):
+        self._variables = {}
+        self._j_inputs = {}
+        self._n_inputs = 0
 
-    inputs: dict[str, Variable] = Field(default_factory=dict)
-    outputs: dict[str, Variable] = Field(default_factory=dict)
-    connections: dict[tuple[str, str], CellData] = Field(default_factory=dict)
+        self._i_outputs = {}
+        self._n_outputs = 0
 
-    _variables: dict[str, Variable] = PrivateAttr(default_factory=dict)
-    _j_inputs: dict[int, Variable] = PrivateAttr(default_factory=dict)
-    _n_inputs: int = PrivateAttr(default=0)
+        self._connections = {}
+        self._ij_connections = {}
 
-    _i_outputs: dict[int, Variable] = PrivateAttr(default_factory=dict)
-    _n_outputs: int = PrivateAttr(default=0)
-
-    _ij_connections: dict[tuple[int, int], CellData] = PrivateAttr(default_factory=dict)
-
-    _setup: bool = PrivateAttr(default=False)
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    def model_post_init(self, context: Any) -> None:
-        for name, var in self.inputs:
-            self._variables[name] = var
-            self._j_inputs[self._n_inputs] = self._variables[name]
-            self._n_inputs += 1
-
-        for name, var in self.outputs:
-            self._variables[name] = var
-            self._i_outputs[self._n_outputs] = self._variables[name]
-            self._n_outputs += 1
+        self._setup = False
 
     def add_input(self, name, size=1, text=""):
-        self.inputs[name] = self._variables[name] = Variable(size=size, idx=self._n_inputs, text=text, color=None)
+        self._variables[name] = Variable(size=size, idx=self._n_inputs, text=text, color=None)
         self._j_inputs[self._n_inputs] = self._variables[name]
         self._n_inputs += 1
 
     def add_output(self, name, size=1, text=""):
-        self.outputs[name] = self._variables[name] = Variable(size=size, idx=self._n_outputs, text=text, color=None)
+        self._variables[name] = Variable(size=size, idx=self._n_outputs, text=text, color=None)
         self._i_outputs[self._n_outputs] = self._variables[name]
         self._n_outputs += 1
 
     def connect(self, src, target, text="", color="tableau0"):
         if isinstance(target, (list, tuple)):
             for t in target:
-                self.connections[src, t] = CellData(text=text, color=color, highlight="diag")
+                self._connections[src, t] = CellData(text=text, color=color, highlight="diag")
         else:
-            self.connections[src, target] = CellData(text=text, color=color, highlight="diag")
+            self._connections[src, target] = CellData(text=text, color=color, highlight="diag")
 
     def _process_vars(self):
         if self._setup:
             return
 
         # deal with connections
-        for (src, target), cell_data in self.connections.items():
+        for (src, target), cell_data in self._connections.items():
             i_src = self._variables[src].idx
             j_target = self._variables[target].idx
 
@@ -410,36 +366,31 @@ class TotalJacobian(BaseModel):
         _write_tikz(jac_tikz, out_file, build, cleanup)
 
 
-class MatrixEquation(BaseModel):
-    """Matrix equation representation."""
+class MatrixEquation(object):
+    def __init__(self):
+        self._variables = {}
+        self._ij_variables = {}
 
-    variables: dict[str, Variable] = Field(default_factory=dict)
-    connections: dict[tuple[str, str], CellData] = Field(default_factory=dict)
-    text_data: dict[tuple[str, str], CellData] = Field(default_factory=dict)
+        self._n_vars = 0
 
-    _ij_variables: dict[int, Variable] = PrivateAttr(default_factory=dict)
-    _n_vars: int = PrivateAttr(default=0)
-    _ij_connections: dict[tuple[int, int], CellData] = PrivateAttr(default_factory=dict)
-    _ij_text: dict[tuple[int, int], CellData] = PrivateAttr(default_factory=dict)
-    _total_size: int = PrivateAttr(default=0)
-    _setup: bool = PrivateAttr(default=False)
-    _terms: list[str] = PrivateAttr(default_factory=list)
+        self._connections = {}
+        self._ij_connections = {}
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+        self._text = {}
+        self._ij_text = {}
 
-    def model_post_init(self, context: Any) -> None:
-        """Set internal variables after a model is loaded."""
-        for name, var in self.variables:
-            self._ij_variables[self._n_vars] = self.variables[name]
-            self._n_vars += 1
-            self._total_size += var.size
+        self._total_size = 0
+
+        self._setup = False
+
+        self._terms = []
 
     def clear_terms(self):
         self._terms = []
 
     def add_variable(self, name, size=1, text="", color="blue"):
-        self.variables[name] = Variable(size=size, idx=self._n_vars, text=text, color=color)
-        self._ij_variables[self._n_vars] = self.variables[name]
+        self._variables[name] = Variable(size=size, idx=self._n_vars, text=text, color=color)
+        self._ij_variables[self._n_vars] = self._variables[name]
         self._n_vars += 1
 
         self._total_size += size
@@ -447,13 +398,13 @@ class MatrixEquation(BaseModel):
     def connect(self, src, target, text="", color=None, highlight=1):
         if isinstance(target, (list, tuple)):
             for t in target:
-                self.connections[src, t] = CellData(text=text, color=color, highlight=highlight)
+                self._connections[src, t] = CellData(text=text, color=color, highlight=highlight)
         else:
-            self.connections[src, target] = CellData(text=text, color=color, highlight=highlight)
+            self._connections[src, target] = CellData(text=text, color=color, highlight=highlight)
 
     def text(self, src, target, text):
         """Don't connect the src and target, but put some text where a connection would be"""
-        self.text_data[src, target] = CellData(text=text, color=None, highlight=-1)
+        self._text[src, target] = CellData(text=text, color=None, highlight=-1)
 
     def _process_vars(self):
         """Map all the data onto i,j grid"""
@@ -462,15 +413,15 @@ class MatrixEquation(BaseModel):
             return
 
         # deal with connections
-        for (src, target), cell_data in self.connections.items():
-            i_src = self.variables[src].idx
-            i_target = self.variables[target].idx
+        for (src, target), cell_data in self._connections.items():
+            i_src = self._variables[src].idx
+            i_target = self._variables[target].idx
 
             self._ij_connections[i_src, i_target] = cell_data
 
-        for (src, target), cell_data in self.text_data.items():
-            i_src = self.variables[src].idx
-            j_target = self.variables[target].idx
+        for (src, target), cell_data in self._text.items():
+            i_src = self._variables[src].idx
+            j_target = self._variables[target].idx
 
             self._ij_text[i_src, j_target] = cell_data
 
