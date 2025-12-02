@@ -4,7 +4,8 @@ pyXDSM with Pydantic models for validation and serialization
 
 import json
 import os
-from typing import Dict, List, Literal, Optional, Set, Tuple, Union
+from pathlib import Path
+from typing import Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -60,7 +61,7 @@ class SystemNode(BaseModel):
 
     node_name: str = Field(..., description="Unique name for the system")
     style: str = Field(..., description="Type/style of the system")
-    label: Union[str, List[str], Tuple[str, ...]] = Field(..., description="Display label")
+    label: Union[str, list[str], tuple[str, ...]] = Field(..., description="Display label")
     stack: bool = Field(default=False, description="Display as stacked rectangles")
     faded: bool = Field(default=False, description="Fade the component")
     label_width: Optional[int] = Field(default=None, description="Number of items per line")
@@ -95,7 +96,7 @@ class InputNode(BaseModel):
     """Input node at top of XDSM diagram."""
 
     node_name: str = Field(..., description="Internal node name")
-    label: Union[str, List[str], Tuple[str, ...]] = Field(..., description="Display label")
+    label: Union[str, list[str], tuple[str, ...]] = Field(..., description="Display label")
     label_width: Optional[int] = Field(default=None, description="Number of items per line")
     style: str = Field(default="DataIO", description="Node style")
     stack: bool = Field(default=False, description="Display as stacked rectangles")
@@ -108,7 +109,7 @@ class OutputNode(BaseModel):
     """Output node on left or right side of XDSM diagram."""
 
     node_name: str = Field(..., description="Internal node name")
-    label: Union[str, List[str], Tuple[str, ...]] = Field(..., description="Display label")
+    label: Union[str, list[str], tuple[str, ...]] = Field(..., description="Display label")
     label_width: Optional[int] = Field(default=None, description="Number of items per line")
     style: str = Field(default="DataIO", description="Node style")
     stack: bool = Field(default=False, description="Display as stacked rectangles")
@@ -130,7 +131,7 @@ class ConnectionEdge(BaseModel):
 
     src: str = Field(..., description="Source node name")
     target: str = Field(..., description="Target node name")
-    label: Union[str, List[str], Tuple[str, ...]] = Field(..., description="Connection label")
+    label: Union[str, list[str], tuple[str, ...]] = Field(..., description="Connection label")
     label_width: Optional[int] = Field(default=None, description="Number of items per line")
     style: str = Field(default="DataInter", description="Connection style")
     stack: bool = Field(default=False, description="Display as stacked")
@@ -157,13 +158,13 @@ class ConnectionEdge(BaseModel):
 class ProcessChain(BaseModel):
     """Process flow chain between systems."""
 
-    systems: List[str] = Field(..., description="List of system names in order")
+    systems: list[str] = Field(..., description="List of system names in order")
     arrow: bool = Field(default=True, description="Show arrows on process lines")
     faded: bool = Field(default=False, description="Fade the process chain")
 
     @field_validator("systems")
     @classmethod
-    def _validate_systems(cls, v: List[str]) -> List[str]:
+    def _validate_systems(cls, v: list[str]) -> list[str]:
         if len(v) < 2:
             raise ValueError("Process chain must contain at least 2 systems")
         return v
@@ -199,14 +200,14 @@ class XDSM(BaseModel):
     XDSM diagram specification and renderer using Pydantic validation.
     """
 
-    systems: List[SystemNode] = Field(default_factory=list, description="System nodes")
-    connections: List[ConnectionEdge] = Field(default_factory=list, description="Connections")
-    inputs: Dict[str, InputNode] = Field(default_factory=dict, description="Input nodes")
-    outputs: Dict[str, OutputNode] = Field(default_factory=dict, description="Left output nodes")
-    processes: List[ProcessChain] = Field(default_factory=list, description="Process chains")
+    systems: list[SystemNode] = Field(default_factory=list, description="System nodes")
+    connections: list[ConnectionEdge] = Field(default_factory=list, description="Connections")
+    inputs: dict[str, InputNode] = Field(default_factory=dict, description="Input nodes")
+    outputs: dict[str, OutputNode] = Field(default_factory=dict, description="Left output nodes")
+    processes: list[ProcessChain] = Field(default_factory=list, description="Process chains")
 
     use_sfmath: bool = Field(default=True, description="Use sfmath LaTeX package")
-    optional_packages: List[str] = Field(default_factory=list, description="Additional LaTeX packages")
+    optional_packages: list[str] = Field(default_factory=list, description="Additional LaTeX packages")
     auto_fade: AutoFadeConfig = Field(default_factory=AutoFadeConfig, description="Auto-fade configuration")
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -214,8 +215,8 @@ class XDSM(BaseModel):
     def __init__(
         self,
         use_sfmath: bool = True,
-        optional_latex_packages: Optional[Union[str, List[str]]] = None,
-        auto_fade: Optional[Dict[str, str]] = None,
+        optional_latex_packages: Optional[Union[str, list[str]]] = None,
+        auto_fade: Optional[dict[str, str]] = None,
         **data,
     ):
         """Initialize XDSM object
@@ -294,7 +295,7 @@ class XDSM(BaseModel):
         self,
         node_name: str,
         style: str,
-        label: Union[str, List[str], Tuple[str, ...]],
+        label: Union[str, list[str], tuple[str, ...]],
         stack: bool = False,
         faded: bool = False,
         label_width: Optional[int] = None,
@@ -349,7 +350,7 @@ class XDSM(BaseModel):
     def add_input(
         self,
         name: str,
-        label: Union[str, List[str], Tuple[str, ...]],
+        label: Union[str, list[str], tuple[str, ...]],
         label_width: Optional[int] = None,
         style: str = "DataIO",
         stack: bool = False,
@@ -400,7 +401,7 @@ class XDSM(BaseModel):
     def add_output(
         self,
         name: str,
-        label: Union[str, List[str], Tuple[str, ...]],
+        label: Union[str, list[str], tuple[str, ...]],
         label_width: Optional[int] = None,
         style: str = "DataIO",
         stack: bool = False,
@@ -465,7 +466,7 @@ class XDSM(BaseModel):
         self,
         src: str,
         target: str,
-        label: Union[str, List[str], Tuple[str, ...]],
+        label: Union[str, list[str], tuple[str, ...]],
         label_width: Optional[int] = None,
         style: str = "DataInter",
         stack: bool = False,
@@ -533,7 +534,7 @@ class XDSM(BaseModel):
         )
         self.connections.append(connection)
 
-    def add_process(self, systems: List[str], arrow: bool = True, faded: bool = False) -> None:
+    def add_process(self, systems: list[str], arrow: bool = True, faded: bool = False) -> None:
         """
         Add a process line between a list of systems, to indicate process flow.
 
@@ -622,7 +623,7 @@ class XDSM(BaseModel):
             name of the folder, which will be created if it doesn't exist, to put spec files into
         """
 
-        def _label_to_spec(label: Union[str, List[str], Tuple[str, ...]], spec: Set[str]) -> None:
+        def _label_to_spec(label: Union[str, list[str], tuple[str, ...]], spec: set[str]) -> None:
             """Add label variables to spec set."""
             if isinstance(label, str):
                 label = [label]
@@ -661,7 +662,13 @@ class XDSM(BaseModel):
                     f.write(json_str)
 
     def to_json(self, filename: Optional[str] = None) -> str:
-        """Export XDSM specification to JSON."""
+        """
+        Get the JSON representation of the XDSM, and optioally write to file.
+
+        Parameters
+        ----------
+        filename : str
+            The filename to which to write the JSON representation of the XDSM"""
         json_str = self.model_dump_json(indent=2)
         if filename:
             with open(filename, "w") as f:
@@ -669,50 +676,27 @@ class XDSM(BaseModel):
         return json_str
 
     @classmethod
-    def from_json(cls, filename: str) -> "XDSM":
-        """Load XDSM from JSON file."""
-        with open(filename) as f:
-            data = json.load(f)
+    def from_json(cls, s: str) -> "XDSM":
+        """Instantiate an XDSM from the given JSON data.
+
+        Parameters
+        ----------
+        f : str
+            A filename or string of JSON data from which
+            the XDSM should be instantiated.
+        """
+        if Path(s).is_file():
+            with open(s) as f:
+                try:
+                    data = json.load(f)
+                except Exception as e:
+                    raise RuntimeError('Unable to load JSON '
+                                       f'from file: {s}') from e
+        else:
+            try:
+                data = json.loads(s)
+            except (json.JSONDecodeError, TypeError) as e:
+                raise RuntimeError('Given string is neither '
+                                   'an existing filename nor '
+                                   'valid JSON.') from e
         return cls.model_validate(data)
-
-
-# Example usage
-if __name__ == "__main__":
-    # Create XDSM with validation
-    xdsm = XDSM(use_sfmath=True, auto_fade={"connections": "connected"})
-
-    # Add systems - note: use the proper style constants
-    xdsm.add_system("opt", OPT, r"\text{Optimizer}")
-    xdsm.add_system("d1", FUNC, r"\text{Discipline 1}")  # Changed to FUNC which is valid
-    xdsm.add_system("d2", FUNC, r"\text{Discipline 2}")
-    xdsm.add_system("func", FUNC, r"\text{Objective}")
-
-    # Add connections
-    xdsm.connect("opt", "d1", r"x_1")
-    xdsm.connect("opt", "d2", r"x_2")
-    xdsm.connect("d1", "d2", r"y_1")
-    xdsm.connect("d2", "d1", r"y_2")
-    xdsm.connect("d1", "func", r"f_1")
-    xdsm.connect("d2", "func", r"f_2")
-    xdsm.connect("func", "opt", r"F")
-
-    # Add process
-    xdsm.add_process(["opt", "d1", "d2", "func", "opt"])
-
-    # Export to JSON
-    xdsm.to_json("xdsm_spec.json")
-
-    # Write LaTeX files
-    xdsm.write("example_xdsm", build=True)
-
-    # Load from JSON
-    xdsm_loaded = XDSM.from_json("xdsm_spec.json")
-    print("Successfully loaded XDSM from JSON")
-
-    # Validate example - this will raise an error
-    try:
-        bad_xdsm = XDSM()
-        bad_xdsm.add_system("sys1", OPT, "System 1")
-        bad_xdsm.connect("sys1", "sys1", "Invalid")  # Self-connection error
-    except ValueError as e:
-        print(f"Validation caught error: {e}")
