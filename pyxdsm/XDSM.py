@@ -690,13 +690,10 @@ class XDSM(BaseModel):
                 try:
                     data = json.load(f)
                 except Exception as e:
-                    raise RuntimeError('Unable to load JSON '
-                                       f'from file: {s}') from e
+                    raise RuntimeError('Unable to load JSON from file: {s}') from e
         else:
             try:
                 data = json.loads(s)
             except (json.JSONDecodeError, TypeError) as e:
-                raise RuntimeError('Given string is neither '
-                                   'an existing filename nor '
-                                   'valid JSON.') from e
+                raise RuntimeError('Given string is neither an existing filename nor valid JSON.') from e
         return cls.model_validate(data)
