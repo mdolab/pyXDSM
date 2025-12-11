@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 from pyxdsm.xdsm_latex_writer import XDSMLatexWriter
 
@@ -59,15 +59,14 @@ VALID_NODE_STYLES = {
 class SystemNode(BaseModel):
     """System node on the diagonal of XDSM diagram."""
 
-    node_name: str = Field(..., description="Unique name for the system")
-    style: str = Field(..., description="Type/style of the system")
-    label: Union[str, list[str], tuple[str, ...]] = Field(..., description="Display label")
-    stack: bool = Field(default=False, description="Display as stacked rectangles")
-    faded: bool = Field(default=False, description="Fade the component")
-    label_width: Optional[int] = Field(default=None, description="Number of items per line")
-    spec_name: Optional[str] = Field(default=None, description="Name for spec file")
+    node_name: str
+    style: str
+    label: Union[str, list[str], tuple[str, ...]]
+    stack: bool = False
+    faded: bool = False
+    label_width: Optional[int] = None
+    spec_name: Optional[str] = None
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @field_validator("node_name")
     @classmethod
@@ -95,58 +94,39 @@ class SystemNode(BaseModel):
 class InputNode(BaseModel):
     """Input node at top of XDSM diagram."""
 
-    node_name: str = Field(..., description="Internal node name")
-    label: Union[str, list[str], tuple[str, ...]] = Field(..., description="Display label")
-    label_width: Optional[int] = Field(default=None, description="Number of items per line")
-    style: str = Field(default="DataIO", description="Node style")
-    stack: bool = Field(default=False, description="Display as stacked rectangles")
-    faded: bool = Field(default=False, description="Fade the component")
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    node_name: str
+    label: Union[str, list[str], tuple[str, ...]]
+    label_width: Optional[int] = None
+    style: str = "DataIO"
+    stack: bool = False
+    faded: bool = False
 
 
 class OutputNode(BaseModel):
     """Output node on left or right side of XDSM diagram."""
 
-    node_name: str = Field(..., description="Internal node name")
-    label: Union[str, list[str], tuple[str, ...]] = Field(..., description="Display label")
-    label_width: Optional[int] = Field(default=None, description="Number of items per line")
-    style: str = Field(default="DataIO", description="Node style")
-    stack: bool = Field(default=False, description="Display as stacked rectangles")
-    faded: bool = Field(default=False, description="Fade the component")
-    side: Side = Field(..., description="Which side (left or right)")
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    @field_validator("side")
-    @classmethod
-    def _validate_side(cls, v: str) -> str:
-        if v not in ["left", "right"]:
-            raise ValueError("Side must be 'left' or 'right'")
-        return v
+    node_name: str
+    label: Union[str, list[str], tuple[str, ...]]
+    label_width: Optional[int] = None
+    style: ConnectionStyle = "DataIO"
+    stack: bool = False
+    faded: bool = False
+    side: Side = "right"
 
 
 class ConnectionEdge(BaseModel):
     """Connection between two nodes."""
 
-    src: str = Field(..., description="Source node name")
-    target: str = Field(..., description="Target node name")
-    label: Union[str, list[str], tuple[str, ...]] = Field(..., description="Connection label")
-    label_width: Optional[int] = Field(default=None, description="Number of items per line")
-    style: str = Field(default="DataInter", description="Connection style")
-    stack: bool = Field(default=False, description="Display as stacked")
-    faded: bool = Field(default=False, description="Fade the connection")
-    src_faded: bool = Field(default=False, description="Source node is faded")
-    target_faded: bool = Field(default=False, description="Target node is faded")
+    src: str
+    target: str
+    label: Union[str, list[str], tuple[str, ...]]
+    label_width: Optional[int] = None
+    style: ConnectionStyle = "DataInter"
+    stack: bool = False
+    faded: bool = False
+    src_faded: bool = False
+    target_faded: bool = False
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    @field_validator("label_width")
-    @classmethod
-    def _validate_label_width(cls, v: Optional[int]) -> Optional[int]:
-        if v is not None and not isinstance(v, int):
-            raise ValueError("label_width must be an integer")
-        return v
 
     @model_validator(mode="after")
     def _validate_no_self_connection(self):
@@ -158,9 +138,9 @@ class ConnectionEdge(BaseModel):
 class ProcessChain(BaseModel):
     """Process flow chain between systems."""
 
-    systems: list[str] = Field(..., description="List of system names in order")
-    arrow: bool = Field(default=True, description="Show arrows on process lines")
-    faded: bool = Field(default=False, description="Fade the process chain")
+    systems: list[str]
+    arrow: bool = True
+    faded: bool = False
 
     @field_validator("systems")
     @classmethod
@@ -173,10 +153,10 @@ class ProcessChain(BaseModel):
 class AutoFadeConfig(BaseModel):
     """Configuration for automatic fading of components."""
 
-    inputs: AutoFadeOption = Field(default="none", description="Auto-fade inputs")
-    outputs: AutoFadeOption = Field(default="none", description="Auto-fade outputs")
-    connections: AutoFadeOption = Field(default="none", description="Auto-fade connections")
-    processes: AutoFadeOption = Field(default="none", description="Auto-fade processes")
+    inputs: AutoFadeOption = "none"
+    outputs: AutoFadeOption = "none"
+    connections: AutoFadeOption = "none"
+    processes: AutoFadeOption = "none"
 
     @field_validator("inputs", "outputs", "processes")
     @classmethod
@@ -200,17 +180,16 @@ class XDSM(BaseModel):
     XDSM diagram specification and renderer using Pydantic validation.
     """
 
-    systems: list[SystemNode] = Field(default_factory=list, description="System nodes")
-    connections: list[ConnectionEdge] = Field(default_factory=list, description="Connections")
-    inputs: dict[str, InputNode] = Field(default_factory=dict, description="Input nodes")
-    outputs: dict[str, OutputNode] = Field(default_factory=dict, description="Left output nodes")
-    processes: list[ProcessChain] = Field(default_factory=list, description="Process chains")
+    systems: list[SystemNode] = []
+    connections: list[ConnectionEdge] = []
+    inputs: dict[str, InputNode] = {}
+    outputs: dict[str, OutputNode] = {}
+    processes: list[ProcessChain] = []
 
-    use_sfmath: bool = Field(default=True, description="Use sfmath LaTeX package")
-    optional_packages: list[str] = Field(default_factory=list, description="Additional LaTeX packages")
-    auto_fade: AutoFadeConfig = Field(default_factory=AutoFadeConfig, description="Auto-fade configuration")
+    use_sfmath: bool = True
+    optional_packages: list[str] = []
+    auto_fade: AutoFadeConfig = AutoFadeConfig()
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(
         self,
