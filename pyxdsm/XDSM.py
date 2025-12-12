@@ -55,7 +55,6 @@ class SystemNode(BaseModel):
     label_width: Optional[int] = None
     spec_name: Optional[str] = None
 
-
     @field_validator("node_name")
     @classmethod
     def _validate_node_name(cls, v: str) -> str:
@@ -63,8 +62,8 @@ class SystemNode(BaseModel):
             raise ValueError("Node name cannot be empty")
         return v.strip()
 
-    @model_validator(mode='after')
-    def set_defaults(self) -> 'SystemNode':
+    @model_validator(mode="after")
+    def set_defaults(self) -> "SystemNode":
         """Set spec_name to node_name if not provided."""
         if self.spec_name is None:
             self.spec_name = self.node_name
@@ -106,7 +105,6 @@ class ConnectionEdge(BaseModel):
     faded: bool = False
     src_faded: bool = False
     target_faded: bool = False
-
 
     @model_validator(mode="after")
     def _validate_no_self_connection(self):
@@ -170,7 +168,7 @@ class XDSM(BaseModel):
     optional_packages: Union[str, list[str]] = []
     auto_fade: Union[dict[str, str], AutoFadeConfig] = AutoFadeConfig()
 
-    @field_validator('optional_packages', mode='before')
+    @field_validator("optional_packages", mode="before")
     @classmethod
     def _validate_optional_packages(cls, v):
         """Accept string or list, convert to list."""
@@ -180,7 +178,7 @@ class XDSM(BaseModel):
             return [v]
         return v
 
-    @field_validator('auto_fade', mode='before')
+    @field_validator("auto_fade", mode="before")
     @classmethod
     def _validate_auto_fade(cls, v):
         """Accept dict or AutoFadeConfig, convert to AutoFadeConfig."""
@@ -619,10 +617,10 @@ class XDSM(BaseModel):
                 try:
                     data = json.load(f)
                 except Exception as e:
-                    raise RuntimeError('Unable to load JSON from file: {s}') from e
+                    raise RuntimeError("Unable to load JSON from file: {s}") from e
         else:
             try:
                 data = json.loads(s)
             except (json.JSONDecodeError, TypeError) as e:
-                raise RuntimeError('Given string is neither an existing filename nor valid JSON.') from e
+                raise RuntimeError("Given string is neither an existing filename nor valid JSON.") from e
         return cls.model_validate(data)
