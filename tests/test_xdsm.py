@@ -397,24 +397,22 @@ class TestXDSM(unittest.TestCase):
         self.assertEqual(original_dict, loaded_dict)
 
         # Corrupt the file to test a json load failure
-        shutil.copyfile(json_file, 'corrupt.json')
-        with open('corrupt.json', 'a') as f:
-            f.write(':lk23jr22091k')
+        shutil.copyfile(json_file, "corrupt.json")
+        with open("corrupt.json", "a") as f:
+            f.write(":lk23jr22091k")
 
         with self.assertRaises(RuntimeError) as e:
-            XDSM.from_json('corrupt.json')
+            XDSM.from_json("corrupt.json")
 
-        expected = ('Unable to load JSON from file')
+        expected = "Unable to load JSON from file"
         self.assertIn(expected, str(e.exception))
 
     def test_invalid_json(self):
-
         # Load from invalid JSON
         with self.assertRaises(RuntimeError) as e:
-            XDSM.from_json(':11234_invalid_json')
+            XDSM.from_json(":11234_invalid_json")
 
-        expected = ('Given string is neither an '
-                    'existing filename nor valid JSON.')
+        expected = "Given string is neither an existing filename nor valid JSON."
         self.assertIn(expected, str(e.exception))
 
 
