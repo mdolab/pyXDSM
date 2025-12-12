@@ -24,24 +24,12 @@ METAMODEL = "Metamodel"
 LEFT = "left"
 RIGHT = "right"
 
-# Type definitions - these match the TikZ styles in diagram_styles
-NodeType = Literal[
-    "Optimization",
-    "SubOptimization",
-    "MDA",
-    "DOE",
-    "ImplicitFunction",
-    "Function",
-    "Group",
-    "ImplicitGroup",
-    "Metamodel",
-]
 ConnectionStyle = Literal["DataInter", "DataIO"]
 Side = Literal["left", "right"]
 AutoFadeOption = Literal["all", "connected", "none", "incoming", "outgoing"]
 
 # Valid TikZ node styles (from diagram_styles.tikzstyles)
-VALID_NODE_STYLES = {
+NodeStyle = Literal[
     "Optimization",
     "SubOptimization",
     "MDA",
@@ -53,14 +41,14 @@ VALID_NODE_STYLES = {
     "Metamodel",
     "DataInter",
     "DataIO",
-}
+]
 
 
 class SystemNode(BaseModel):
     """System node on the diagonal of XDSM diagram."""
 
     node_name: str
-    style: str
+    style: NodeStyle
     label: Union[str, list[str], tuple[str, ...]]
     stack: bool = False
     faded: bool = False
@@ -75,20 +63,12 @@ class SystemNode(BaseModel):
             raise ValueError("Node name cannot be empty")
         return v.strip()
 
-    @field_validator("style")
-    @classmethod
-    def _validate_style(cls, v: str) -> str:
-        """Validate that style is a known TikZ style."""
-        if v not in VALID_NODE_STYLES:
-            raise ValueError(
-                f"Style '{v}' is not a valid TikZ style. Valid styles are: {', '.join(sorted(VALID_NODE_STYLES))}"
-            )
-        return v
-
-    def __init__(self, **data):
-        super().__init__(**data)
+    @model_validator(mode='after')
+    def set_defaults(self) -> 'SystemNode':
+        """Set spec_name to node_name if not provided."""
         if self.spec_name is None:
             self.spec_name = self.node_name
+        return self
 
 
 class InputNode(BaseModel):
@@ -187,58 +167,28 @@ class XDSM(BaseModel):
     processes: list[ProcessChain] = []
 
     use_sfmath: bool = True
-    optional_packages: list[str] = []
-    auto_fade: AutoFadeConfig = AutoFadeConfig()
+    optional_packages: Union[str, list[str]] = []
+    auto_fade: Union[dict[str, str], AutoFadeConfig] = AutoFadeConfig()
 
+    @field_validator('optional_packages', mode='before')
+    @classmethod
+    def _validate_optional_packages(cls, v):
+        """Accept string or list, convert to list."""
+        if v is None:
+            return []
+        if isinstance(v, str):
+            return [v]
+        return v
 
-    def __init__(
-        self,
-        use_sfmath: bool = True,
-        optional_latex_packages: Optional[Union[str, list[str]]] = None,
-        auto_fade: Optional[dict[str, str]] = None,
-        **data,
-    ):
-        """Initialize XDSM object
-
-        Parameters
-        ----------
-        use_sfmath : bool, optional
-            Whether to use the sfmath latex package, by default True
-        optional_latex_packages : string or list of strings, optional
-            Additional latex packages to use when creating the pdf and tex versions of the diagram, by default None
-        auto_fade : dictionary, optional
-            Controls the automatic fading of inputs, outputs, connections and processes based on the fading of diagonal blocks. For each key "inputs", "outputs", "connections", and "processes", the value can be one of:
-            - "all" : fade all blocks
-            - "connected" : fade all components connected to faded blocks (both source and target must be faded for a conncection to be faded)
-            - "none" : do not auto-fade anything
-            For connections there are two additional options:
-            - "incoming" : Fade all connections that are incoming to faded blocks.
-            - "outgoing" : Fade all connections that are outgoing from faded blocks.
-        """
-        # Only process if these aren't already in data (from deserialization)
-        if "optional_packages" not in data:
-            # Process optional packages
-            packages = []
-            if optional_latex_packages is not None:
-                if isinstance(optional_latex_packages, str):
-                    packages = [optional_latex_packages]
-                elif isinstance(optional_latex_packages, list):
-                    packages = optional_latex_packages
-                else:
-                    raise ValueError("optional_latex_packages must be a string or list of strings")
-            data["optional_packages"] = packages
-
-        if "auto_fade" not in data:
-            # Process auto_fade
-            fade_config = AutoFadeConfig()
-            if auto_fade is not None:
-                fade_config = AutoFadeConfig(**auto_fade)
-            data["auto_fade"] = fade_config
-
-        if "use_sfmath" not in data:
-            data["use_sfmath"] = use_sfmath
-
-        super().__init__(**data)
+    @field_validator('auto_fade', mode='before')
+    @classmethod
+    def _validate_auto_fade(cls, v):
+        """Accept dict or AutoFadeConfig, convert to AutoFadeConfig."""
+        if v is None:
+            return AutoFadeConfig()
+        if isinstance(v, dict):
+            return AutoFadeConfig(**v)
+        return v
 
     @model_validator(mode="before")
     @classmethod
