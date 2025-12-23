@@ -50,10 +50,10 @@ ProcessChain
    :undoc-members:
    :show-inheritance:
 
-AutoFade
-^^^^^^^^
+AutoFadeConfig
+^^^^^^^^^^^^^^
 
-.. autopydantic_model:: pyxdsm.XDSM.AutoFade
+.. autopydantic_model:: pyxdsm.XDSM.AutoFadeConfig
    :members:
    :undoc-members:
    :show-inheritance:
