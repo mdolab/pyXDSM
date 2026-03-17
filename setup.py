@@ -26,7 +26,8 @@ setup(
         "pyxdsm",
     ],
     package_data={"pyxdsm": ["*.tex"]},
-    install_requires=["numpy>=1.21"],
+    python_requires=">=3.11",
+    install_requires=["numpy>=1.25"],
     python_requires=">=3",
     classifiers=[
         "Operating System :: OS Independent",
