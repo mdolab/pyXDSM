@@ -59,7 +59,7 @@ class TestXDSM(unittest.TestCase):
         try:
             x.connect("D1", "D2", r"\mathcal{R}(y_1)", "foobar")
         except ValueError as err:
-            self.assertEquals(str(err), "label_width argument must be an integer")
+            self.assertEqual(str(err), "label_width argument must be an integer")
         else:
             self.fail("Expected ValueError")
 
