@@ -4,7 +4,6 @@ import shutil
 import tempfile
 import subprocess
 from pyxdsm.XDSM import XDSM, OPT, FUNC, SOLVER, LEFT, RIGHT
-from numpy.distutils.exec_command import find_executable
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -44,7 +43,7 @@ class TestXDSM(unittest.TestCase):
             self.assertTrue(os.path.isfile(f + ".tikz"))
             self.assertTrue(os.path.isfile(f + ".tex"))
             # look for the pdflatex executable
-            pdflatex = find_executable("pdflatex") is not None
+            pdflatex = shutil.which("pdflatex") is not None
             # if no pdflatex, then do not assert that the pdf was compiled
             self.assertTrue(not pdflatex or os.path.isfile(f + ".pdf"))
         subprocess.run(["python", "mat_eqn.py"], check=True)
